@@ -14,7 +14,7 @@ export default function Hero() {
           <span className="relative block w-2 h-2 rounded-full bg-z-blue"></span>
         </div>
         <span className="font-sub text-z-blue text-[10px] font-bold uppercase tracking-[0.2em]">
-          Disponible · Missions freelance
+          Disponible · 24h/24 et 7J/7
         </span>
       </div>
 
