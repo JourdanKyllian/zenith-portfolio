@@ -18,7 +18,7 @@ export default async function Home() {
       <Navbar />
       <Hero />
 
-      <section className="max-w-7xl mx-auto px-6 py-32">
+      <section className="max-w-7xl mx-auto px-6 py-16">
         <div className="flex flex-col md:flex-row justify-between items-end mb-16 gap-8">
           <div className="max-w-xl">
             <span className="font-sub text-z-blue text-[10px] font-bold uppercase tracking-[0.4em] mb-4 block">Sélection</span>

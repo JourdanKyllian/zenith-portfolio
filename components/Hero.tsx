@@ -32,7 +32,7 @@ export default function Hero() {
       </p>
 
       <div className="animate-fade-up flex flex-wrap items-center justify-center gap-4">
-        <a href="#projet" className="btn-blue px-7 py-3.5 rounded-md flex items-center gap-3 text-sm transition-transform hover:scale-105">
+        <a href="/projet" className="btn-blue px-7 py-3.5 rounded-md flex items-center gap-3 text-sm transition-transform hover:scale-105">
           <Eye size={16} />
           Explorer les projets
         </a>

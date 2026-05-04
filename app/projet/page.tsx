@@ -10,14 +10,13 @@ export default async function GalleryPage() {
     .order('created_at', { ascending: false });
 
   if (error) {
-    console.error("Détails de l'erreur Supabase :", error.message, error.hint);
-    
     return (
       <div className="pt-40 text-center text-z-muted">
-        Erreur : {error.message} (Vérifie ton terminal)
+        Erreur de chargement des projets.
       </div>
     );
   }
 
+  // Cast pour s'assurer que le typage est correct avec la jointure categorie
   return <GalleryClient initialProjets={projets as unknown as Projet[]} />;
 }
