@@ -3,7 +3,7 @@ import Navbar from '../components/Navbar';
 import Hero from '../components/Hero';
 import ProjectCard from '../components/ProjectCard';
 import Link from 'next/link';
-import { Project } from '@/types';
+import { Projet } from '@/types';
 
 export default async function Home() {
   const { data: highlights } = await supabase
@@ -37,7 +37,7 @@ export default async function Home() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
           {highlights?.map((p) => (
-            <ProjectCard key={p.id} project={p as unknown as Project} />
+            <ProjectCard key={p.id} project={p as unknown as Projet} />
           ))}
         </div>
       </section>

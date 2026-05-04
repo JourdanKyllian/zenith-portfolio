@@ -3,9 +3,9 @@
 import { useState } from 'react';
 import Navbar from '../../components/Navbar';
 import ProjectCard from '../../components/ProjectCard';
-import { Project } from '@/types';
+import { Projet } from '@/types';
 
-export default function GalleryClient({ initialProjects }: { initialProjects: Project[] }) {
+export default function GalleryClient({ initialProjets }: { initialProjets: Projet[] }) {
   const [activeFilter, setActiveFilter] = useState('all');
 
   const categories = [
@@ -17,8 +17,8 @@ export default function GalleryClient({ initialProjects }: { initialProjects: Pr
   ];
 
   const filteredProjects = activeFilter === 'all' 
-    ? initialProjects 
-    : initialProjects.filter(p => p.categories.slug === activeFilter);
+    ? initialProjets 
+    : initialProjets.filter(p => p.categorie?.slug === activeFilter);
 
   return (
     <main className="min-h-screen bg-z-bg text-z-text pb-20 overflow-x-hidden">
@@ -49,9 +49,9 @@ export default function GalleryClient({ initialProjects }: { initialProjects: Pr
         </header>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {filteredProjects.map((project) => (
-            <div key={project.id} className="animate-fade-up">
-              <ProjectCard project={project} />
+          {filteredProjects?.map((projet) => (
+            <div key={projet.id} className="animate-fade-up">
+              <ProjectCard project={projet} />
             </div>
           ))}
         </div>
