@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Rajdhani, Roboto, Montserrat } from "next/font/google";
 import "./globals.css";
+import { Analytics } from '@vercel/analytics/react';
+import { SpeedInsights } from "@vercel/speed-insights/react";
 
 const rajdhani = Rajdhani({ 
   subsets: ["latin"], 
@@ -31,9 +33,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="fr" className="scroll-smooth">
+    <html lang="fr" data-scroll-behavior="smooth">
       <body className={`${rajdhani.variable} ${roboto.variable} ${montserrat.variable} antialiased`}>
         {children}
+        <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );
