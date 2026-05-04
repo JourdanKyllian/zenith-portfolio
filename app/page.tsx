@@ -27,7 +27,7 @@ export default async function Home() {
             </h2>
           </div>
           
-          <Link href="/projets" className="group flex items-center gap-4 font-sub text-[11px] font-bold uppercase tracking-[0.2em] text-z-muted hover:text-z-blue transition-all">
+          <Link href="/projet" className="group flex items-center gap-4 font-sub text-[11px] font-bold uppercase tracking-[0.2em] text-z-muted hover:text-z-blue transition-all">
             Explorer toute la galerie
             <div className="w-12 h-12 rounded-full border border-z-blue/20 flex items-center justify-center group-hover:bg-z-blue/10 group-hover:border-z-blue transition-all">
               <span className="text-xl">→</span>
