@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Rajdhani, Roboto, Montserrat } from "next/font/google";
 import "./globals.css";
 import { Analytics } from '@vercel/analytics/next';
-import { SpeedInsights } from "@vercel/speed-insights/react";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 const rajdhani = Rajdhani({ 
   subsets: ["latin"], 
