@@ -15,7 +15,7 @@ export async function sendEmail(formData: FormData) {
       from: 'Zenith Production <onboarding@resend.dev>', // À changer après config domaine
       to: 'zenithprod.contact@gmail.com',
       subject: `Nouveau Projet : ${type} - ${name}`,
-      replyTo: email, // Correction : replyTo au lieu de reply_to
+      replyTo: email,
       text: `Nom : ${name}\nEmail : ${email}\nType : ${type}\n\nMessage :\n${message}`,
     });
 
