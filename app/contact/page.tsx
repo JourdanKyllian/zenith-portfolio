@@ -1,15 +1,9 @@
 "use client";
 
 import { useState } from 'react';
-import { Mail, MessageSquare, Send, ExternalLink, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Mail, MessageSquare, Send, CheckCircle2, AlertCircle } from 'lucide-react';
 import Navbar from '../../components/Navbar';
 import { sendEmail } from '../actions/sendEmail';
-
-const YoutubeIcon = ({ size = 16 }: { size?: number }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor">
-    <path d="M21.8 8s-.2-1.4-.8-2c-.8-.8-1.6-.8-2-.9C16.8 5 12 5 12 5s-4.8 0-7 .1c-.4.1-1.2.1-2 .9-.6.6-.8 2-.8 2S2 9.6 2 11.2v1.5c0 1.6.2 3.2.2 3.2s.2 1.4.8 2c.8.8 1.8.7 2.2.8C6.8 19 12 19 12 19s4.8 0 7-.2c.4-.1 1.2-.1 2-.9.6-.6.8-2 .8-2s.2-1.6.2-3.2v-1.5C22 9.6 21.8 8 21.8 8zM9.7 15.5v-5.6l5.6 2.8-5.6 2.8z"/>
-  </svg>
-);
 
 export default function ContactPage() {
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
@@ -24,7 +18,7 @@ export default function ContactPage() {
     if (result.success) {
       setStatus('success');
       (event.target as HTMLFormElement).reset();
-      setTimeout(() => setStatus('idle'), 5000); // Reset le bouton après 5s
+      setTimeout(() => setStatus('idle'), 5000);
     } else {
       setStatus('error');
     }
@@ -79,6 +73,10 @@ export default function ContactPage() {
             {/* Colonne Droite : Formulaire */}
             <div className="lg:col-span-3 p-8 sm:p-10 rounded-2xl bg-z-card border border-z-border shadow-2xl">
               <form onSubmit={handleSubmit} className="space-y-6">
+                
+                {/* PROTECTION ANTI-BOT (Honeypot) - Invisible */}
+                <input type="text" name="verify_phone" className="hidden" tabIndex={-1} autoComplete="off" />
+
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                   <div className="space-y-2">
                     <label className="text-[10px] uppercase font-bold tracking-widest text-z-muted ml-1">Nom complet</label>
