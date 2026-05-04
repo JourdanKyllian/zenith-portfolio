@@ -8,7 +8,6 @@ export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
-  // Bloquer le défilement de la page quand le menu est ouvert
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden';
@@ -35,7 +34,6 @@ export default function Navbar() {
     }`}>
       <div className="max-w-7xl mx-auto px-6 flex items-center justify-between h-16">
         
-        {/* LOGO (Toujours au-dessus de tout) */}
         <Link href="/" className="flex items-center gap-3 z-1001" onClick={() => setIsOpen(false)}>
           <div className="w-9 h-9 rounded-full border border-z-blue/50 bg-z-blue/10 flex items-center justify-center">
             <span className="text-z-blue font-bold text-lg">Z</span>
@@ -71,7 +69,7 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* MOBILE MENU : FOND TOTALEMENT NOIR ET OPAQUE */}
+      {/* MOBILE MENU */}
       <div className={`fixed inset-0 w-full h-screen bg-z-bg z-1000 transition-transform duration-500 ease-in-out md:hidden ${
         isOpen ? 'translate-y-0' : '-translate-y-full'
       }`}>

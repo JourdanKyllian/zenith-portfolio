@@ -1,16 +1,15 @@
 import ProjectCard from './ProjectCard';
-import { Project } from '@/types';
+import { Projet } from '@/types';
 
 interface ProjectSectionProps {
   id: string;
   title: string;
   description?: string;
-  projects: Project[];
-  slug: string; // Utilisé pour appliquer les styles spécifiques (couleurs)
+  projects: Projet[];
+  slug: string;
 }
 
 export default function ProjectSection({ id, title, description, projects, slug }: ProjectSectionProps) {
-  // Configuration des styles selon le slug pour garder la cohérence visuelle
   const styles: Record<string, { label: string; sep: string }> = {
     perso: { label: "text-z-blue", sep: "border-z-blue/30" },
     pro: { label: "opacity-70", sep: "opacity-50 border-z-silver/20" },
@@ -26,7 +25,6 @@ export default function ProjectSection({ id, title, description, projects, slug 
         <p className={`cat-label mb-3 ${currentStyle.label}`}>Catégorie</p>
         
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
-          {/* Correctif Responsive : text-3xl sur mobile, sm:text-5xl ensuite */}
           <h2 className="font-display font-bold text-3xl sm:text-5xl text-z-text uppercase tracking-wide wrap-break-word max-w-full">
             {title}
           </h2>

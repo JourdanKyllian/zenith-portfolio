@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { FolderOpen, ExternalLink } from 'lucide-react';
-import { Project } from '@/types';
+import { Projet } from '@/types';
 
 const YoutubeIcon = ({ size = 14 }: { size?: number }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor">
@@ -8,7 +8,7 @@ const YoutubeIcon = ({ size = 14 }: { size?: number }) => (
   </svg>
 );
 
-export default function ProjectCard({ project }: { project: Project }) {
+export default function ProjectCard({ project }: { project: Projet }) {
   const badgeStyles: Record<string, string> = {
     perso: "bg-blue-500/15 text-z-blue border-z-blue/30",
     pro: "bg-gray-400/12 text-z-silver border-z-silver/25",
@@ -30,9 +30,11 @@ export default function ProjectCard({ project }: { project: Project }) {
 
       <div className="p-5">
         <div className="flex items-center justify-between mb-4">
-          <span className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider border ${badgeStyles[project.categories.slug] || ""}`}>
-            {project.categories.nom}
+          {/* CORRECTION ICI : project.categorie (singulier) et .name (selon ta BDD) */}
+          <span className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider border ${badgeStyles[project.categorie?.slug] || ""}`}>
+            {project.categorie?.name}
           </span>
+          
           <div className="flex items-center gap-2">
             {project.youtube_url && <div className="text-z-muted"><YoutubeIcon size={14} /></div>}
             {project.drive_url && <div className="text-z-muted"><ExternalLink size={14} /></div>}
