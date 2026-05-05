@@ -18,9 +18,9 @@ export default function Hero() {
         </span>
       </div>
 
-      <h1 className="animate-fade-up font-display font-bold tracking-wide mb-4 leading-none text-[clamp(3rem,9vw,7rem)]">
-        <span className="text-z-text">ZENITH</span><br/>
-        <span className="text-glow">PRODUCTION</span>
+      <h1 className="animate-fade-up font-display tracking-wide mb-4 leading-none text-[clamp(3rem,9vw,7rem)]">
+        <span className="font-martyric text-z-text">ZENITH</span><br/>
+        <span className="font-bold text-glow">PRODUCTION</span>
       </h1>
 
       <p className="animate-fade-up font-sub font-semibold tracking-[0.35em] uppercase text-z-muted text-sm mb-4">

@@ -4,6 +4,7 @@ import Hero from '../components/Hero';
 import ProjectCard from '../components/ProjectCard';
 import Link from 'next/link';
 import { Projet } from '@/types';
+import Footer from '../components/Footer';
 
 export default async function Home() {
   const { data: highlights } = await supabase
@@ -56,9 +57,6 @@ export default async function Home() {
         </div>
       </section>
 
-      <footer className="py-12 text-center opacity-20 text-[9px] uppercase tracking-[0.4em]">
-        © 2026 ZENITH PRODUCTION · TOUS DROITS RÉSERVÉS
-      </footer>
     </main>
   );
 }

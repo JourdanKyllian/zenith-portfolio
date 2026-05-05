@@ -1,7 +1,18 @@
 @import "tailwindcss";
 
+@font-face {
+  font-family: 'Martyric';
+  src: url('/fonts/Martyric.ttf') format('truetype');
+  font-display: swap;
+}
+
+@layer utilities {
+  .font-martyric {
+    font-family: 'Martyric', sans-serif !important;
+  }
+}
+
 @theme {
-  /* Polices liées à layout.tsx */
   --font-display: var(--font-rajdhani);
   --font-sub: var(--font-montserrat);
   --font-body: var(--font-roboto);
@@ -19,7 +30,7 @@
 
 @layer base {
   html {
-    background: #040407; /*[cite: 1] */
+    background: #040407;
     scroll-behavior: smooth;
   }
   body {
@@ -29,7 +40,7 @@
     min-height: 100vh;
     overflow-x: hidden;
   }
-  /* Texture de grain sur tout le site[cite: 1] */
+  /* Texture de grain sur tout le site */
   body::before {
     content: '';
     position: fixed; inset: 0; z-index: 0;
@@ -40,7 +51,7 @@
 }
 
 @layer components {
-  /* Hero & Backgrounds[cite: 1] */
+  /* Hero & Backgrounds */
   .hero-bg {
     background:
       radial-gradient(ellipse 80% 55% at 50% -5%, rgba(0,123,255,0.18) 0%, transparent 65%),
@@ -61,13 +72,13 @@
   .diag-lines::before { left: 20%; transform: rotate(15deg); top: -50%; }
   .diag-lines::after  { right: 25%; transform: rotate(-12deg); top: -30%; opacity: 0.5; }
 
-  /* Effets de texte[cite: 1] */
+  /* Effets de texte */
   .text-glow {
     color: #007BFF;
     text-shadow: 0 0 20px rgba(0,123,255,0.7), 0 0 60px rgba(0,123,255,0.3);
   }
 
-  /* Cartes de projets[cite: 1] */
+  /* Cartes de projets */
   .project-card {
     background: #0A0A12;
     border: 1px solid #151522;
@@ -93,7 +104,7 @@
   }
   .project-card:hover .thumb-wrap img { transform: scale(1.06); filter: saturate(1.1) brightness(0.8); }
 
-  /* Boutons & Badges[cite: 1] */
+  /* Boutons & Badges */
   .btn-blue {
     background: #007BFF;
     color: #fff;
@@ -114,6 +125,6 @@
   .action-btn:hover { color: #007BFF; border-color: rgba(0,123,255,0.5); transform: scale(1.1); }
 }
 
-/* Animations[cite: 1] */
+/* Animations */
 @keyframes pingCustom { 0%,100%{transform:scale(1);opacity:.8} 50%{transform:scale(1.8);opacity:0} }
 .ping-dot { animation: pingCustom 1.8s ease-in-out infinite; }
