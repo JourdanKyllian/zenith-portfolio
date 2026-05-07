@@ -19,23 +19,23 @@ export default function Footer() {
 
         {/* SOCIAL BUBBLES */}
         <div className="flex items-center gap-3">
-          <SocialBubble href="https://linkedin.com" ariaLabel="LinkedIn">
+          <SocialBubble href="https://www.linkedin.com/in/gabin-husson-08244521b/" ariaLabel="LinkedIn">
             <LinkedinIcon size={18} />
           </SocialBubble>
 
-          <SocialBubble href="https://instagram.com" ariaLabel="Instagram">
+          <SocialBubble href="https://www.instagram.com/zenithproduction.off/" ariaLabel="Instagram">
             <InstagramIcon size={18} />
           </SocialBubble>
 
-          <SocialBubble href="https://facebook.com" ariaLabel="Facebook">
+          <SocialBubble href="https://www.facebook.com/profile.php?id=61579746212800" ariaLabel="Facebook">
             <FacebookIcon size={18} />
           </SocialBubble>
 
-          <SocialBubble href="https://tiktok.com" ariaLabel="TikTok">
+          <SocialBubble href="https://www.tiktok.com/@gabzerguigzer/video/7383765160030244129" ariaLabel="TikTok">
             <TiktokIcon size={18} />
           </SocialBubble>
 
-          <SocialBubble href="https://youtube.com" ariaLabel="YouTube">
+          <SocialBubble href="https://www.youtube.com/@GabzerEtGuigzer" ariaLabel="YouTube">
             <YoutubeIcon size={18} />
           </SocialBubble>
         </div>

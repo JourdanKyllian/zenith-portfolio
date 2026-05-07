@@ -35,9 +35,7 @@ export const YoutubeIcon = ({ size = 24, className = "" }: IconProps) => (
 );
 
 export const TiktokIcon = ({ size = 24, className = "" }: IconProps) => (
-  <svg viewBox="0 0 24 24" width={size} height={size} className={className} stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round">
+  <svg viewBox="0 0 24 24" width={size} height={size} className={className} stroke="currentColor" strokeWidth="3" fill="none" strokeLinecap="round" strokeLinejoin="round">
     <path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5" />
-    <path d="M15 8v10a5 5 0 1 1-5-5" />
-    <path d="M15 2v4a5 5 0 0 0 5 5v-4a2 2 0 0 1-2-2V2Z" />
   </svg>
 );
