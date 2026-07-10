@@ -61,8 +61,10 @@ export async function getProjectAssetsFromDrive(folderUrlOrId: string): Promise<
             alt: 'media',
           });
           
-          if (typeof fileContent.data === 'string') {
-            youtubeUrl = fileContent.data.trim();
+          const rawData = fileContent.data as any;
+          
+          if (typeof rawData === 'string') {
+            youtubeUrl = rawData.trim();
           }
         } catch (e) {
           console.error("Impossible de lire le fichier youtube.txt", e);
