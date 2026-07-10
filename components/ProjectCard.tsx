@@ -1,12 +1,14 @@
 import Link from 'next/link';
-import { FolderOpen, ExternalLink } from 'lucide-react';
+import { FolderOpen, ExternalLink, Video } from 'lucide-react';
 import { Projet } from '@/types';
 
-const YoutubeIcon = ({ size = 14 }: { size?: number }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor">
-    <path d="M21.8 8s-.2-1.4-.8-2c-.8-.8-1.6-.8-2-.9C16.8 5 12 5 12 5s-4.8 0-7 .1c-.4.1-1.2.1-2 .9-.6.6-.8 2-.8 2S2 9.6 2 11.2v1.5c0 1.6.2 3.2.2 3.2s.2 1.4.8 2c.8.8 1.8.7 2.2.8C6.8 19 12 19 12 19s4.8 0 7-.2c.4-.1 1.2-.1 2-.9.6-.6.8-2 .8-2s.2-1.6.2-3.2v-1.5C22 9.6 21.8 8 21.8 8zM9.7 15.5v-5.6l5.6 2.8-5.6 2.8z"/>
-  </svg>
-);
+// Fonction utilitaire pour extraire l'ID vidéo YouTube
+function getYoutubeId(url: string | null | undefined): string | null {
+  if (!url) return null;
+  const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+  const match = url.match(regExp);
+  return match && match[2].length === 11 ? match[2] : null;
+}
 
 export default function ProjectCard({ project }: { project: Projet }) {
   const badgeStyles: Record<string, string> = {
@@ -16,30 +18,42 @@ export default function ProjectCard({ project }: { project: Projet }) {
     larauze: "bg-purple-500/12 text-purple-400 border-purple-500/25",
   };
 
+  // On récupère le premier sous-projet pour générer la miniature principale
+  const premierSousProjet = project.sousprojet?.[0];
+  const youtubeId = getYoutubeId(premierSousProjet?.youtube_url);
+  
+  // Si une vidéo existe, on prend sa miniature maxres, sinon un fallback élégant
+  const coverImageUrl = youtubeId 
+    ? `https://img.youtube.com/vi/${youtubeId}/maxresdefault.jpg` 
+    : "https://images.unsplash.com/photo-1536440136628-849c177e76a1?q=80&w=1025&auto=format&fit=cover";
+
+  const hasVideos = project.sousprojet && project.sousprojet.length > 0;
+  const hasDrive = project.sousprojet?.some(sp => sp.drive_folder_id);
+
   return (
     <article className="project-card group">
       <Link href={`/projet/${project.id}`} className="block thumb-wrap">
-        <img src={project.image_url} alt={project.titre} className="w-full h-full object-cover" />
+        <img src={coverImageUrl} alt={project.titre} className="w-full h-full object-cover" />
         <div className="absolute inset-0 bg-z-night/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-3">
           <div className="w-12 h-12 bg-white/10 backdrop-blur-md rounded-full flex items-center justify-center border border-white/20 scale-75 group-hover:scale-100 transition-transform">
             <FolderOpen size={20} className="text-white" />
           </div>
-          <span className="text-white font-sub text-[10px] font-bold uppercase tracking-widest">Ouvrir le dossier</span>
+          <span className="text-white font-sub text-[10px] font-bold uppercase tracking-widest">Ouvrir le projet</span>
         </div>
       </Link>
 
       <div className="p-5">
         <div className="flex items-center justify-between mb-4">
-          {/* CORRECTION ICI : project.categorie (singulier) et .name (selon ta BDD) */}
-          <span className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider border ${badgeStyles[project.categorie?.slug] || ""}`}>
-            {project.categorie?.name}
+          <span className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider border ${badgeStyles[project.categorie?.slug || ""] || ""}`}>
+            {project.categorie?.name || "Général"}
           </span>
           
           <div className="flex items-center gap-2">
-            {project.youtube_url && <div className="text-z-muted"><YoutubeIcon size={14} /></div>}
-            {project.drive_url && <div className="text-z-muted"><ExternalLink size={14} /></div>}
+            {hasVideos && <div className="text-z-muted"><Video size={14} /></div>}
+            {hasDrive && <div className="text-z-muted"><ExternalLink size={14} /></div>}
           </div>
         </div>
+        
         <Link href={`/projet/${project.id}`}>
           <h3 className="font-display font-semibold text-z-text text-lg uppercase tracking-wide hover:text-z-blue transition-colors">
             {project.titre}

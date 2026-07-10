@@ -5,14 +5,23 @@ export interface Categorie {
   created_at: string;
 }
 
+export interface SousProjet {
+  id: number;
+  projet_id: number;
+  titre: string;
+  description: string | null;
+  youtube_url: string | null;
+  drive_folder_id: string | null;
+  created_at: string;
+}
+
 export interface Projet {
   id: number;
   titre: string;
   description: string;
-  image_url: string;
-  youtube_url?: string;
-  drive_url?: string;
   en_ligne: boolean;
-  categorie: Categorie;
+  categorie_id: number;
+  categorie?: Categorie;
+  sousprojet?: SousProjet[];
   created_at: string;
 }
