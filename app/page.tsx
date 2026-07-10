@@ -1,17 +1,16 @@
-// app/page.tsx
-
 import { supabase } from '@/lib/supabase';
 import Navbar from '../components/Navbar';
 import Hero from '../components/Hero';
 import ProjectCard from '../components/ProjectCard';
 import Link from 'next/link';
 import { Projet } from '@/types';
+import Footer from '../components/Footer';
 
 export default async function Home() {
-  // Requête unifiée ciblant 'projet' avec ses relations imbriquées
+  // Utilisation de 'projet' et 'categorie' au singulier pour correspondre à Supabase
   const { data: highlights } = await supabase
-    .from('projet')
-    .select('*, categorie(*), sousprojet(*)')
+    .from('projet') 
+    .select('*, categorie(*)')
     .eq('en_ligne', true)
     .order('created_at', { ascending: false })
     .limit(3);
@@ -58,6 +57,7 @@ export default async function Home() {
           </Link>
         </div>
       </section>
+
     </main>
   );
 }
