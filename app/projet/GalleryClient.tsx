@@ -1,21 +1,20 @@
-// app/projet/GalleryClient.tsx
-
 'use client';
 
 import { useState } from 'react';
 import Navbar from '../../components/Navbar';
 import ProjectCard from '../../components/ProjectCard';
-import { Projet } from '@/types';
+import { Projet, Categorie } from '@/types'; // Ajout de Categorie ici
 
-export default function GalleryClient({ initialProjets }: { initialProjets: Projet[] }) {
+export default function GalleryClient({ 
+  initialProjets, 
+  toutesLesCategories 
+}: { 
+  initialProjets: Projet[];
+  toutesLesCategories: Categorie[]; 
+}) {
   const [activeFilter, setActiveFilter] = useState<string>('all');
 
-  // Extraction unique et dynamique des catégories existantes parmi les projets reçus
-  const categoriesDb = Array.from(
-    new Map(initialProjets.flatMap(p => p.categorie ? [[p.categorie.slug, p.categorie.name]] : [])).entries()
-  );
-
-  // Filtrage ultra-rapide basé directement sur le slug ou l'id
+  // Filtrage ultra-rapide basé directement sur le slug
   const projetsFiltres = initialProjets.filter((p) => {
     if (activeFilter === 'all') return true;
     return p.categorie?.slug === activeFilter;
@@ -44,19 +43,20 @@ export default function GalleryClient({ initialProjets }: { initialProjets: Proj
             Tous ({initialProjets.length})
           </button>
 
-          {categoriesDb.map(([slug, name]) => {
-            const count = initialProjets.filter(p => p.categorie?.slug === slug).length;
+          {/* On utilise maintenant directement la liste des catégories venue de Supabase */}
+          {toutesLesCategories.map((cat) => {
+            const count = initialProjets.filter(p => p.categorie?.slug === cat.slug).length;
             return (
               <button
-                key={slug}
-                onClick={() => setActiveFilter(slug)}
+                key={cat.id}
+                onClick={() => setActiveFilter(cat.slug)}
                 className={`px-5 py-2.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all border ${
-                  activeFilter === slug
+                  activeFilter === cat.slug
                     ? 'bg-z-blue text-white border-z-blue shadow-lg shadow-z-blue/20'
                     : 'bg-z-card text-z-muted border-z-blue/5 hover:border-z-blue/30 hover:text-z-text'
                 }`}
               >
-                {name} ({count})
+                {cat.name} ({count})
               </button>
             );
           })}
