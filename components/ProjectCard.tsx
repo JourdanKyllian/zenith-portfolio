@@ -28,7 +28,7 @@ export default function ProjectCard({ project }: { project: Projet }) {
     : "https://images.unsplash.com/photo-1536440136628-849c177e76a1?q=80&w=1025&auto=format&fit=cover";
 
   const hasVideos = project.sousprojet && project.sousprojet.length > 0;
-  const hasDrive = project.sousprojet?.some(sp => sp.drive_folder_id);
+  const hasDrive = project.sousprojet?.some(sp => sp.drive_url);
 
   return (
     <article className="project-card group">

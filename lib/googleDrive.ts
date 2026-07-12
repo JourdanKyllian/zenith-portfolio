@@ -78,3 +78,31 @@ export async function getProjectAssetsFromDrive(folderUrlOrId: string): Promise<
     return { images: [], youtubeUrl: null };
   }
 }
+
+/**
+ * Récupère le PDF le plus récent d'un dossier Drive pour le CV
+ */
+export async function getCvFromDrive(folderUrlOrId: string): Promise<string | null> {
+  const folderId = extractFolderId(folderUrlOrId);
+  if (!folderId) return null;
+
+  try {
+    const response = await drive.files.list({
+      // On cherche uniquement les fichiers PDF, non supprimés
+      q: `'${folderId}' in parents and trashed = false and mimeType = 'application/pdf'`,
+      fields: 'files(id, name)',
+      orderBy: 'createdTime desc', // Récupère le plus récent en premier
+      pageSize: 1
+    });
+
+    const files = response.data.files;
+    if (files && files.length > 0) {
+      // Retourne un lien direct pour voir le PDF
+      return `https://docs.google.com/uc?export=view&id=${files[0].id}`;
+    }
+    return null;
+  } catch (error) {
+    console.error('Erreur lors de la récupération du CV Drive:', error);
+    return null;
+  }
+}

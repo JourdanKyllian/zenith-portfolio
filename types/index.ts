@@ -11,7 +11,7 @@ export interface SousProjet {
   titre: string;
   description: string | null;
   youtube_url: string | null;
-  drive_folder_id: string | null;
+  drive_url: string | null;
   created_at: string;
 }
 

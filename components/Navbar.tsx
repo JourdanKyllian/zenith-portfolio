@@ -1,12 +1,14 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { Menu, X, Play } from 'lucide-react';
+import { Menu, X, FileText } from 'lucide-react';
 import Link from 'next/link';
+import { fetchCvUrl } from '@/app/actions/getCv';
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [cvUrl, setCvUrl] = useState<string | null>(null);
 
   useEffect(() => {
     if (isOpen) {
@@ -20,6 +22,15 @@ export default function Navbar() {
     const handleScroll = () => setScrolled(window.scrollY > 20);
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  // Chargement du lien du CV depuis Google Drive
+  useEffect(() => {
+    async function loadCv() {
+      const url = await fetchCvUrl();
+      if (url) setCvUrl(url);
+    }
+    loadCv();
   }, []);
 
   const navLinks = [
@@ -45,7 +56,7 @@ export default function Navbar() {
           </div>
         </Link>
 
-        {/* DESKTOP NAV - Texte agrandi et zone de clic étendue */}
+        {/* DESKTOP NAV */}
         <nav className="hidden md:flex items-center gap-10">
           {navLinks.map((link) => (
             <Link 
@@ -60,10 +71,15 @@ export default function Navbar() {
 
         {/* ACTIONS & BURGER */}
         <div className="flex items-center gap-6 z-1001">
-          <Link href="/contact" className="btn-blue hidden md:flex px-6 py-3 rounded-md items-center gap-2 text-xs font-bold tracking-wider">
-            <Play size={14} fill="currentColor" />
-            SHOWREEL
-          </Link>
+          <a 
+            href={cvUrl || "#"} 
+            target={cvUrl ? "_blank" : "_self"}
+            rel="noopener noreferrer"
+            className={`btn-blue hidden md:flex px-6 py-3 rounded-md items-center gap-2 text-xs font-bold tracking-wider ${!cvUrl ? 'opacity-50 cursor-wait' : ''}`}
+          >
+            <FileText size={14} fill="currentColor" />
+            MON CV
+          </a>
           
           <button 
             className="md:hidden p-2 text-z-text hover:text-z-blue transition-colors" 
@@ -75,7 +91,7 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* MOBILE MENU - Inchangé car déjà bien lisible */}
+      {/* MOBILE MENU */}
       <div className={`fixed inset-0 w-full h-screen bg-z-bg z-1000 transition-transform duration-500 ease-in-out md:hidden ${
         isOpen ? 'translate-y-0' : '-translate-y-full'
       }`}>
@@ -96,14 +112,16 @@ export default function Navbar() {
           </nav>
 
           <div className="mt-auto pb-12">
-            <Link 
-              href="/contact" 
+            <a 
+              href={cvUrl || "#"} 
+              target={cvUrl ? "_blank" : "_self"}
+              rel="noopener noreferrer"
               onClick={() => setIsOpen(false)}
-              className="btn-blue w-full p-5 rounded-xl flex items-center justify-center gap-3 font-bold uppercase tracking-widest text-sm mb-6"
+              className={`btn-blue w-full p-5 rounded-xl flex items-center justify-center gap-3 font-bold uppercase tracking-widest text-sm mb-6 ${!cvUrl ? 'opacity-50 cursor-wait' : ''}`}
             >
-              <Play size={18} fill="currentColor" />
-              Regarder le Showreel
-            </Link>
+              <FileText size={18} fill="currentColor" />
+              Télécharger mon CV
+            </a>
             <p className="text-z-muted text-[10px] font-bold uppercase tracking-[0.2em] text-center">
               © 2026 ZENITH PRODUCTION
             </p>

@@ -3,25 +3,28 @@ import { notFound } from 'next/navigation';
 import { ArrowLeft, PlayCircle } from 'lucide-react';
 import Link from 'next/link';
 import Navbar from '../../../components/Navbar';
-// 1. On importe notre fonction magique Google Drive
 import { getProjectAssetsFromDrive } from '@/lib/googleDrive';
 
 export default async function ProjectPage({ params }: { params: { id: string } }) {
+  // 1. On récupère le projet, sa catégorie, et ses sous-projets associés
   const { data: project } = await supabase
-    .from('projets')
-    .select('*, categories(*)')
+    .from('projet')
+    .select('*, categorie(*), sousprojet(*)')
     .eq('id', params.id)
     .single();
 
   if (!project) return notFound();
 
-  // 2. On récupère dynamiquement les rendus et la vidéo depuis Google Drive
-  const driveAssets = project.drive_url 
-    ? await getProjectAssetsFromDrive(project.drive_url)
+  // 2. On isole le premier sous-projet qui contient nos médias
+  const premierSousProjet = project.sousprojet?.[0];
+
+  // 3. On récupère dynamiquement les rendus et la vidéo depuis l'URL Drive du SOUS-PROJET
+  const driveAssets = premierSousProjet?.drive_url 
+    ? await getProjectAssetsFromDrive(premierSousProjet.drive_url)
     : { images: [], youtubeUrl: null };
 
-  // 3. On définit des variables de secours (si pas de vidéo sur le Drive, on prend celle de Supabase)
-  const finalYoutubeUrl = driveAssets.youtubeUrl || project.youtube_url;
+  // 4. Variables de secours : on regarde dans le Drive, sinon on prend le lien du SOUS-PROJET
+  const finalYoutubeUrl = driveAssets.youtubeUrl || premierSousProjet?.youtube_url;
   const hasDriveImages = driveAssets.images.length > 0;
 
   return (
@@ -38,7 +41,7 @@ export default async function ProjectPage({ params }: { params: { id: string } }
           </Link>
           <h1 className="font-display font-bold text-5xl sm:text-8xl uppercase tracking-tighter leading-none mb-4">{project.titre}</h1>
           <span className="px-3 py-1 rounded border border-z-blue/30 bg-z-blue/10 text-z-blue text-[9px] font-bold uppercase tracking-widest">
-            {project.categories?.nom || project.categorie?.name}
+            {project.categorie?.name || "Général"}
           </span>
         </div>
       </section>
@@ -76,7 +79,7 @@ export default async function ProjectPage({ params }: { params: { id: string } }
           {/* Grille d'images chargées depuis Google Drive */}
           {hasDriveImages ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-              {driveAssets.images.map((imgUrl, index) => (
+              {driveAssets.images.map((imgUrl: string, index: number) => (
                 <div key={index} className="aspect-video rounded-2xl overflow-hidden border border-z-blue/10 bg-z-card hover:border-z-blue/40 transition-all duration-300 shadow-md">
                   <img src={imgUrl} className="w-full h-full object-cover" alt={`Rendu ${index + 1}`} />
                 </div>
