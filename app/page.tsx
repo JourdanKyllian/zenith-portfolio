@@ -47,11 +47,11 @@ export default async function Home() {
         <div className="max-w-3xl mx-auto relative z-10">
           <span className="font-sub text-z-blue text-[10px] font-bold uppercase tracking-[0.5em] mb-8 block">Collaborons</span>
           <h2 className="font-display font-bold text-4xl sm:text-7xl text-z-text uppercase mb-10 tracking-tighter leading-[0.9]">
-            Sublimons votre <br/>
-            <span className="text-glow">vision créative</span>
+            Là où vos messages <br/>
+            <span className="text-glow">prennent de la hauteur</span>
           </h2>
           <Link href="/contact" className="btn-blue px-12 py-5 rounded-xl text-[11px] font-bold uppercase tracking-[0.2em] inline-block hover:scale-105 transition-all shadow-2xl shadow-z-blue/20">
-            Démarrer l'aventure
+            Prennez votre envol
           </Link>
         </div>
       </section>

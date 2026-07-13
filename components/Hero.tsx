@@ -28,7 +28,7 @@ export default function Hero() {
       </p>
 
       <p className="animate-fade-up font-body font-light text-z-text/70 text-base sm:text-lg max-w-lg mx-auto mb-12 leading-relaxed">
-        Graphiste · Cadreur · Monteur Vidéo & Photo
+        Graphiste · Cadreur · Monteur Vidéo & Photo · Marketing
       </p>
 
       <div className="animate-fade-up flex flex-wrap items-center justify-center gap-4">
@@ -45,15 +45,15 @@ export default function Hero() {
       <div className="animate-fade-up w-full max-w-md mt-20">
         <div className="flex items-center border border-z-blue/15 rounded-lg overflow-hidden bg-z-blue/5 backdrop-blur-sm">
           <div className="flex-1 py-4 border-r border-z-blue/15">
-            <div className="font-display font-bold text-3xl text-z-text">40<span className="text-z-blue">+</span></div>
+            <div className="font-display font-bold text-3xl text-z-text">180<span className="text-z-blue">+</span></div>
             <div className="font-sub text-z-muted text-[9px] tracking-widest uppercase mt-1">Projets</div>
           </div>
           <div className="flex-1 py-4 border-r border-z-blue/15">
-            <div className="font-display font-bold text-3xl text-z-text">5<span className="text-z-blue">+</span></div>
+            <div className="font-display font-bold text-3xl text-z-text">9<span className="text-z-blue">+</span></div>
             <div className="font-sub text-z-muted text-[9px] tracking-widest uppercase mt-1">Années</div>
           </div>
           <div className="flex-1 py-4">
-            <div className="font-display font-bold text-3xl text-z-text">4</div>
+            <div className="font-display font-bold text-3xl text-z-text">5</div>
             <div className="font-sub text-z-muted text-[9px] tracking-widest uppercase mt-1">Univers</div>
           </div>
         </div>
