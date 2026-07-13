@@ -33,7 +33,6 @@ export async function getProjectAssetsFromDrive(folderUrlOrId: string): Promise<
   if (!folderId) return { images: [], youtubeUrl: null };
 
   try {
-    // 1. Lister les fichiers non supprimés du dossier
     const response = await drive.files.list({
       q: `'${folderId}' in parents and trashed = false`,
       fields: 'files(id, name, mimeType)',
@@ -43,19 +42,15 @@ export async function getProjectAssetsFromDrive(folderUrlOrId: string): Promise<
     const images: string[] = [];
     let youtubeUrl: string | null = null;
 
-    // Trier par nom pour garder l'ordre alphabétique des fichiers de Gabin
     files.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
 
     for (const file of files) {
       if (!file.id) continue;
 
-      // Si c'est une image, on génère son lien de rendu direct haute qualité
       if (file.mimeType?.startsWith('image/')) {
-        // ✅ CORRIGÉ : Remplacement du "3{" par "${" et utilisation du lien d'affichage direct Drive
         images.push(`https://docs.google.com/uc?export=view&id=${file.id}`);
       }
 
-      // Si c'est le fichier texte contenant le lien de la vidéo YouTube
       if (file.name === 'youtube.txt') {
         try {
           const fileContent = await drive.files.get({
@@ -82,29 +77,37 @@ export async function getProjectAssetsFromDrive(folderUrlOrId: string): Promise<
 }
 
 /**
- * Récupère le PDF le plus récent d'un dossier Drive pour le CV
+ * Récupère le PDF ET l'Image d'aperçu du dossier de CV Drive
  */
-export async function getCvFromDrive(folderUrlOrId: string): Promise<string | null> {
+export async function getCvAssetsFromDrive(folderUrlOrId: string): Promise<{ cvUrl: string | null; previewUrl: string | null }> {
   const folderId = extractFolderId(folderUrlOrId);
-  if (!folderId) return null;
+  if (!folderId) return { cvUrl: null, previewUrl: null };
 
   try {
     const response = await drive.files.list({
-      // On cherche uniquement les fichiers PDF, non supprimés
-      q: `'${folderId}' in parents and trashed = false and mimeType = 'application/pdf'`,
-      fields: 'files(id, name)',
-      orderBy: 'createdTime desc', // Récupère le plus récent en premier
-      pageSize: 1
+      q: `'${folderId}' in parents and trashed = false`,
+      fields: 'files(id, name, mimeType)',
     });
 
-    const files = response.data.files;
-    if (files && files.length > 0) {
-      // Retourne un lien direct pour voir le PDF
-      return `https://docs.google.com/uc?export=view&id=${files[0].id}`;
+    const files = response.data.files || [];
+    let cvUrl: string | null = null;
+    let previewUrl: string | null = null;
+
+    // Trouve le premier fichier PDF disponible
+    const pdfFile = files.find(f => f.mimeType === 'application/pdf');
+    if (pdfFile?.id) {
+      cvUrl = `https://docs.google.com/uc?export=view&id=${pdfFile.id}`;
     }
-    return null;
+
+    // Trouve la première image disponible (Aperçu du CV)
+    const imgFile = files.find(f => f.mimeType?.startsWith('image/'));
+    if (imgFile?.id) {
+      previewUrl = `https://docs.google.com/uc?export=view&id=${imgFile.id}`;
+    }
+
+    return { cvUrl, previewUrl };
   } catch (error) {
-    console.error('Erreur lors de la récupération du CV Drive:', error);
-    return null;
+    console.error('Erreur lors de la récupération des assets du CV Drive:', error);
+    return { cvUrl: null, previewUrl: null };
   }
 }

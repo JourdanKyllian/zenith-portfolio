@@ -1,11 +1,11 @@
 "use server";
 
-import { getCvFromDrive } from '@/lib/googleDrive';
+import { getCvAssetsFromDrive } from '@/lib/googleDrive';
 import { supabase } from '@/lib/supabase';
 
-export async function fetchCvUrl() {
+export async function fetchCvData() {
   try {
-    // 1. On va chercher l'ID du dossier stocké par Gabin dans la BDD
+    // On va chercher l'ID du dossier stocké en BDD
     const { data, error } = await supabase
       .from('parametres')
       .select('valeur')
@@ -14,17 +14,16 @@ export async function fetchCvUrl() {
 
     if (error || !data?.valeur) {
       console.error("Dossier CV non configuré dans la base de données.");
-      return null;
+      return { cvUrl: null, previewUrl: null };
     }
 
     const folderId = data.valeur;
     
-    // 2. On interroge Drive avec cet ID pour récupérer le PDF
-    const cvUrl = await getCvFromDrive(folderId);
-    return cvUrl;
+    // On interroge Drive avec cet ID pour récupérer le PDF et la preview
+    return await getCvAssetsFromDrive(folderId);
     
   } catch (error) {
     console.error("Erreur globale lors de la récupération du CV:", error);
-    return null;
+    return { cvUrl: null, previewUrl: null };
   }
 }

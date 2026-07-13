@@ -4,8 +4,8 @@ import "./globals.css";
 import { Analytics } from '@vercel/analytics/next';
 import { SpeedInsights } from "@vercel/speed-insights/react";
 import Footer from "@/components/Footer";
-import Navbar from "@/components/Navbar"; // Import de la Navbar
-import { fetchCvUrl } from "@/app/actions/getCv"; // Import de ton action
+import Navbar from "@/components/Navbar";
+import { fetchCvData } from "@/app/actions/getCv"; // Import mis à jour
 
 const rajdhani = Rajdhani({ 
   subsets: ["latin"], 
@@ -35,14 +35,14 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  // Récupération du CV côté serveur
-  const cvUrl = await fetchCvUrl();
+  // Récupération des données du CV (PDF + Image) côté serveur
+  const cvData = await fetchCvData();
 
   return (
     <html lang="fr" data-scroll-behavior="smooth">
       <body className={`${rajdhani.variable} ${roboto.variable} ${montserrat.variable} antialiased flex flex-col min-h-screen`}>
-        {/* On passe cvUrl à la Navbar */}
-        <Navbar cvUrl={cvUrl} />
+        {/* On transmet les deux propriétés à la Navbar */}
+        <Navbar cvUrl={cvData.cvUrl} previewUrl={cvData.previewUrl} />
         
         <main className="flex-grow">
           {children}
