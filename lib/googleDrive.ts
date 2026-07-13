@@ -48,7 +48,8 @@ export async function getProjectAssetsFromDrive(folderUrlOrId: string): Promise<
       if (!file.id) continue;
 
       if (file.mimeType?.startsWith('image/')) {
-        images.push(`https://docs.google.com/uc?export=view&id=${file.id}`);
+        // MAJ : Utilisation du lien thumbnail haute résolution (Largeur 1200px) pour éviter les blocages
+        images.push(`https://drive.google.com/thumbnail?id=${file.id}&sz=w1200`);
       }
 
       if (file.name === 'youtube.txt') {
@@ -102,7 +103,8 @@ export async function getCvAssetsFromDrive(folderUrlOrId: string): Promise<{ cvU
     // Trouve la première image disponible (Aperçu du CV)
     const imgFile = files.find(f => f.mimeType?.startsWith('image/'));
     if (imgFile?.id) {
-      previewUrl = `https://docs.google.com/uc?export=view&id=${imgFile.id}`;
+      // MAJ : Utilisation du lien thumbnail très haute résolution (Largeur 1600px) pour garantir la lisibilité du texte
+      previewUrl = `https://drive.google.com/thumbnail?id=${imgFile.id}&sz=w1600`;
     }
 
     return { cvUrl, previewUrl };
