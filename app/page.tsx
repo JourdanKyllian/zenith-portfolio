@@ -1,3 +1,4 @@
+// app/page.tsx
 import { supabase } from '@/lib/supabase';
 import Navbar from '../components/Navbar';
 import Hero from '../components/Hero';
@@ -7,10 +8,10 @@ import { Projet } from '@/types';
 import Footer from '../components/Footer';
 
 export default async function Home() {
-  // Utilisation de 'projet' et 'categorie' au singulier pour correspondre à Supabase
+  // Utilisation de 'projet', 'categorie' et 'sousprojet' au singulier pour correspondre à Supabase
   const { data: highlights } = await supabase
     .from('projet') 
-    .select('*, categorie(*)')
+    .select('*, categorie(*), sousprojet(*)')
     .eq('en_ligne', true)
     .order('created_at', { ascending: false })
     .limit(3);
@@ -60,4 +61,4 @@ export default async function Home() {
 
     </main>
   );
-}
+} 
