@@ -3,7 +3,9 @@ import { google } from 'googleapis';
 // Initialisation sécurisée du client Google Drive (côté serveur uniquement)
 const auth = new google.auth.JWT({
   email: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
-  key: process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
+  key: process.env.GOOGLE_PRIVATE_KEY?.includes('-----BEGIN PRIVATE KEY-----') 
+    ? process.env.GOOGLE_PRIVATE_KEY 
+    : process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
   scopes: ['https://www.googleapis.com/auth/drive.readonly']
 });
 
