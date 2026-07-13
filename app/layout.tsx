@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
 import { Rajdhani, Roboto, Montserrat } from "next/font/google";
-import "./globals.css"; // <-- localFont a disparu d'ici
+import "./globals.css";
 import { Analytics } from '@vercel/analytics/next';
 import { SpeedInsights } from "@vercel/speed-insights/react";
 import Footer from "@/components/Footer";
+import Navbar from "@/components/Navbar"; // Import de la Navbar
+import { fetchCvUrl } from "@/app/actions/getCv"; // Import de ton action
 
 const rajdhani = Rajdhani({ 
   subsets: ["latin"], 
@@ -23,27 +25,30 @@ const montserrat = Montserrat({
   variable: "--font-montserrat" 
 });
 
-// <-- Le bloc "const martyric = localFont..." a été supprimé
-
 export const metadata: Metadata = {
   title: "ZENITH PRODUCTION — Gabin Husson",
   description: "Gabin Husson — Zenith Production · Graphiste, Cadreur, Monteur Vidéo & Photo",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // Récupération du CV côté serveur
+  const cvUrl = await fetchCvUrl();
+
   return (
     <html lang="fr" data-scroll-behavior="smooth">
       <body className={`${rajdhani.variable} ${roboto.variable} ${montserrat.variable} antialiased flex flex-col min-h-screen`}>
+        {/* On passe cvUrl à la Navbar */}
+        <Navbar cvUrl={cvUrl} />
+        
         <main className="flex-grow">
           {children}
         </main>
         
         <Footer />
-        
         <Analytics />
         <SpeedInsights />
       </body>
