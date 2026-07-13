@@ -1,11 +1,9 @@
 // app/page.tsx
 import { supabase } from '@/lib/supabase';
-import Navbar from '../components/Navbar';
 import Hero from '../components/Hero';
 import ProjectCard from '../components/ProjectCard';
 import Link from 'next/link';
 import { Projet } from '@/types';
-import Footer from '../components/Footer';
 
 export default async function Home() {
   // Utilisation de 'projet', 'categorie' et 'sousprojet' au singulier pour correspondre à Supabase
@@ -18,7 +16,6 @@ export default async function Home() {
 
   return (
     <main className="min-h-screen bg-z-bg overflow-x-hidden">
-      <Navbar />
       <Hero />
 
       <section className="max-w-7xl mx-auto px-6 py-16">

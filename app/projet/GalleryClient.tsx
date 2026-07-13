@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import Navbar from '../../components/Navbar';
 import ProjectCard from '../../components/ProjectCard';
 import { Projet, Categorie } from '@/types'; // Ajout de Categorie ici
 
@@ -22,7 +21,6 @@ export default function GalleryClient({
 
   return (
     <main className="min-h-screen bg-z-bg text-z-text pb-24">
-      <Navbar />
 
       <header className="max-w-7xl mx-auto px-6 pt-40 pb-12">
         <span className="font-sub text-z-blue text-[10px] font-bold uppercase tracking-[0.5em] mb-4 block">Archives</span>

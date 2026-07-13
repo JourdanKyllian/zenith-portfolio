@@ -3,7 +3,6 @@ import { supabase } from '@/lib/supabase';
 import { notFound } from 'next/navigation';
 import { ArrowLeft, PlayCircle } from 'lucide-react';
 import Link from 'next/link';
-import Navbar from '../../../components/Navbar';
 import { getProjectAssetsFromDrive } from '@/lib/googleDrive';
 import { SousProjet } from '@/types';
 
@@ -40,7 +39,6 @@ export default async function ProjectPage({ params }: { params: { id: string } }
 
   return (
     <main className="min-h-screen bg-z-bg text-z-text pb-20">
-      <Navbar />
       
       {/* Hero du projet */}
       <section className="relative h-[60vh] w-full overflow-hidden">
