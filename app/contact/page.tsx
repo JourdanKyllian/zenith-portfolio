@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import { Mail, MessageSquare, Send, CheckCircle2, AlertCircle } from 'lucide-react';
-import Navbar from '../../components/Navbar';
 import { sendEmail } from '../actions/sendEmail';
 
 export default function ContactPage() {
@@ -26,7 +25,6 @@ export default function ContactPage() {
 
   return (
     <main className="min-h-screen bg-z-bg text-z-text">
-      <Navbar />
 
       <section className="relative pt-32 pb-20 px-4 overflow-hidden">
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-4xl h-96 bg-z-blue/10 blur-[120px] pointer-events-none" />

@@ -13,7 +13,7 @@ export default async function GalleryPage() {
   const { data: categories } = await supabase
     .from('categorie')
     .select('*');
-
+    
   return (
     <GalleryClient 
       initialProjets={projets || []} 
