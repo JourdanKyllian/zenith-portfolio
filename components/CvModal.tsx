@@ -12,8 +12,11 @@ interface CvModalProps {
 export default function CvModal({ isOpen, onClose, cvUrl }: CvModalProps) {
   if (!isOpen) return null;
 
-  // Transforme le lien Drive pour forcer l'affichage dans l'iframe
-  const embedUrl = cvUrl.replace(/\/view.*$/, '/preview');
+  // On crée l'URL pour l'affichage (iframe)
+  // Si c'est un lien drive, on force le /preview ou on remplace /view par /preview
+  const previewUrl = cvUrl.replace(/\/view.*$/, '/preview')
+                          .replace(/\/file\/d\//, '/file/d/') 
+                          + (cvUrl.includes('?') ? '' : '?usp=drivesdk');
 
   return (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
@@ -36,10 +39,10 @@ export default function CvModal({ isOpen, onClose, cvUrl }: CvModalProps) {
           </button>
         </div>
 
-        {/* Visionneuse PDF */}
+        {/* Visionneuse PDF*/}
         <iframe 
-          src={embedUrl} 
-          className="w-full flex-grow border-0"
+          src={previewUrl} 
+          className="w-full flex-grow border-0 bg-white" // background blanc pour mieux voir le PDF
           title="Mon CV"
         />
 
