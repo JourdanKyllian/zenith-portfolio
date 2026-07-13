@@ -4,13 +4,11 @@ import { useState, useEffect } from 'react';
 import { Menu, X, FileText } from 'lucide-react';
 import Link from 'next/link';
 import { fetchCvUrl } from '@/app/actions/getCv';
-import CvModal from './CvModal';
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [cvUrl, setCvUrl] = useState<string | null>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
@@ -26,6 +24,7 @@ export default function Navbar() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  // Chargement du lien du CV depuis Google Drive
   useEffect(() => {
     async function loadCv() {
       const url = await fetchCvUrl();
@@ -72,14 +71,15 @@ export default function Navbar() {
 
         {/* ACTIONS & BURGER */}
         <div className="flex items-center gap-6 z-1001">
-          <button 
-            onClick={() => setIsModalOpen(true)}
-            disabled={!cvUrl}
+          <a 
+            href={cvUrl || "#"} 
+            target={cvUrl ? "_blank" : "_self"}
+            rel="noopener noreferrer"
             className={`btn-blue hidden md:flex px-6 py-3 rounded-md items-center gap-2 text-xs font-bold tracking-wider ${!cvUrl ? 'opacity-50 cursor-wait' : ''}`}
           >
             <FileText size={14} fill="currentColor" />
             MON CV
-          </button>
+          </a>
           
           <button 
             className="md:hidden p-2 text-z-text hover:text-z-blue transition-colors" 
@@ -112,32 +112,22 @@ export default function Navbar() {
           </nav>
 
           <div className="mt-auto pb-12">
-            <button 
-              onClick={() => {
-                setIsModalOpen(true);
-                setIsOpen(false);
-              }}
-              disabled={!cvUrl}
+            <a 
+              href={cvUrl || "#"} 
+              target={cvUrl ? "_blank" : "_self"}
+              rel="noopener noreferrer"
+              onClick={() => setIsOpen(false)}
               className={`btn-blue w-full p-5 rounded-xl flex items-center justify-center gap-3 font-bold uppercase tracking-widest text-sm mb-6 ${!cvUrl ? 'opacity-50 cursor-wait' : ''}`}
             >
               <FileText size={18} fill="currentColor" />
-              Voir mon CV
-            </button>
+              Télécharger mon CV
+            </a>
             <p className="text-z-muted text-[10px] font-bold uppercase tracking-[0.2em] text-center">
               © 2026 ZENITH PRODUCTION
             </p>
           </div>
         </div>
       </div>
-
-      {/* Modal CV intégré */}
-      {cvUrl && (
-        <CvModal 
-          isOpen={isModalOpen} 
-          onClose={() => setIsModalOpen(false)} 
-          cvUrl={cvUrl} 
-        />
-      )}
     </header>
   );
 }
