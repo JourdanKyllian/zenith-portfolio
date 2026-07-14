@@ -1,3 +1,4 @@
+// app/page.tsx
 import { supabase } from '@/lib/supabase';
 import Hero from '../components/Hero';
 import ProjectCard from '../components/ProjectCard';
@@ -5,7 +6,7 @@ import Link from 'next/link';
 import { Projet } from '@/types';
 
 export default async function Home() {
-  // 1. Récupère les 3 derniers projets en ligne
+  // Récupère les 3 derniers projets en ligne
   const { data: highlights } = await supabase
     .from('projet') 
     .select('*, categorie(*), sousprojet(*)')
@@ -13,15 +14,30 @@ export default async function Home() {
     .order('created_at', { ascending: false })
     .limit(3);
 
-  // 2. Récupère dynamiquement le nombre total de catégories (Univers)
+  // Récupère dynamiquement le nombre total de catégories (Univers)
   const { count: categoriesCount } = await supabase
     .from('categorie')
     .select('*', { count: 'exact', head: true });
 
+  // Calcul dynamique de l'expérience côté SERVEUR (Date de départ : 1er Septembre 2017)
+  const startDate = new Date("2017-09-01");
+  const today = new Date();
+  
+  let yearsOfExperience = today.getFullYear() - startDate.getFullYear();
+  const monthDiff = today.getMonth() - startDate.getMonth();
+  
+  // Si on n'est pas encore en septembre, ou qu'on est en septembre mais avant le 1er
+  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < startDate.getDate())) {
+    yearsOfExperience--;
+  }
+
   return (
     <main className="min-h-screen bg-z-bg overflow-x-hidden">
-      {/* On passe le compte des catégories à notre composant Hero */}
-      <Hero categoriesCount={categoriesCount || 0} />
+      {/* On transmet les deux valeurs calculées au Hero */}
+      <Hero 
+        categoriesCount={categoriesCount || 0} 
+        yearsOfExperience={yearsOfExperience} 
+      />
 
       <section className="max-w-7xl mx-auto px-6 py-16">
         <div className="flex flex-col md:flex-row justify-between items-end mb-16 gap-8">

@@ -2,36 +2,13 @@
 
 import { Eye, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
 
 interface HeroProps {
   categoriesCount: number;
+  yearsOfExperience: number;
 }
 
-export default function Hero({ categoriesCount }: HeroProps) {
-  // 📅 Configure ta date de début d'activité ici (Format: AAAA-MM-JJ)
-  const START_DATE = "2017-09-01";
-
-  const [yearsOfExperience, setYearsOfExperience] = useState<number>(9); // 9 par défaut
-
-  useEffect(() => {
-    const calculateYears = (dateString: string): number => {
-      const startDate = new Date(dateString);
-      const today = new Date();
-      
-      let years = today.getFullYear() - startDate.getFullYear();
-      const monthDiff = today.getMonth() - startDate.getMonth();
-      
-      // Si l'anniversaire n'est pas encore passé cette année : on retire 1 an
-      if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < startDate.getDate())) {
-        years--;
-      }
-      return years;
-    };
-
-    setYearsOfExperience(calculateYears(START_DATE));
-  }, []);
-
+export default function Hero({ categoriesCount, yearsOfExperience }: HeroProps) {
   return (
     <section className="hero-bg relative min-h-screen flex flex-col items-center justify-center text-center px-4 pt-32 pb-16 overflow-hidden">
       <div className="diag-lines"></div>
@@ -77,12 +54,12 @@ export default function Hero({ categoriesCount }: HeroProps) {
             <div className="font-sub text-z-muted text-[9px] tracking-widest uppercase mt-1">Projets</div>
           </div>
           <div className="flex-1 py-4 border-r border-z-blue/15">
-            {/* Nombre d'années calculé dynamiquement */}
+            {/* Affichage direct de l'expérience calculée par le serveur */}
             <div className="font-display font-bold text-3xl text-z-text">{yearsOfExperience}<span className="text-z-blue">+</span></div>
             <div className="font-sub text-z-muted text-[9px] tracking-widest uppercase mt-1">Années</div>
           </div>
           <div className="flex-1 py-4">
-            {/* Nombre de catégories issu de la base de données */}
+            {/* Affichage direct des catégories issues de la BDD */}
             <div className="font-display font-bold text-3xl text-z-text">{categoriesCount}</div>
             <div className="font-sub text-z-muted text-[9px] tracking-widest uppercase mt-1">Univers</div>
           </div>
