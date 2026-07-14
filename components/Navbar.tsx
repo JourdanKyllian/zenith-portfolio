@@ -39,14 +39,14 @@ export default function Navbar({ cvUrl, previewUrl }: NavbarProps) {
       }`}>
         <div className="max-w-7xl mx-auto px-6 flex items-center justify-between h-16">
           
-          <Link href="/" className="flex items-center gap-3 z-1001" onClick={() => setIsOpen(false)}>
-            <div className="w-10 h-10 rounded-full border border-z-blue/50 bg-z-blue/10 flex items-center justify-center transition-transform hover:scale-105">
-              <span className="text-z-blue font-bold text-xl">Z</span>
-            </div>
-            <div className="leading-tight">
-              <span className="font-display font-bold text-lg tracking-widest uppercase text-z-text">ZENITH</span>
-              <span className="block font-sub text-[10px] font-semibold tracking-[0.3em] uppercase text-white/80">PRODUCTION</span>
-            </div>
+          {/* Logo uniquement textuel avec la police Martyric */}
+          <Link href="/" className="group flex flex-col items-start z-1001 select-none" onClick={() => setIsOpen(false)}>
+            <span className="font-martyric text-3xl text-white group-hover:text-z-blue transition-colors duration-300 drop-shadow-md leading-none">
+              ZENITH
+            </span>
+            <span className="block font-sub text-[10px] font-semibold tracking-[0.3em] uppercase text-white/80 leading-none mt-1">
+              PRODUCTION
+            </span>
           </Link>
 
           <nav className="hidden md:flex items-center gap-10">
@@ -58,7 +58,6 @@ export default function Navbar({ cvUrl, previewUrl }: NavbarProps) {
           </nav>
 
           <div className="flex items-center gap-6 z-1001">
-            {/* Déclenchement du modal d'aperçu du CV (Desktop) */}
             <button 
               onClick={() => setIsCvOpen(true)}
               className="btn-blue hidden md:flex px-6 py-3 rounded-md items-center gap-2 text-xs font-bold tracking-wider cursor-pointer"
@@ -87,7 +86,6 @@ export default function Navbar({ cvUrl, previewUrl }: NavbarProps) {
               ))}
             </nav>
             <div className="mt-auto pb-12">
-              {/* Déclenchement du modal d'aperçu du CV (Mobile) */}
               <button 
                 onClick={() => { setIsOpen(false); setIsCvOpen(true); }}
                 className="btn-blue w-full p-5 rounded-xl flex items-center justify-center gap-3 font-bold uppercase tracking-widest text-sm mb-6 cursor-pointer"
@@ -100,7 +98,6 @@ export default function Navbar({ cvUrl, previewUrl }: NavbarProps) {
         </div>
       </header>
 
-      {/* Rendu global du composant modal */}
       <CvModal 
         isOpen={isCvOpen} 
         onClose={() => setIsCvOpen(false)} 
