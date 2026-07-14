@@ -50,22 +50,30 @@ export default function AboutPage() {
 
       {/* Profile Presentation */}
       <section className="max-w-7xl mx-auto px-6 py-12 grid grid-cols-1 lg:grid-cols-12 gap-16 items-center">
-        {/* Colonne visuelle (Représentation de la caméra/focus) */}
-        <div className="lg:col-span-5 relative aspect-square rounded-2xl border border-z-blue/10 bg-z-card/50 overflow-hidden flex items-center justify-center group">
-          <div className="absolute inset-0 bg-radial from-z-blue/5 to-transparent" />
+        
+        {/* Colonne visuelle (Viseur Caméra avec Photo de Gabin) */}
+        <div className="lg:col-span-5 relative aspect-square rounded-2xl border border-z-blue/10 bg-z-card/50 overflow-hidden flex items-center justify-center group shadow-2xl">
+          {/* Photo de Gabin en fond */}
+          <img
+            src="/gabin.jpg"
+            alt="Gabin Husson"
+            className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:opacity-85 group-hover:scale-105 transition-all duration-700 ease-out"
+          />
+
+          {/* Overlay dégradé pour la lisibilité des contours et du texte */}
+          <div className="absolute inset-0 bg-linear-to-t from-z-bg via-transparent to-z-bg/40 opacity-90 pointer-events-none" />
+          <div className="absolute inset-0 bg-radial from-z-blue/5 to-transparent pointer-events-none" />
           
-          {/* Repères de viseur cinématique */}
-          <span className="absolute top-6 left-6 w-6 h-6 border-t-2 border-l-2 border-z-blue/30" />
-          <span className="absolute top-6 right-6 w-6 h-6 border-t-2 border-r-2 border-z-blue/30" />
-          <span className="absolute bottom-6 left-6 w-6 h-6 border-b-2 border-l-2 border-z-blue/30" />
-          <span className="absolute bottom-6 right-6 w-6 h-6 border-b-2 border-r-2 border-z-blue/30" />
+          {/* Repères de viseur cinématique (placés au-dessus de la photo grâce à z-10) */}
+          <span className="absolute top-6 left-6 w-6 h-6 border-t-2 border-l-2 border-z-blue/40 z-10" />
+          <span className="absolute top-6 right-6 w-6 h-6 border-t-2 border-r-2 border-z-blue/40 z-10" />
+          <span className="absolute bottom-6 left-6 w-6 h-6 border-b-2 border-l-2 border-z-blue/40 z-10" />
+          <span className="absolute bottom-6 right-6 w-6 h-6 border-b-2 border-r-2 border-z-blue/40 z-10" />
           
-          <div className="text-center z-10 p-8">
-            <span className="font-martyric text-8xl text-white/10 group-hover:text-z-blue/10 transition-colors duration-500 select-none">
-              ZH
-            </span>
-            <p className="font-sub text-[10px] uppercase tracking-[0.3em] text-z-muted mt-4">
-              Gabin Husson — Zenith Production
+          {/* Légende du viseur incrustée en bas */}
+          <div className="absolute bottom-8 left-1/2 -translate-x-1/2 text-center z-10 w-full px-4">
+            <p className="font-sub text-[10px] uppercase tracking-[0.3em] text-z-text/90 drop-shadow-md">
+              Gabin Husson — Live Focus
             </p>
           </div>
         </div>
