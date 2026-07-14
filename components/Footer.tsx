@@ -43,7 +43,7 @@ export default function Footer() {
 
       {/* BOTTOM SECTION */}
       <div className="max-w-7xl mx-auto mt-16 pt-6 border-t border-z-silver/10 flex flex-col md:flex-row items-center justify-between gap-4 font-sub text-[10px] font-bold uppercase tracking-widest text-z-muted">
-        <p>© {currentYear} ZENITH PRODUCTION - TOUS DROITS RÉSERVÉS</p>
+        <p>© 2025-{currentYear} ZENITH PRODUCTION - TOUS DROITS RÉSERVÉS</p>
         
         <div className="flex flex-wrap justify-center items-center gap-6">
           <Link href="/contact" className="hover:text-z-blue transition-colors">

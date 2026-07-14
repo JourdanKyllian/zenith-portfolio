@@ -1,4 +1,3 @@
-// app/page.tsx
 import { supabase } from '@/lib/supabase';
 import Hero from '../components/Hero';
 import ProjectCard from '../components/ProjectCard';
@@ -6,7 +5,7 @@ import Link from 'next/link';
 import { Projet } from '@/types';
 
 export default async function Home() {
-  // Utilisation de 'projet', 'categorie' et 'sousprojet' au singulier pour correspondre à Supabase
+  // 1. Récupère les 3 derniers projets en ligne
   const { data: highlights } = await supabase
     .from('projet') 
     .select('*, categorie(*), sousprojet(*)')
@@ -14,9 +13,15 @@ export default async function Home() {
     .order('created_at', { ascending: false })
     .limit(3);
 
+  // 2. Récupère dynamiquement le nombre total de catégories (Univers)
+  const { count: categoriesCount } = await supabase
+    .from('categorie')
+    .select('*', { count: 'exact', head: true });
+
   return (
     <main className="min-h-screen bg-z-bg overflow-x-hidden">
-      <Hero />
+      {/* On passe le compte des catégories à notre composant Hero */}
+      <Hero categoriesCount={categoriesCount || 0} />
 
       <section className="max-w-7xl mx-auto px-6 py-16">
         <div className="flex flex-col md:flex-row justify-between items-end mb-16 gap-8">
@@ -51,11 +56,11 @@ export default async function Home() {
             <span className="text-glow">prennent de la hauteur</span>
           </h2>
           <Link href="/contact" className="btn-blue px-12 py-5 rounded-xl text-[11px] font-bold uppercase tracking-[0.2em] inline-block hover:scale-105 transition-all shadow-2xl shadow-z-blue/20">
-            Prennez votre envol
+            Prenez votre envol
           </Link>
         </div>
       </section>
 
     </main>
   );
-} 
+}
