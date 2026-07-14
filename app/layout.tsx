@@ -44,7 +44,7 @@ export default async function RootLayout({
         {/* On transmet les deux propriétés à la Navbar */}
         <Navbar cvUrl={cvData.cvUrl} previewUrl={cvData.previewUrl} />
         
-        <main className="flex-grow">
+        <main className="grow">
           {children}
         </main>
         

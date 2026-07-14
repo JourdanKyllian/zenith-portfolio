@@ -39,7 +39,7 @@ export default function NotFound() {
 
         <h1
           data-text="404"
-          className="glitch font-martyric text-[7rem] sm:text-[11rem] leading-none text-glow select-none"
+          className="glitch font-display font-black text-[7rem] sm:text-[11rem] leading-none tracking-tighter text-glow select-none"
         >
           404
         </h1>
