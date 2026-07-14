@@ -3,15 +3,20 @@
 import { createClient } from '@supabase/supabase-js';
 import { getCvAssetsFromDrive } from '@/lib/googleDrive';
 
-// On instancie un client admin isolé côté serveur pour bypass la RLS
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY! // Pense à ajouter cette clé secrète sur ton tableau de bord Vercel
-);
-
 export async function fetchCvData() {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  // Sécurité anti-crash pour le build Vercel si les variables ne sont pas encore injectées
+  if (!supabaseUrl || !serviceRoleKey) {
+    console.warn("⚠️ [Supabase] URL ou Service Role Key manquante. Saut de la récupération du CV.");
+    return { cvUrl: null, previewUrl: null };
+  }
+
   try {
-    // Requête sécurisée via le client admin
+    // Instanciation "lazy" uniquement au moment de l'appel de la fonction
+    const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey);
+
     const { data, error } = await supabaseAdmin
       .from('parametres')
       .select('valeur')

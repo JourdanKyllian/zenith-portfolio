@@ -10,7 +10,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     .select('slug')
     .eq('en_ligne', true);
 
-  const projetUrls = (projets || []).map((p) => ({
+  const projetUrls = (projets || []).map((p: any) => ({
     url: `${baseUrl}/projet/${p.slug}`,
     lastModified: new Date(),
   }));
@@ -18,6 +18,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   return [
     { url: baseUrl, lastModified: new Date() },
     { url: `${baseUrl}/projet`, lastModified: new Date() },
+    { url: `${baseUrl}/about`, lastModified: new Date() },
     { url: `${baseUrl}/contact`, lastModified: new Date() },
     ...projetUrls,
   ];

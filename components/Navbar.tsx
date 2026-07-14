@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Menu, X, FileText } from 'lucide-react';
 import Link from 'next/link';
-import CvModal from './CvModal'; // Importation du nouveau modal
+import CvModal from './CvModal';
 
 interface NavbarProps {
   cvUrl: string | null;
@@ -13,10 +13,9 @@ interface NavbarProps {
 export default function Navbar({ cvUrl, previewUrl }: NavbarProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const [isCvOpen, setIsCvOpen] = useState(false); // État d'ouverture du modal CV
+  const [isCvOpen, setIsCvOpen] = useState(false);
 
   useEffect(() => {
-    // Bloque le défilement si le menu mobile OU le modal CV est ouvert
     document.body.style.overflow = (isOpen || isCvOpen) ? 'hidden' : 'unset';
   }, [isOpen, isCvOpen]);
 
@@ -29,6 +28,7 @@ export default function Navbar({ cvUrl, previewUrl }: NavbarProps) {
   const navLinks = [
     { name: 'Accueil', href: '/' },
     { name: 'Projets', href: '/projet' },
+    { name: 'À Propos', href: '/about' },
     { name: 'Contact', href: '/contact' },
   ];
 
