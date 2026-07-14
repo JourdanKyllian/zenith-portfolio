@@ -37,7 +37,7 @@ export default function Error({
       />
 
       {/* Incrustation REC */}
-      <div className="absolute top-8 left-8 flex items-center gap-2 font-sub text-[11px] uppercase tracking-[0.25em] text-z-muted">
+      <div className="absolute top-24 left-8 md:top-28 md:left-12 flex items-center gap-2 font-sub text-[11px] uppercase tracking-[0.25em] text-z-muted">
         <span className="w-2 h-2 rounded-full bg-red-500 rec-pulse" />
         REC <span className="ml-1 tabular-nums text-z-text/70">{time}</span>
       </div>
