@@ -1,7 +1,13 @@
 import { supabase } from '@/lib/supabase';
 import GalleryClient from './GalleryClient';
+import { Metadata } from 'next';
 
 export const dynamic = 'force-dynamic';
+
+export const metadata: Metadata = {
+  title: 'La Galerie | ZENITH PRODUCTION',
+  description: 'Explorez les univers artistiques et l’ensemble des projets de Zenith Production : clips, vidéos, et créations graphiques.',
+};
 
 export default async function GalleryPage() {
   // L'appel se fait pendant le rendu serveur
