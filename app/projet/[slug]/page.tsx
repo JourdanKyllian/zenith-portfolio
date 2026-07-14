@@ -1,10 +1,11 @@
-// app/projet/[slug]/page.tsx
 import { supabase } from '@/lib/supabase';
 import { notFound } from 'next/navigation';
 import { ArrowLeft, PlayCircle } from 'lucide-react';
 import Link from 'next/link';
 import { getProjectAssetsFromDrive } from '@/lib/googleDrive';
 import { SousProjet } from '@/types';
+
+export const dynamic = 'force-dynamic';
 
 // Fonction utilitaire pour extraire l'ID de fichier Google Drive
 function getDriveFileId(urlOrId: string | null | undefined): string | null {

@@ -1,6 +1,7 @@
-// app/projet/page.tsx (Serveur)
 import { supabase } from '@/lib/supabase';
 import GalleryClient from './GalleryClient';
+
+export const dynamic = 'force-dynamic';
 
 export default async function GalleryPage() {
   // L'appel se fait pendant le rendu serveur

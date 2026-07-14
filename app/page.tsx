@@ -1,9 +1,10 @@
-// app/page.tsx
 import { supabase } from '@/lib/supabase';
 import Hero from '../components/Hero';
 import ProjectCard from '../components/ProjectCard';
 import Link from 'next/link';
 import { Projet } from '@/types';
+
+export const dynamic = 'force-dynamic';
 
 export default async function Home() {
   // Récupère les 3 derniers projets en ligne
