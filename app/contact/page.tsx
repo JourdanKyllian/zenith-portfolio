@@ -78,7 +78,7 @@ export default function ContactPage() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                   <div className="space-y-2">
                     <label className="text-[10px] uppercase font-bold tracking-widest text-z-muted ml-1">Nom complet</label>
-                    <input name="name" required type="text" placeholder="Gabin Husson" className="w-full bg-z-bg border border-z-border rounded-lg p-4 text-sm focus:border-z-blue focus:outline-none transition-colors" />
+                    <input name="name" required type="text" placeholder="Prenom NOM" className="w-full bg-z-bg border border-z-border rounded-lg p-4 text-sm focus:border-z-blue focus:outline-none transition-colors" />
                   </div>
                   <div className="space-y-2">
                     <label className="text-[10px] uppercase font-bold tracking-widest text-z-muted ml-1">Email</label>
