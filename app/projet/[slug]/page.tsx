@@ -21,7 +21,6 @@ function getDriveFileId(urlOrId: string | null | undefined): string | null {
 }
 
 export default async function ProjectPage({ params }: { params: Promise<{ slug: string }> }) {
-  // Récupération asynchrone des paramètres (Requis pour Next.js 15/16)
   const { slug } = await params;
 
   // 1. On récupère le projet par son slug, sa catégorie, et ses sous-projets associés
@@ -50,18 +49,29 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
     })
   );
 
-  // Vérifie si on a au moins une vidéo sur l'ensemble du projet
   const hasAnyVideo = sousProjetsAvecMedias.some(sp => sp.finalYoutubeUrl);
 
-  // 3. Récupération de la miniature personnalisée pour le fond de la bannière Hero
-  const driveImageId = getDriveFileId(project.miniature_url);
-  const coverImageUrl = driveImageId 
-    ? `https://drive.google.com/thumbnail?id=${driveImageId}&sz=w1600`
-    : "https://images.unsplash.com/photo-1536440136628-849c177e76a1?q=80&w=1025&auto=format&fit=cover";
+  // 3. Récupération de la miniature (Supporte CDN externe et Google Drive)
+  const miniatureUrl = project.miniature_url;
+  let coverImageUrl = "";
+
+  if (miniatureUrl) {
+    if (miniatureUrl.startsWith('http') && !miniatureUrl.includes('drive.google.com')) {
+      // ✅ CDN classique / URL externe directe
+      coverImageUrl = miniatureUrl;
+    } else {
+      // Lien Google Drive
+      const driveImageId = getDriveFileId(miniatureUrl);
+      coverImageUrl = driveImageId 
+        ? `https://drive.google.com/thumbnail?id=${driveImageId}&sz=w1600`
+        : miniatureUrl;
+    }
+  } else {
+    coverImageUrl = "https://images.unsplash.com/photo-1536440136628-849c177e76a1?q=80&w=1025&auto=format&fit=cover";
+  }
 
   return (
     <main className="min-h-screen bg-z-bg text-z-text pb-20">
-      {/* Pas de <Navbar /> ici car géré par le RootLayout */}
       
       {/* Hero du projet habillé par l'image de fond de ton choix */}
       <section className="relative h-[60vh] w-full overflow-hidden">

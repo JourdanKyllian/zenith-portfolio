@@ -34,18 +34,25 @@ export default function ProjectCard({ project }: { project: Projet }) {
     larauze: "bg-purple-500/12 text-purple-400 border-purple-500/25",
   };
 
-  // 1. On tente de récupérer l'image personnalisée de la table Projet
-  const driveImageId = getDriveFileId(project.miniature_url);
+  const miniatureUrl = project.miniature_url;
   let coverImageUrl = "";
-  
-  if (driveImageId) {
-    coverImageUrl = `https://drive.google.com/thumbnail?id=${driveImageId}&sz=w1200`;
+
+  if (miniatureUrl) {
+    if (miniatureUrl.startsWith('http') && !miniatureUrl.includes('drive.google.com')) {
+      // ✅ CDN classique / URL externe directe : On utilise l'URL telle quelle
+      coverImageUrl = miniatureUrl;
+    } else {
+      // Lien Google Drive (URL ou ID brut)
+      const driveImageId = getDriveFileId(miniatureUrl);
+      coverImageUrl = driveImageId 
+        ? `https://drive.google.com/thumbnail?id=${driveImageId}&sz=w1200`
+        : miniatureUrl;
+    }
   } else {
-    // Fallback 1 : On prend la miniature YouTube du premier sous-projet
+    // Fallbacks si aucune miniature_url n'est définie
     const premierSousProjet = project.sousprojet?.[0];
     const youtubeId = getYoutubeId(premierSousProjet?.youtube_url);
     
-    // Fallback 2 : Une belle image par défaut d'Unsplash si rien n'est configuré
     coverImageUrl = youtubeId 
       ? `https://img.youtube.com/vi/${youtubeId}/maxresdefault.jpg` 
       : "https://images.unsplash.com/photo-1536440136628-849c177e76a1?q=80&w=1025&auto=format&fit=cover";
@@ -56,7 +63,6 @@ export default function ProjectCard({ project }: { project: Projet }) {
 
   return (
     <article className="project-card group">
-      {/* Redirection propre vers le slug de l'artiste */}
       <Link href={`/projet/${project.slug}`} className="block thumb-wrap">
         <img src={coverImageUrl} alt={project.titre} className="w-full h-full object-cover" />
         <div className="absolute inset-0 bg-z-night/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-3">
