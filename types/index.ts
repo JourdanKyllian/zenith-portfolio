@@ -21,6 +21,8 @@ export interface Projet {
   description: string;
   en_ligne: boolean;
   categorie_id: number;
+  miniature_url: string | null;
+  slug: string;
   categorie?: Categorie;
   sousprojet?: SousProjet[];
   created_at: string;

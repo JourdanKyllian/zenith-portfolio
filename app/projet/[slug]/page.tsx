@@ -1,4 +1,4 @@
-// app/projet/[id]/page.tsx
+// app/projet/[slug]/page.tsx
 import { supabase } from '@/lib/supabase';
 import { notFound } from 'next/navigation';
 import { ArrowLeft, PlayCircle } from 'lucide-react';
@@ -6,12 +6,29 @@ import Link from 'next/link';
 import { getProjectAssetsFromDrive } from '@/lib/googleDrive';
 import { SousProjet } from '@/types';
 
-export default async function ProjectPage({ params }: { params: { id: string } }) {
-  // 1. On récupère le projet, sa catégorie, et ses sous-projets associés
+// Fonction utilitaire pour extraire l'ID de fichier Google Drive
+function getDriveFileId(urlOrId: string | null | undefined): string | null {
+  if (!urlOrId) return null;
+  if (!urlOrId.includes('/')) return urlOrId;
+  
+  const fileDMatch = urlOrId.match(/\/d\/([a-zA-Z0-9-_]+)/);
+  if (fileDMatch) return fileDMatch[1];
+  
+  const idParamMatch = urlOrId.match(/id=([a-zA-Z0-9-_]+)/);
+  if (idParamMatch) return idParamMatch[1];
+  
+  return null;
+}
+
+export default async function ProjectPage({ params }: { params: Promise<{ slug: string }> }) {
+  // Récupération asynchrone des paramètres (Requis pour Next.js 15/16)
+  const { slug } = await params;
+
+  // 1. On récupère le projet par son slug, sa catégorie, et ses sous-projets associés
   const { data: project } = await supabase
     .from('projet')
     .select('*, categorie(*), sousprojet(*)')
-    .eq('id', params.id)
+    .eq('slug', slug)
     .single();
 
   if (!project) return notFound();
@@ -19,7 +36,6 @@ export default async function ProjectPage({ params }: { params: { id: string } }
   const sousProjets: SousProjet[] = project.sousprojet || [];
 
   // 2. On récupère dynamiquement les rendus et les vidéos pour TOUS les sous-projets
-  // Utilisation de Promise.all pour charger tous les dossiers Drive en parallèle (très rapide)
   const sousProjetsAvecMedias = await Promise.all(
     sousProjets.map(async (sp) => {
       const driveAssets = sp.drive_url 
@@ -37,18 +53,27 @@ export default async function ProjectPage({ params }: { params: { id: string } }
   // Vérifie si on a au moins une vidéo sur l'ensemble du projet
   const hasAnyVideo = sousProjetsAvecMedias.some(sp => sp.finalYoutubeUrl);
 
+  // 3. Récupération de la miniature personnalisée pour le fond de la bannière Hero
+  const driveImageId = getDriveFileId(project.miniature_url);
+  const coverImageUrl = driveImageId 
+    ? `https://drive.google.com/thumbnail?id=${driveImageId}&sz=w1600`
+    : "https://images.unsplash.com/photo-1536440136628-849c177e76a1?q=80&w=1025&auto=format&fit=cover";
+
   return (
     <main className="min-h-screen bg-z-bg text-z-text pb-20">
+      {/* Pas de <Navbar /> ici car géré par le RootLayout */}
       
-      {/* Hero du projet */}
+      {/* Hero du projet habillé par l'image de fond de ton choix */}
       <section className="relative h-[60vh] w-full overflow-hidden">
-        <img src={project.image_url} alt={project.titre} className="w-full h-full object-cover opacity-30" />
+        <img src={coverImageUrl} alt={project.titre} className="w-full h-full object-cover opacity-30" />
         <div className="absolute inset-0 bg-linear-to-t from-z-bg to-transparent" />
         <div className="absolute bottom-0 left-0 w-full p-8 sm:p-16 max-w-7xl mx-auto">
           <Link href="/projet" className="flex items-center gap-2 text-z-blue text-[13px] font-bold uppercase tracking-widest mb-6 hover:translate-x-2 transition-transform">
             <ArrowLeft size={14} /> Retour à la galerie
           </Link>
-          <h1 className="font-display font-bold text-5xl sm:text-8xl uppercase tracking-tighter leading-none mb-4">{project.titre}</h1>
+          <h1 className="font-display font-bold text-5xl sm:text-8xl uppercase tracking-tighter leading-none mb-4">
+            {project.titre}
+          </h1>
           <span className="px-3 py-1 rounded border border-z-blue/30 bg-z-blue/10 text-z-blue text-[9px] font-bold uppercase tracking-widest">
             {project.categorie?.name || "Général"}
           </span>
@@ -57,9 +82,11 @@ export default async function ProjectPage({ params }: { params: { id: string } }
 
       {/* Contenu */}
       <section className="max-w-7xl mx-auto px-8 py-20 grid grid-cols-1 lg:grid-cols-3 gap-20">
+        
+        {/* Colonne Gauche : Présentation */}
         <div className="lg:col-span-1 space-y-10">
           <div>
-            <h3 className="text-z-muted font-sub text-[10px] font-bold uppercase tracking-widest mb-6">Le Projet</h3>
+            <h3 className="text-z-muted font-sub text-[10px] font-bold uppercase tracking-widest mb-6">L'Artiste</h3>
             <p className="font-body text-z-text/80 leading-relaxed whitespace-pre-wrap">{project.description}</p>
           </div>
           
@@ -72,7 +99,7 @@ export default async function ProjectPage({ params }: { params: { id: string } }
           )}
         </div>
 
-        {/* Colonne Droite : Médias dynamiques pour CHAQUE sous-projet */}
+        {/* Colonne Droite : Médias dynamiques pour CHAQUE sous-projet (clips, etc.) */}
         <div className="lg:col-span-2 space-y-16">
           {sousProjetsAvecMedias.length > 0 ? (
             sousProjetsAvecMedias.map((sp, index) => (
@@ -111,7 +138,7 @@ export default async function ProjectPage({ params }: { params: { id: string } }
             ))
           ) : (
             /* Image de couverture classique s'il n'y a absolument aucun sous-projet configuré */
-            <img src={project.image_url} className="w-full rounded-2xl border border-z-blue/10" alt="Cover" />
+            <img src={coverImageUrl} className="w-full rounded-2xl border border-z-blue/10" alt="Cover" />
           )}
         </div>
       </section>
