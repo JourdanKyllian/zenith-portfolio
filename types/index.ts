@@ -12,6 +12,7 @@ export interface SousProjet {
   description: string | null;
   youtube_url: string | null;
   drive_url: string | null;
+  ordre: number;
   created_at: string;
 }
 

@@ -1,9 +1,11 @@
+// app/projet/[slug]/page.tsx
 import { supabase } from '@/lib/supabase';
 import { notFound } from 'next/navigation';
 import { ArrowLeft, PlayCircle } from 'lucide-react';
 import Link from 'next/link';
-import { getProjectAssetsFromDrive } from '@/lib/googleDrive';
+import { getProjectAssetsFromDrive, DriveAssets } from '@/lib/googleDrive'; // Import de DriveAssets pour le typage
 import { SousProjet } from '@/types';
+import PdfPreview from '@/components/PdfPreview';
 
 export const dynamic = 'force-dynamic';
 
@@ -24,7 +26,7 @@ function getDriveFileId(urlOrId: string | null | undefined): string | null {
 export default async function ProjectPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
 
-  // 1. On récupère le projet par son slug, sa catégorie, et ses sous-projets associés
+  // 1. On récupère le projet par son slug
   const { data: project } = await supabase
     .from('projet')
     .select('*, categorie(*), sousprojet(*)')
@@ -33,35 +35,36 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
 
   if (!project) return notFound();
 
-  const sousProjets: SousProjet[] = project.sousprojet || [];
+  // 2. On extrait et on TRIE les sous-projets par le champ "ordre" (Typage explicite de a et b)
+  const sousProjets: SousProjet[] = (project.sousprojet || [])
+    .sort((a: SousProjet, b: SousProjet) => (a.ordre || 0) - (b.ordre || 0));
 
-  // 2. On récupère dynamiquement les rendus et les vidéos pour TOUS les sous-projets
+  // 3. On récupère dynamiquement les rendus et les vidéos
   const sousProjetsAvecMedias = await Promise.all(
     sousProjets.map(async (sp) => {
-      const driveAssets = sp.drive_url 
+      // Typage explicite du retour pour garantir l'existence de la propriété "pdf"
+      const driveAssets: DriveAssets = sp.drive_url 
         ? await getProjectAssetsFromDrive(sp.drive_url)
-        : { images: [], youtubeUrl: null };
+        : { images: [], youtubeUrl: null, pdf: null };
       
       return {
         ...sp,
         finalYoutubeUrl: driveAssets.youtubeUrl || sp.youtube_url,
-        driveImages: driveAssets.images
+        driveImages: driveAssets.images,
+        pdf: driveAssets.pdf
       };
     })
   );
 
   const hasAnyVideo = sousProjetsAvecMedias.some(sp => sp.finalYoutubeUrl);
 
-  // 3. Récupération de la miniature (Supporte CDN externe et Google Drive)
   const miniatureUrl = project.miniature_url;
   let coverImageUrl = "";
 
   if (miniatureUrl) {
     if (miniatureUrl.startsWith('http') && !miniatureUrl.includes('drive.google.com')) {
-      // ✅ CDN classique / URL externe directe
       coverImageUrl = miniatureUrl;
     } else {
-      // Lien Google Drive
       const driveImageId = getDriveFileId(miniatureUrl);
       coverImageUrl = driveImageId 
         ? `https://drive.google.com/thumbnail?id=${driveImageId}&sz=w1600`
@@ -110,45 +113,54 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
           )}
         </div>
 
-        {/* Colonne Droite : Médias dynamiques pour CHAQUE sous-projet (clips, etc.) */}
+        {/* Colonne Droite : Médias du projet */}
         <div className="lg:col-span-2 space-y-16">
           {sousProjetsAvecMedias.length > 0 ? (
-            sousProjetsAvecMedias.map((sp, index) => (
-              <div key={sp.id || index} className="space-y-8 animate-fade-up">
-                
-                {/* En-tête du sous-projet s'il y a un titre ou une description */}
-                {(sp.titre || sp.description) && (
-                  <div className="border-l-2 border-z-blue/50 pl-4 py-1">
-                    {sp.titre && <h4 className="font-display text-2xl uppercase font-bold text-z-text">{sp.titre}</h4>}
-                    {sp.description && <p className="font-body text-sm text-z-muted mt-2">{sp.description}</p>}
-                  </div>
-                )}
+            sousProjetsAvecMedias.map((sp, index) => {
+              const hasMedia = sp.finalYoutubeUrl || sp.driveImages.length > 0 || sp.pdf;
 
-                {/* Lecteur Vidéo du sous-projet si présent */}
-                {sp.finalYoutubeUrl && (
-                  <div className="aspect-video bg-z-card rounded-2xl overflow-hidden border border-z-blue/10 shadow-2xl">
-                    <iframe 
-                      width="100%" height="100%" 
-                      src={sp.finalYoutubeUrl.replace("watch?v=", "embed/").replace("youtu.be/", "youtube.com/embed/")} 
-                      frameBorder="0" allowFullScreen 
-                    />
-                  </div>
-                )}
+              return (
+                <div key={sp.id || index} className="space-y-8 animate-fade-up">
+                  
+                  {/* En-tête / Texte du bloc */}
+                  {(sp.titre || sp.description) && (
+                    <div className="border-l-2 border-z-blue/50 pl-4 py-1">
+                      {sp.titre && <h4 className="font-display text-2xl uppercase font-bold text-z-text">{sp.titre}</h4>}
+                      {sp.description && (
+                        <p className={`font-body text-z-muted mt-2 ${hasMedia ? 'text-sm' : 'text-base leading-relaxed text-z-text/90'}`}>
+                          {sp.description}
+                        </p>
+                      )}
+                    </div>
+                  )}
 
-                {/* Grille d'images du sous-projet chargées depuis Google Drive */}
-                {sp.driveImages.length > 0 && (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                    {sp.driveImages.map((imgUrl: string, imgIndex: number) => (
-                      <div key={imgIndex} className="aspect-video rounded-2xl overflow-hidden border border-z-blue/10 bg-z-card hover:border-z-blue/40 transition-all duration-300 shadow-md">
-                        <img src={imgUrl} className="w-full h-full object-cover" alt={`Rendu ${imgIndex + 1} - ${sp.titre || 'Projet'}`} />
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            ))
+                  {/* Lecteur Vidéo s'il existe */}
+                  {sp.finalYoutubeUrl && (
+                    <div className="aspect-video bg-z-card rounded-2xl overflow-hidden border border-z-blue/10 shadow-2xl">
+                      <iframe 
+                        width="100%" height="100%" 
+                        src={sp.finalYoutubeUrl.replace("watch?v=", "embed/").replace("youtu.be/", "youtube.com/embed/")} 
+                        frameBorder="0" allowFullScreen 
+                      />
+                    </div>
+                  )}
+
+                  {/* Grille multimédia si des images ou un PDF existent */}
+                  {(sp.driveImages.length > 0 || sp.pdf) && (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                      {sp.pdf && <PdfPreview pdf={sp.pdf} />}
+
+                      {sp.driveImages.map((imgUrl: string, imgIndex: number) => (
+                        <div key={imgIndex} className="aspect-video rounded-2xl overflow-hidden border border-z-blue/10 bg-z-card hover:border-z-blue/40 transition-all duration-300 shadow-md">
+                          <img src={imgUrl} className="w-full h-full object-cover" alt={`Rendu ${imgIndex + 1}`} />
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            })
           ) : (
-            /* Image de couverture classique s'il n'y a absolument aucun sous-projet configuré */
             <img src={coverImageUrl} className="w-full rounded-2xl border border-z-blue/10" alt="Cover" />
           )}
         </div>
