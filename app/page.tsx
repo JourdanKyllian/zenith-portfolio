@@ -4,7 +4,7 @@ import ProjectCard from '../components/ProjectCard';
 import Link from 'next/link';
 import { Projet } from '@/types';
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 3600;
 
 export default async function Home() {
   // Récupère les 3 derniers projets en ligne

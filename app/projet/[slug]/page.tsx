@@ -3,10 +3,10 @@ import { notFound } from 'next/navigation';
 import { ArrowLeft, PlayCircle } from 'lucide-react';
 import Link from 'next/link';
 import { getProjectAssetsFromDrive, DriveAssets } from '@/lib/googleDrive';
-import { SousProjet, Projet } from '@/types'; // On importe Projet ici
+import { SousProjet, Projet } from '@/types';
 import PdfPreview from '@/components/PdfPreview';
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 3600;
 
 // GÉNÉRATION DYNAMIQUE DES MÉTADONNÉES SEO (TITRE — CATÉGORIE)
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
