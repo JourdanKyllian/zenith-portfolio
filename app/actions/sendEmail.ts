@@ -7,7 +7,7 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 export async function sendEmail(formData: FormData) {
   const name = formData.get("name") as string;
   const email = formData.get("email") as string;
-  const type = formData.get("type") as string; // Nouveau champ récupéré
+  const type = formData.get("type") as string; 
   const message = formData.get("message") as string;
   
   // --- PROTECTION HONEYPOT ---
@@ -15,7 +15,7 @@ export async function sendEmail(formData: FormData) {
   if (honeyPot) return { success: true };
 
   try {
-    const { data, error } = await resend.emails.send({
+    const { error } = await resend.emails.send({
       from: 'Zenith Production <onboarding@resend.dev>',
       to: 'zenithprod.contact@gmail.com',
       subject: `Nouveau Projet : ${type} - ${name}`,
@@ -35,7 +35,7 @@ export async function sendEmail(formData: FormData) {
 
     if (error) return { success: false };
     return { success: true };
-  } catch (err) {
+  } catch {
     return { success: false };
   }
 }

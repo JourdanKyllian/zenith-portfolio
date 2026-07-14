@@ -1,15 +1,13 @@
-// app/projet/[slug]/page.tsx
 import { supabase } from '@/lib/supabase';
 import { notFound } from 'next/navigation';
 import { ArrowLeft, PlayCircle } from 'lucide-react';
 import Link from 'next/link';
-import { getProjectAssetsFromDrive, DriveAssets } from '@/lib/googleDrive'; // Import de DriveAssets pour le typage
+import { getProjectAssetsFromDrive, DriveAssets } from '@/lib/googleDrive';
 import { SousProjet } from '@/types';
 import PdfPreview from '@/components/PdfPreview';
 
 export const dynamic = 'force-dynamic';
 
-// Fonction utilitaire pour extraire l'ID de fichier Google Drive
 function getDriveFileId(urlOrId: string | null | undefined): string | null {
   if (!urlOrId) return null;
   if (!urlOrId.includes('/')) return urlOrId;
@@ -26,7 +24,6 @@ function getDriveFileId(urlOrId: string | null | undefined): string | null {
 export default async function ProjectPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
 
-  // 1. On récupère le projet par son slug
   const { data: project } = await supabase
     .from('projet')
     .select('*, categorie(*), sousprojet(*)')
@@ -35,14 +32,11 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
 
   if (!project) return notFound();
 
-  // 2. On extrait et on TRIE les sous-projets par le champ "ordre" (Typage explicite de a et b)
   const sousProjets: SousProjet[] = (project.sousprojet || [])
     .sort((a: SousProjet, b: SousProjet) => (a.ordre || 0) - (b.ordre || 0));
 
-  // 3. On récupère dynamiquement les rendus et les vidéos
   const sousProjetsAvecMedias = await Promise.all(
     sousProjets.map(async (sp) => {
-      // Typage explicite du retour pour garantir l'existence de la propriété "pdf"
       const driveAssets: DriveAssets = sp.drive_url 
         ? await getProjectAssetsFromDrive(sp.drive_url)
         : { images: [], youtubeUrl: null, pdf: null };
@@ -77,8 +71,9 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
   return (
     <main className="min-h-screen bg-z-bg text-z-text pb-20">
       
-      {/* Hero du projet habillé par l'image de fond de ton choix */}
+      {/* Hero */}
       <section className="relative h-[60vh] w-full overflow-hidden">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={coverImageUrl} alt={project.titre} className="w-full h-full object-cover opacity-30" />
         <div className="absolute inset-0 bg-linear-to-t from-z-bg to-transparent" />
         <div className="absolute bottom-0 left-0 w-full p-8 sm:p-16 max-w-7xl mx-auto">
@@ -97,10 +92,10 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
       {/* Contenu */}
       <section className="max-w-7xl mx-auto px-8 py-20 grid grid-cols-1 lg:grid-cols-3 gap-20">
         
-        {/* Colonne Gauche : Présentation */}
+        {/* Colonne Gauche */}
         <div className="lg:col-span-1 space-y-10">
           <div>
-            <h3 className="text-z-muted font-sub text-[10px] font-bold uppercase tracking-widest mb-6">L'Artiste</h3>
+            <h3 className="text-z-muted font-sub text-[10px] font-bold uppercase tracking-widest mb-6">{"L'Artiste"}</h3>
             <p className="font-body text-z-text/80 leading-relaxed whitespace-pre-wrap">{project.description}</p>
           </div>
           
@@ -113,7 +108,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
           )}
         </div>
 
-        {/* Colonne Droite : Médias du projet */}
+        {/* Colonne Droite */}
         <div className="lg:col-span-2 space-y-16">
           {sousProjetsAvecMedias.length > 0 ? (
             sousProjetsAvecMedias.map((sp, index) => {
@@ -122,7 +117,6 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
               return (
                 <div key={sp.id || index} className="space-y-8 animate-fade-up">
                   
-                  {/* En-tête / Texte du bloc */}
                   {(sp.titre || sp.description) && (
                     <div className="border-l-2 border-z-blue/50 pl-4 py-1">
                       {sp.titre && <h4 className="font-display text-2xl uppercase font-bold text-z-text">{sp.titre}</h4>}
@@ -134,7 +128,6 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
                     </div>
                   )}
 
-                  {/* Lecteur Vidéo s'il existe */}
                   {sp.finalYoutubeUrl && (
                     <div className="aspect-video bg-z-card rounded-2xl overflow-hidden border border-z-blue/10 shadow-2xl">
                       <iframe 
@@ -145,7 +138,6 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
                     </div>
                   )}
 
-                  {/* Grille multimédia si des images ou un PDF existent */}
                   {(sp.driveImages.length > 0 || sp.pdf) && (
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                       {sp.pdf && <PdfPreview pdf={sp.pdf} />}

@@ -14,13 +14,10 @@ export default function CvModal({ isOpen, onClose, cvUrl, previewUrl }: CvModalP
 
   return (
     <div className="fixed inset-0 z-[1002] flex items-center justify-center p-4">
-      {/* Arrière-plan flouté sombre */}
       <div className="absolute inset-0 bg-z-bg/80 backdrop-blur-md" onClick={onClose} />
       
-      {/* Conteneur principal */}
       <div className="relative w-full max-w-lg bg-z-card border border-z-border p-6 rounded-2xl shadow-2xl flex flex-col max-h-[90vh] z-10">
         
-        {/* En-tête */}
         <div className="flex items-center justify-between mb-4 border-b border-z-blue/10 pb-3">
           <h3 className="font-display font-bold text-xl uppercase tracking-wide text-z-text">Mon Curriculum Vitae</h3>
           <button 
@@ -32,7 +29,6 @@ export default function CvModal({ isOpen, onClose, cvUrl, previewUrl }: CvModalP
           </button>
         </div>
 
-        {/* Zone de prévisualisation de l'image */}
         <div className="flex-grow overflow-y-auto rounded-lg bg-z-bg border border-z-border/40 p-2 mb-6 flex justify-center items-start">
           {previewUrl ? (
             <img 
@@ -47,7 +43,6 @@ export default function CvModal({ isOpen, onClose, cvUrl, previewUrl }: CvModalP
           )}
         </div>
 
-        {/* Boutons d'actions */}
         <div className="flex gap-4">
           <button 
             onClick={onClose}

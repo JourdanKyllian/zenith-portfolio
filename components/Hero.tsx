@@ -37,10 +37,10 @@ export default function Hero({ categoriesCount, yearsOfExperience }: HeroProps) 
       </p>
 
       <div className="animate-fade-up flex flex-wrap items-center justify-center gap-4">
-        <a href="/projet" className="btn-blue px-7 py-3.5 rounded-md flex items-center gap-3 text-sm transition-transform hover:scale-105">
+        <Link href="/projet" className="btn-blue px-7 py-3.5 rounded-md flex items-center gap-3 text-sm transition-transform hover:scale-105">
           <Eye size={16} />
           Explorer les projets
-        </a>
+        </Link>
         <Link href="/contact" className="btn-outline px-7 py-3.5 rounded-md flex items-center gap-3 text-sm">
           Me contacter
           <ArrowRight size={14} />
@@ -54,12 +54,10 @@ export default function Hero({ categoriesCount, yearsOfExperience }: HeroProps) 
             <div className="font-sub text-z-muted text-[9px] tracking-widest uppercase mt-1">Projets</div>
           </div>
           <div className="flex-1 py-4 border-r border-z-blue/15">
-            {/* Affichage direct de l'expérience calculée par le serveur */}
             <div className="font-display font-bold text-3xl text-z-text">{yearsOfExperience}<span className="text-z-blue">+</span></div>
             <div className="font-sub text-z-muted text-[9px] tracking-widest uppercase mt-1">Années</div>
           </div>
           <div className="flex-1 py-4">
-            {/* Affichage direct des catégories issues de la BDD */}
             <div className="font-display font-bold text-3xl text-z-text">{categoriesCount}</div>
             <div className="font-sub text-z-muted text-[9px] tracking-widest uppercase mt-1">Univers</div>
           </div>

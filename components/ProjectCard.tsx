@@ -4,7 +4,6 @@ import Link from 'next/link';
 import { FolderOpen, ExternalLink, Video } from 'lucide-react';
 import { Projet } from '@/types';
 
-// Fonction pour extraire l'ID d'une vidéo YouTube
 function getYoutubeId(url: string | null | undefined): string | null {
   if (!url) return null;
   const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
@@ -12,10 +11,9 @@ function getYoutubeId(url: string | null | undefined): string | null {
   return match && match[2].length === 11 ? match[2] : null;
 }
 
-// Fonction pour extraire l'ID d'un fichier image sur Google Drive
 function getDriveFileId(urlOrId: string | null | undefined): string | null {
   if (!urlOrId) return null;
-  if (!urlOrId.includes('/')) return urlOrId; // C'est déjà un ID brut
+  if (!urlOrId.includes('/')) return urlOrId;
   
   const fileDMatch = urlOrId.match(/\/d\/([a-zA-Z0-9-_]+)/);
   if (fileDMatch) return fileDMatch[1];
@@ -39,17 +37,14 @@ export default function ProjectCard({ project }: { project: Projet }) {
 
   if (miniatureUrl) {
     if (miniatureUrl.startsWith('http') && !miniatureUrl.includes('drive.google.com')) {
-      // ✅ CDN classique / URL externe directe : On utilise l'URL telle quelle
       coverImageUrl = miniatureUrl;
     } else {
-      // Lien Google Drive (URL ou ID brut)
       const driveImageId = getDriveFileId(miniatureUrl);
       coverImageUrl = driveImageId 
         ? `https://drive.google.com/thumbnail?id=${driveImageId}&sz=w1200`
         : miniatureUrl;
     }
   } else {
-    // Fallbacks si aucune miniature_url n'est définie
     const premierSousProjet = project.sousprojet?.[0];
     const youtubeId = getYoutubeId(premierSousProjet?.youtube_url);
     
@@ -69,7 +64,7 @@ export default function ProjectCard({ project }: { project: Projet }) {
           <div className="w-12 h-12 bg-white/10 backdrop-blur-md rounded-full flex items-center justify-center border border-white/20 scale-75 group-hover:scale-100 transition-transform">
             <FolderOpen size={20} className="text-white" />
           </div>
-          <span className="text-white font-sub text-[10px] font-bold uppercase tracking-widest">Ouvrir l'artiste</span>
+          <span className="text-white font-sub text-[10px] font-bold uppercase tracking-widest">{"Ouvrir l'artiste"}</span>
         </div>
       </Link>
 
