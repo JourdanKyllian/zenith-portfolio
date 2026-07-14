@@ -3,10 +3,34 @@ import { notFound } from 'next/navigation';
 import { ArrowLeft, PlayCircle } from 'lucide-react';
 import Link from 'next/link';
 import { getProjectAssetsFromDrive, DriveAssets } from '@/lib/googleDrive';
-import { SousProjet } from '@/types';
+import { SousProjet, Projet } from '@/types'; // On importe Projet ici
 import PdfPreview from '@/components/PdfPreview';
 
 export const dynamic = 'force-dynamic';
+
+// GÉNÉRATION DYNAMIQUE DES MÉTADONNÉES SEO (TITRE — CATÉGORIE)
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
+
+  const { data } = await supabase
+    .from('projet')
+    .select('*, categorie(*)')
+    .eq('slug', slug)
+    .single();
+
+  if (!data) {
+    return {
+      title: 'Projet — ZENITH PRODUCTION',
+    };
+  }
+
+  const project = data as unknown as Projet;
+  const categoryName = project.categorie?.name || 'Général';
+
+  return {
+    title: `${project.titre} — ${categoryName} | ZENITH PRODUCTION`,
+  };
+}
 
 function getDriveFileId(urlOrId: string | null | undefined): string | null {
   if (!urlOrId) return null;
@@ -24,13 +48,15 @@ function getDriveFileId(urlOrId: string | null | undefined): string | null {
 export default async function ProjectPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
 
-  const { data: project } = await supabase
+  const { data } = await supabase
     .from('projet')
     .select('*, categorie(*), sousprojet(*)')
     .eq('slug', slug)
     .single();
 
-  if (!project) return notFound();
+  if (!data) return notFound();
+
+  const project = data as unknown as Projet;
 
   const sousProjets: SousProjet[] = (project.sousprojet || [])
     .sort((a: SousProjet, b: SousProjet) => (a.ordre || 0) - (b.ordre || 0));
@@ -73,8 +99,12 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
       
       {/* Hero */}
       <section className="relative h-[60vh] w-full overflow-hidden">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={coverImageUrl} alt={project.titre} className="w-full h-full object-cover opacity-30" />
+        <img 
+          src={coverImageUrl} 
+          alt={project.titre} 
+          className="w-full h-full object-cover opacity-30" 
+          loading="eager"
+        />
         <div className="absolute inset-0 bg-linear-to-t from-z-bg to-transparent" />
         <div className="absolute bottom-0 left-0 w-full p-8 sm:p-16 max-w-7xl mx-auto">
           <Link href="/projet" className="flex items-center gap-2 text-z-blue text-[13px] font-bold uppercase tracking-widest mb-6 hover:translate-x-2 transition-transform">
@@ -144,7 +174,12 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
 
                       {sp.driveImages.map((imgUrl: string, imgIndex: number) => (
                         <div key={imgIndex} className="aspect-video rounded-2xl overflow-hidden border border-z-blue/10 bg-z-card hover:border-z-blue/40 transition-all duration-300 shadow-md">
-                          <img src={imgUrl} className="w-full h-full object-cover" alt={`Rendu ${imgIndex + 1}`} />
+                          <img 
+                            src={imgUrl} 
+                            className="w-full h-full object-cover" 
+                            alt={`Rendu ${imgIndex + 1}`} 
+                            loading="lazy" 
+                          />
                         </div>
                       ))}
                     </div>
