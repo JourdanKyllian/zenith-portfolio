@@ -2,7 +2,7 @@ import { supabase } from '@/lib/supabase';
 import GalleryClient from './GalleryClient';
 import { Metadata } from 'next';
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 3600;
 
 export const metadata: Metadata = {
   title: 'La Galerie | ZENITH PRODUCTION',
