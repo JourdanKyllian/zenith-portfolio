@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import ProjectCard from '../../components/ProjectCard';
-import { Projet, Categorie } from '@/types'; // Ajout de Categorie ici
+import { Projet, Categorie } from '@/types'; 
 
 export default function GalleryClient({ 
   initialProjets, 
@@ -13,8 +13,7 @@ export default function GalleryClient({
 }) {
   const [activeFilter, setActiveFilter] = useState<string>('all');
 
-  // Filtrage ultra-rapide basé directement sur le slug
-  const projetsFiltres = initialProjets.filter((p) => {
+  const projetsFiltres = initialProjets.filter((p: Projet) => {
     if (activeFilter === 'all') return true;
     return p.categorie?.slug === activeFilter;
   });
@@ -41,9 +40,9 @@ export default function GalleryClient({
             Tous ({initialProjets.length})
           </button>
 
-          {/* On utilise maintenant directement la liste des catégories venue de Supabase */}
           {toutesLesCategories.map((cat) => {
-            const count = initialProjets.filter(p => p.categorie?.slug === cat.slug).length;
+            // Correction : ajout du type explicite ": Projet" sur le paramètre p
+            const count = initialProjets.filter((p: Projet) => p.categorie?.slug === cat.slug).length;
             return (
               <button
                 key={cat.id}
