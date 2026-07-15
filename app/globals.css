@@ -23,7 +23,7 @@
   --color-z-bg: #040407;
   --color-z-card: #0A0A12;
   --color-z-border: #151522;
-  --color-z-muted: #3D3D55;
+  --color-z-muted: #8E8EA8; /* MODIFIÉ : Contraste rehaussé pour l'accessibilité */
   --color-z-text: #E8E8F8;
   --color-z-night: #06091A;
 }

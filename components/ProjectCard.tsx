@@ -57,16 +57,17 @@ export default function ProjectCard({ project }: { project: Projet }) {
   const hasDrive = project.sousprojet?.some(sp => sp.drive_url);
 
   return (
-    <article className="project-card group">
-      <Link href={`/projet/${project.slug}`} className="block thumb-wrap">
-        <img src={coverImageUrl} alt={project.titre} className="w-full h-full object-cover" />
+    <article className="project-card group relative">
+      {/* L'image est devenue un conteneur purement graphique (plus de lien doublon) */}
+      <div className="thumb-wrap">
+        <img src={coverImageUrl} alt="" className="w-full h-full object-cover" />
         <div className="absolute inset-0 bg-z-night/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-3">
           <div className="w-12 h-12 bg-white/10 backdrop-blur-md rounded-full flex items-center justify-center border border-white/20 scale-75 group-hover:scale-100 transition-transform">
             <FolderOpen size={20} className="text-white" />
           </div>
-          <span className="text-white font-sub text-[10px] font-bold uppercase tracking-widest">{"Ouvrir l'artiste"}</span>
+          <span className="text-white font-sub text-[10px] font-bold uppercase tracking-widest">Ouvrir l'artiste</span>
         </div>
-      </Link>
+      </div>
 
       <div className="p-5">
         <div className="flex items-center justify-between mb-4">
@@ -80,11 +81,13 @@ export default function ProjectCard({ project }: { project: Projet }) {
           </div>
         </div>
         
-        <Link href={`/projet/${project.slug}`}>
-          <h3 className="font-display font-semibold text-z-text text-lg uppercase tracking-wide hover:text-z-blue transition-colors">
+        {/* Le seul et unique Link sémantique qui étire sa zone cliquable sur toute la carte */}
+        <h3 className="font-display font-semibold text-z-text text-lg uppercase tracking-wide hover:text-z-blue transition-colors">
+          <Link href={`/projet/${project.slug}`} className="after:absolute after:inset-0 focus:outline-none">
             {project.titre}
-          </h3>
-        </Link>
+          </Link>
+        </h3>
+        
         <p className="font-body text-z-muted text-xs leading-relaxed mt-2 line-clamp-2">
           {project.description}
         </p>

@@ -54,7 +54,7 @@ export default function Navbar({ cvUrl, previewUrl }: NavbarProps) {
           
           {/* Logo uniquement textuel avec la police Martyric */}
           <Link href="/" className="group flex flex-col items-start z-[1001] select-none" onClick={() => setIsOpen(false)}>
-            <span className="font-martyric text-3xl text-white group-hover:text-z-blue transition-colors duration-300 drop-shadow-md leading-none">
+            <span className="font-martyric text-3xl text-white group-hover:text-z-blue transition-colors duration-300 drop-shadow-lg leading-none">
               ZENITH
             </span>
             <span className="block font-sub text-[10px] font-semibold tracking-[0.3em] uppercase text-white/80 leading-none mt-1">
@@ -79,25 +79,35 @@ export default function Navbar({ cvUrl, previewUrl }: NavbarProps) {
               MON CV
             </button>
             
-            <button className="md:hidden p-2 text-z-text hover:text-z-blue transition-colors" onClick={() => setIsOpen(!isOpen)}>
+            <button 
+              className="md:hidden p-2 text-z-text hover:text-z-blue transition-colors cursor-pointer" 
+              onClick={() => setIsOpen(!isOpen)}
+              aria-expanded={isOpen}
+              aria-controls="mobile-menu"
+              aria-label={isOpen ? "Fermer le menu de navigation" : "Ouvrir le menu de navigation"}
+            >
               {isOpen ? <X size={32} /> : <Menu size={32} />}
             </button>
           </div>
         </div>
 
-        {/* MENU MOBILE */}
-        <div className={`fixed inset-0 w-full h-screen bg-z-bg z-[1000] transition-transform duration-500 ease-in-out md:hidden ${
-          isOpen ? 'translate-y-0' : '-translate-y-full'
-        }`}>
+        {/* MENU MOBILE - Changé de div à nav sémantique avec propriétés d'accessibilité */}
+        <nav 
+          id="mobile-menu"
+          aria-hidden={!isOpen}
+          className={`fixed inset-0 w-full h-screen bg-z-bg z-[1000] transition-transform duration-500 ease-in-out md:hidden ${
+            isOpen ? 'translate-y-0' : '-translate-y-full'
+          }`}
+        >
           <div className="flex flex-col h-full pt-32 px-10">
             <p className="font-sub text-z-blue text-[10px] font-bold uppercase tracking-[0.4em] mb-10 opacity-50">Menu</p>
-            <nav className="flex flex-col gap-8">
+            <div className="flex flex-col gap-8">
               {navLinks.map((link) => (
                 <Link key={link.name} href={link.href} onClick={() => setIsOpen(false)} className="font-display text-5xl font-bold uppercase tracking-tighter text-z-text hover:text-z-blue active:scale-95 transition-all">
                   {link.name}
                 </Link>
               ))}
-            </nav>
+            </div>
             <div className="mt-auto pb-12">
               <button 
                 onClick={() => { setIsOpen(false); setIsCvOpen(true); }}
@@ -108,7 +118,7 @@ export default function Navbar({ cvUrl, previewUrl }: NavbarProps) {
               </button>
             </div>
           </div>
-        </div>
+        </nav>
       </header>
 
       <CvModal 

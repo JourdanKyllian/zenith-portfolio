@@ -72,26 +72,26 @@ export default function ContactPage() {
             <div className="lg:col-span-3 p-8 sm:p-10 rounded-2xl bg-z-card border border-z-border shadow-2xl">
               <form onSubmit={handleSubmit} className="space-y-6">
                 
-                {/* PROTECTION ANTI-BOT (Honeypot) - Indétectable par les bots car non display:none */}
+                {/* PROTECTION ANTI-BOT (Honeypot) - Masqué sémantiquement pour les lecteurs d'écran */}
                 <div className="absolute opacity-0 -z-10 h-0 w-0 overflow-hidden pointer-events-none" aria-hidden="true">
-                  <label tabIndex={-1}>Ne pas remplir ce champ si vous êtes humain :</label>
-                  <input type="text" name="verify_phone" tabIndex={-1} autoComplete="off" />
+                  <label htmlFor="verify_phone" tabIndex={-1}>Ne pas remplir ce champ si vous êtes humain :</label>
+                  <input type="text" id="verify_phone" name="verify_phone" tabIndex={-1} autoComplete="off" />
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                   <div className="space-y-2">
-                    <label className="text-[10px] uppercase font-bold tracking-widest text-z-muted ml-1">Nom complet</label>
-                    <input name="name" required type="text" placeholder="Prenom NOM" className="w-full bg-z-bg border border-z-border rounded-lg p-4 text-sm focus:border-z-blue focus:outline-none transition-colors" />
+                    <label htmlFor="fullname" className="text-[10px] uppercase font-bold tracking-widest text-z-muted ml-1">Nom complet</label>
+                    <input id="fullname" name="name" required type="text" placeholder="Prenom NOM" className="w-full bg-z-bg border border-z-border rounded-lg p-4 text-sm focus:border-z-blue focus:outline-none transition-colors" />
                   </div>
                   <div className="space-y-2">
-                    <label className="text-[10px] uppercase font-bold tracking-widest text-z-muted ml-1">Email</label>
-                    <input name="email" required type="email" placeholder="contact@exemple.com" className="w-full bg-z-bg border border-z-border rounded-lg p-4 text-sm focus:border-z-blue focus:outline-none transition-colors" />
+                    <label htmlFor="email" className="text-[10px] uppercase font-bold tracking-widest text-z-muted ml-1">Email</label>
+                    <input id="email" name="email" required type="email" placeholder="contact@exemple.com" className="w-full bg-z-bg border border-z-border rounded-lg p-4 text-sm focus:border-z-blue focus:outline-none transition-colors" />
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-[10px] uppercase font-bold tracking-widest text-z-muted ml-1">Type de mission</label>
-                  <select name="type" className="w-full bg-z-bg border border-z-border rounded-lg p-4 text-sm focus:border-z-blue focus:outline-none transition-colors appearance-none">
+                  <label htmlFor="mission_type" className="text-[10px] uppercase font-bold tracking-widest text-z-muted ml-1">Type de mission</label>
+                  <select id="mission_type" name="type" className="w-full bg-z-bg border border-z-border rounded-lg p-4 text-sm focus:border-z-blue focus:outline-none transition-colors appearance-none">
                     <option>Montage Vidéo / Post-prod</option>
                     <option>Cadrage / Captation</option>
                     <option>Design Graphique</option>
@@ -100,8 +100,8 @@ export default function ContactPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-[10px] uppercase font-bold tracking-widest text-z-muted ml-1">Message</label>
-                  <textarea name="message" required rows={5} placeholder="Dites-moi tout sur votre projet..." className="w-full bg-z-bg border border-z-border rounded-lg p-4 text-sm focus:border-z-blue focus:outline-none transition-colors resize-none"></textarea>
+                  <label htmlFor="message" className="text-[10px] uppercase font-bold tracking-widest text-z-muted ml-1">Message</label>
+                  <textarea id="message" name="message" required rows={5} placeholder="Dites-moi tout sur votre projet..." className="w-full bg-z-bg border border-z-border rounded-lg p-4 text-sm focus:border-z-blue focus:outline-none transition-colors resize-none"></textarea>
                 </div>
 
                 <button 

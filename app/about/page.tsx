@@ -105,10 +105,11 @@ export default function AboutPage() {
           <h2 className="font-display font-bold text-3xl sm:text-5xl uppercase tracking-wide">Une Double Compétence</h2>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+        {/* Grille restructurée sous forme d'une liste (ul / li) sémantique pour le SEO */}
+        <ul className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {expertises.map((exp, index) => (
-            <div key={index} className="p-6 rounded-xl bg-z-card border border-z-border hover:border-z-blue/30 transition-all duration-300">
-              <div className="w-12 h-12 rounded-lg bg-z-blue/10 flex items-center justify-center mb-6">
+            <li key={index} className="p-6 rounded-xl bg-z-card border border-z-border hover:border-z-blue/30 transition-all duration-300">
+              <div className="w-12 h-12 rounded-lg bg-z-blue/10 flex items-center justify-center mb-6 animate-fade-in">
                 {exp.icon}
               </div>
               <h3 className="font-display font-bold text-lg uppercase tracking-wide text-white mb-3">
@@ -117,9 +118,9 @@ export default function AboutPage() {
               <p className="font-body text-xs text-z-muted leading-relaxed">
                 {exp.description}
               </p>
-            </div>
+            </li>
           ))}
-        </div>
+        </ul>
       </section>
 
       {/* Bottom CTA */}
