@@ -16,7 +16,7 @@ export async function sendEmail(formData: FormData) {
 
   try {
     const { error } = await resend.emails.send({
-      from: 'Zenith Production <onboarding@resend.dev>',
+      from: 'Zenith Production <contact@zenithproduction.fr>',
       to: 'zenithprod.contact@gmail.com',
       subject: `Nouveau Projet : ${type} - ${name}`,
       replyTo: email,
