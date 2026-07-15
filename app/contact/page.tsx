@@ -72,8 +72,11 @@ export default function ContactPage() {
             <div className="lg:col-span-3 p-8 sm:p-10 rounded-2xl bg-z-card border border-z-border shadow-2xl">
               <form onSubmit={handleSubmit} className="space-y-6">
                 
-                {/* PROTECTION ANTI-BOT (Honeypot) - Invisible */}
-                <input type="text" name="verify_phone" className="hidden" tabIndex={-1} autoComplete="off" />
+                {/* PROTECTION ANTI-BOT (Honeypot) - Indétectable par les bots car non display:none */}
+                <div className="absolute opacity-0 -z-10 h-0 w-0 overflow-hidden pointer-events-none" aria-hidden="true">
+                  <label tabIndex={-1}>Ne pas remplir ce champ si vous êtes humain :</label>
+                  <input type="text" name="verify_phone" tabIndex={-1} autoComplete="off" />
+                </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                   <div className="space-y-2">

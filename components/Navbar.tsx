@@ -25,6 +25,19 @@ export default function Navbar({ cvUrl, previewUrl }: NavbarProps) {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  // Correction du bug de scroll en mode paysage
+  useEffect(() => {
+    const handleResize = () => {
+      // Si on passe sur un grand écran (>= 768px) et que le menu est ouvert, on le force à se fermer
+      if (window.innerWidth >= 768 && isOpen) {
+        setIsOpen(false);
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [isOpen]);
+
   const navLinks = [
     { name: 'Accueil', href: '/' },
     { name: 'Projets', href: '/projet' },
@@ -34,13 +47,13 @@ export default function Navbar({ cvUrl, previewUrl }: NavbarProps) {
 
   return (
     <>
-      <header className={`fixed top-0 left-0 right-0 z-999 transition-all duration-500 ${
+      <header className={`fixed top-0 left-0 right-0 z-[999] transition-all duration-500 ${
         scrolled ? 'bg-z-bg/95 backdrop-blur-md border-b border-z-blue/20 py-1' : 'py-4'
       }`}>
         <div className="max-w-7xl mx-auto px-6 flex items-center justify-between h-16">
           
           {/* Logo uniquement textuel avec la police Martyric */}
-          <Link href="/" className="group flex flex-col items-start z-1001 select-none" onClick={() => setIsOpen(false)}>
+          <Link href="/" className="group flex flex-col items-start z-[1001] select-none" onClick={() => setIsOpen(false)}>
             <span className="font-martyric text-3xl text-white group-hover:text-z-blue transition-colors duration-300 drop-shadow-md leading-none">
               ZENITH
             </span>
@@ -57,7 +70,7 @@ export default function Navbar({ cvUrl, previewUrl }: NavbarProps) {
             ))}
           </nav>
 
-          <div className="flex items-center gap-6 z-1001">
+          <div className="flex items-center gap-6 z-[1001]">
             <button 
               onClick={() => setIsCvOpen(true)}
               className="btn-blue hidden md:flex px-6 py-3 rounded-md items-center gap-2 text-xs font-bold tracking-wider cursor-pointer"
@@ -73,7 +86,7 @@ export default function Navbar({ cvUrl, previewUrl }: NavbarProps) {
         </div>
 
         {/* MENU MOBILE */}
-        <div className={`fixed inset-0 w-full h-screen bg-z-bg z-1000 transition-transform duration-500 ease-in-out md:hidden ${
+        <div className={`fixed inset-0 w-full h-screen bg-z-bg z-[1000] transition-transform duration-500 ease-in-out md:hidden ${
           isOpen ? 'translate-y-0' : '-translate-y-full'
         }`}>
           <div className="flex flex-col h-full pt-32 px-10">
