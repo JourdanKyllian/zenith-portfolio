@@ -13,10 +13,10 @@ export default function CvModal({ isOpen, onClose, cvUrl, previewUrl }: CvModalP
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[1002] flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-1002 flex items-center justify-center p-4 animate-fade-in">
       <div className="absolute inset-0 bg-z-bg/80 backdrop-blur-md" onClick={onClose} />
       
-      <div className="relative w-full max-w-lg bg-z-card border border-z-border p-6 rounded-2xl shadow-2xl flex flex-col max-h-[90vh] z-10">
+      <div className="relative w-full max-w-2xl bg-z-card border border-z-border p-6 rounded-2xl shadow-2xl flex flex-col h-[85vh] z-10">
         
         <div className="flex items-center justify-between mb-4 border-b border-z-blue/10 pb-3">
           <h3 className="font-display font-bold text-xl uppercase tracking-wide text-z-text">Mon Curriculum Vitae</h3>
@@ -29,15 +29,17 @@ export default function CvModal({ isOpen, onClose, cvUrl, previewUrl }: CvModalP
           </button>
         </div>
 
-        <div className="flex-grow overflow-y-auto rounded-lg bg-z-bg border border-z-border/40 p-2 mb-6 flex justify-center items-start">
+        {/* Zone de l'aperçu adaptée pour l'Iframe interactive */}
+        <div className="grow rounded-lg bg-z-bg border border-z-border/40 mb-6 overflow-hidden relative min-h-0 w-full">
           {previewUrl ? (
-            <img 
+            <iframe 
               src={previewUrl} 
-              alt="Aperçu du CV" 
-              className="w-full h-auto rounded shadow-lg max-h-[55vh] object-contain"
+              className="w-full h-full border-none bg-z-bg"
+              allow="autoplay"
+              title="Lecteur PDF du Curriculum Vitae"
             />
           ) : (
-            <div className="py-20 text-z-muted text-xs font-sub uppercase tracking-wider">
+            <div className="absolute inset-0 flex items-center justify-center text-z-muted text-xs font-sub uppercase tracking-wider">
               Aperçu indisponible
             </div>
           )}
@@ -46,7 +48,7 @@ export default function CvModal({ isOpen, onClose, cvUrl, previewUrl }: CvModalP
         <div className="flex gap-4">
           <button 
             onClick={onClose}
-            className="flex-1 bg-z-bg border border-z-border text-z-muted hover:text-z-text p-3.5 rounded-lg text-xs font-bold uppercase tracking-widest transition-colors cursor-pointer"
+            className="flex-1 bg-z-bg border border-z-border text-z-muted hover:text-white p-3.5 rounded-lg text-xs font-bold uppercase tracking-widest transition-colors cursor-pointer"
           >
             Fermer
           </button>

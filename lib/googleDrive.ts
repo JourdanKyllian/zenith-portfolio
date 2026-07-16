@@ -102,11 +102,11 @@ export async function getCvAssetsFromDrive(folderUrlOrId: string): Promise<{ cvU
 
     const pdfFile = files.find(f => f.mimeType === 'application/pdf');
     if (pdfFile?.id) {
-      // Lien de téléchargement natif du PDF
+      // Lien direct de téléchargement
       cvUrl = `https://docs.google.com/uc?export=view&id=${pdfFile.id}`;
       
-      // ✨ CORRECTIF PRÉVIEW : Génération automatique de l'aperçu image directement depuis le PDF
-      previewUrl = `https://drive.google.com/thumbnail?id=${pdfFile.id}&sz=w1200`;
+      // Lien de prévisualisation officiel embeddable
+      previewUrl = `https://drive.google.com/file/d/${pdfFile.id}/preview`;
     }
 
     return { cvUrl, previewUrl };
