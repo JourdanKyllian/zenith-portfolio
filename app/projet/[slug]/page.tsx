@@ -1,12 +1,48 @@
+// app/projet/[slug]/page.tsx
 import { supabase } from '@/lib/supabase';
 import { notFound } from 'next/navigation';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, PlayCircle } from 'lucide-react';
 import Link from 'next/link';
-import { Projet } from '@/types';
+import { getProjectAssetsFromDrive, DriveAssets } from '@/lib/googleDrive';
+import { SousProjet, Projet } from '@/types';
 import ProjectMediaContent from '@/components/ProjectMediaContent';
-import { CATEGORY_COLORS, CategoryColorKey } from '@/config/colors';
+import { getBadgeTheme } from '@/config/colors';
 
 export const revalidate = 3600;
+
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
+
+  const { data } = await supabase
+    .from('projet')
+    .select('*, categorie(*)')
+    .eq('slug', slug)
+    .single();
+
+  if (!data) {
+    return { title: 'Projet — ZENITH PRODUCTION' };
+  }
+
+  const project = data as unknown as Projet;
+  const categoryName = project.categorie?.name || 'Général';
+
+  return {
+    title: `${project.titre} — ${categoryName} | ZENITH PRODUCTION`,
+  };
+}
+
+function getDriveFileId(urlOrId: string | null | undefined): string | null {
+  if (!urlOrId) return null;
+  if (!urlOrId.includes('/')) return urlOrId;
+  
+  const fileDMatch = urlOrId.match(/\/d\/([a-zA-Z0-9-_]+)/);
+  if (fileDMatch) return fileDMatch[1];
+  
+  const idParamMatch = urlOrId.match(/id=([a-zA-Z0-9-_]+)/);
+  if (idParamMatch) return idParamMatch[1];
+  
+  return null;
+}
 
 export default async function ProjectPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
@@ -20,12 +56,48 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
   if (!data) return notFound();
 
   const project = data as unknown as Projet;
-  
-  const colorKey = (project.categorie?.color as CategoryColorKey) || 'blue';
-  const badgeTheme = CATEGORY_COLORS[colorKey] || CATEGORY_COLORS.blue;
 
-  // Logique de traitement des médias et coverImageUrl inchangée ici
-  const coverImageUrl = "https://images.unsplash.com/photo-1536440136628-849c177e76a1?q=80&w=1025&auto=format&fit=cover";
+  // 1. Réactivation du tri par ordre
+  const sousProjets: SousProjet[] = (project.sousprojet || [])
+    .sort((a: SousProjet, b: SousProjet) => (a.ordre || 0) - (b.ordre || 0));
+
+  // 2. Réactivation de la passerelle d'extraction Google Drive
+  const sousProjetsAvecMedias = await Promise.all(
+    sousProjets.map(async (sp) => {
+      const driveAssets: DriveAssets = sp.drive_url 
+        ? await getProjectAssetsFromDrive(sp.drive_url)
+        : { images: [], youtubeUrl: null, pdf: null, videoUrl: null };
+      
+      return {
+        ...sp,
+        finalYoutubeUrl: driveAssets.youtubeUrl || sp.youtube_url,
+        driveImages: driveAssets.images,
+        pdf: driveAssets.pdf,
+        driveVideoUrl: driveAssets.videoUrl
+      };
+    })
+  );
+
+  const hasAnyVideo = sousProjetsAvecMedias.some(sp => sp.finalYoutubeUrl || sp.driveVideoUrl);
+
+  // 3. Résolution dynamique de la couleur de badge
+  const badgeTheme = getBadgeTheme(project.categorie?.color);
+
+  const miniatureUrl = project.miniature_url;
+  let coverImageUrl = "";
+
+  if (miniatureUrl) {
+    if (miniatureUrl.startsWith('http') && !miniatureUrl.includes('drive.google.com')) {
+      coverImageUrl = miniatureUrl;
+    } else {
+      const driveImageId = getDriveFileId(miniatureUrl);
+      coverImageUrl = driveImageId 
+        ? `https://drive.google.com/thumbnail?id=${driveImageId}&sz=w1600`
+        : miniatureUrl;
+    }
+  } else {
+    coverImageUrl = "https://images.unsplash.com/photo-1536440136628-849c177e76a1?q=80&w=1025&auto=format&fit=cover";
+  }
 
   return (
     <main className="min-h-screen bg-z-bg text-z-text pb-20">
@@ -45,7 +117,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
             {project.titre}
           </h1>
           
-          <span className={`px-3 py-1 rounded border ${badgeTheme.border} ${badgeTheme.bg} ${badgeTheme.text} text-[9px] font-bold uppercase tracking-widest`}>
+          <span className={`px-3 py-1 rounded border transition-colors duration-300 ${badgeTheme.border} ${badgeTheme.bg} ${badgeTheme.text} text-[9px] font-bold uppercase tracking-widest`}>
             {project.categorie?.name || "Général"}
           </span>
         </div>
@@ -57,10 +129,17 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
             <h3 className="text-z-muted font-sub text-[10px] font-bold uppercase tracking-widest mb-6">L'Artiste</h3>
             <p className="font-body text-z-text/80 leading-relaxed whitespace-pre-wrap">{project.description}</p>
           </div>
+          {hasAnyVideo && (
+            <div className="flex flex-col gap-4">
+              <div className="btn-blue p-4 rounded-lg flex items-center justify-center gap-3 text-[10px] font-bold uppercase tracking-widest opacity-80 cursor-default">
+                <PlayCircle size={18} /> Vidéos disponibles
+              </div>
+            </div>
+          )}
         </div>
 
         <ProjectMediaContent 
-          sousProjets={project.sousprojet as any} 
+          sousProjets={sousProjetsAvecMedias as any} 
           coverImageUrl={coverImageUrl}
           projectTitle={project.titre} 
         />

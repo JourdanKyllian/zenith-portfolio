@@ -1,3 +1,4 @@
+// config/colors.ts
 export const CATEGORY_COLORS = {
   blue: {
     name: "Bleu",
@@ -31,5 +32,30 @@ export const CATEGORY_COLORS = {
   },
 } as const;
 
-// Type de sécurité pour TypeScript
 export type CategoryColorKey = keyof typeof CATEGORY_COLORS;
+
+/**
+ * Résout le thème graphique d'un badge en fonction de la valeur de la base de données.
+ * Gère le français, l'anglais, la casse ainsi que les valeurs NULL / EMPTY.
+ */
+export function getBadgeTheme(colorName: string | null | undefined) {
+  if (!colorName || colorName === 'NULL' || colorName === 'EMPTY') {
+    // Style basique neutre si aucune couleur n'est spécifiée
+    return {
+      bg: "bg-z-card/50",
+      text: "text-z-muted",
+      border: "border-z-border"
+    };
+  }
+
+  const normalized = colorName.toLowerCase().trim();
+
+  if (normalized === 'bleu' || normalized === 'blue') return CATEGORY_COLORS.blue;
+  if (normalized === 'rose' || normalized === 'pink') return CATEGORY_COLORS.pink;
+  if (normalized === 'violet' || normalized === 'purple') return CATEGORY_COLORS.purple;
+  if (normalized === 'vert' || normalized === 'green') return CATEGORY_COLORS.green;
+  if (normalized === 'jaune' || normalized === 'yellow') return CATEGORY_COLORS.yellow;
+
+  // Repli par défaut sur le bleu de la charte en cas de valeur exotique
+  return CATEGORY_COLORS.blue;
+}
