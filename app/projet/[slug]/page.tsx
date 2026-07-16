@@ -2,6 +2,8 @@ import { notFound } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import Link from 'next/link';
 import { ArrowLeft, Film, Calendar } from 'lucide-react';
+import ProjectMediaContent from '@/components/ProjectMediaContent';
+import { getProjectAssetsFromDrive } from '@/lib/googleDrive';
 
 export const revalidate = 3600;
 
@@ -17,10 +19,9 @@ interface Projet {
 }
 
 /**
- * Indique à Next.js les routes dynamiques à pré-générer au moment du build (SSG).
- * Permet d'éliminer la latence au clic pour les slugs connus.
+ * Génère les paramètres statiques pour le rendu côté serveur (SSG) des routes dynamiques.
  *
- * @returns {Promise<{ slug: string }[]>} Tableau des paramètres de routage statiques.
+ * @returns {Promise<{ slug: string }[]>} Les paramètres de routage pré-compilés.
  */
 export async function generateStaticParams() {
   const { data: projets, error } = await supabase
@@ -38,10 +39,10 @@ export async function generateStaticParams() {
 }
 
 /**
- * Server Component : Page de détail d'un projet spécifique.
- * Gère le paramètre dynamique de manière asynchrone (Next.js 16+).
+ * Server Component : Page de détail d'un projet.
+ * Hydrate les données du projet via Supabase et agrège les médias distants via Google Drive API.
  *
- * @param {Promise<{ slug: string }>} params - Promesse contenant le slug de l'URL.
+ * @param {Promise<{ slug: string }>} params - Promesse contenant le slug de l'URL du projet.
  */
 export default async function ProjetUniquePage({
   params,
@@ -52,7 +53,7 @@ export default async function ProjetUniquePage({
 
   const { data: dataProjet, error } = await supabase
     .from('projet')
-    .select('*')
+    .select('*, sousprojet(*)')
     .eq('slug', slug)
     .single();
 
@@ -60,7 +61,35 @@ export default async function ProjetUniquePage({
     notFound();
   }
 
-  const projet = dataProjet as Projet;
+  const projet = dataProjet as Projet & { sousprojet: any[] };
+
+  // Agrégation asynchrone des sources médias (Drive & YouTube) pour les sous-projets
+  const sousProjetsTransformes = await Promise.all(
+    (projet.sousprojet || [])
+      .sort((a, b) => a.ordre - b.ordre)
+      .map(async (sp) => {
+        let driveImages: string[] = [];
+        let driveYoutubeUrl = null;
+        let pdf = null;
+        let driveVideoUrl = null;
+
+        if (sp.drive_url) {
+          const driveData = await getProjectAssetsFromDrive(sp.drive_url);
+          driveImages = driveData.images;
+          driveYoutubeUrl = driveData.youtubeUrl;
+          pdf = driveData.pdf;
+          driveVideoUrl = driveData.videoUrl;
+        }
+
+        return {
+          ...sp,
+          driveImages,
+          pdf,
+          driveVideoUrl,
+          finalYoutubeUrl: sp.youtube_url || driveYoutubeUrl,
+        };
+      })
+  );
 
   const dateProjet = new Date(projet.created_at).toLocaleDateString('fr-FR', {
     year: 'numeric',
@@ -98,27 +127,15 @@ export default async function ProjetUniquePage({
           </div>
         </header>
 
-        <section className="relative aspect-video w-full overflow-hidden rounded-2xl border border-z-border bg-z-card shadow-2xl group">
-          <img
-            src={projet.miniature_url}
-            alt={`Couverture du projet ${projet.titre}`}
-            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-102"
-            loading="eager"
-          />
-          <div className="absolute inset-0 bg-linear-to-t from-z-bg/60 via-transparent to-transparent pointer-events-none" />
-        </section>
-
         <section className="grid grid-cols-1 md:grid-cols-3 gap-8 pt-4">
-          <div className="md:col-span-2 space-y-4">
-            <h2 className="text-xl font-bold text-z-blue uppercase tracking-wider">
-              À propos du projet
-            </h2>
-            <p className="text-z-text/90 leading-relaxed text-base md:text-lg font-light whitespace-pre-line">
-              {projet.description}
-            </p>
-          </div>
+          
+          <ProjectMediaContent 
+            sousProjets={sousProjetsTransformes} 
+            coverImageUrl={projet.miniature_url} 
+            projectTitle={projet.titre}
+          />
 
-          <div className="p-6 bg-z-card border border-z-border rounded-xl h-fit space-y-4">
+          <div className="md:col-span-1 p-6 bg-z-card border border-z-border rounded-xl h-fit space-y-4">
             <h3 className="font-bold text-sm uppercase tracking-wider text-z-text">
               Fiche Technique
             </h3>
