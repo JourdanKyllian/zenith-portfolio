@@ -2,6 +2,7 @@ export interface Categorie {
   id: number;
   name: string;
   slug: string;
+  color?: string;
   created_at: string;
 }
 

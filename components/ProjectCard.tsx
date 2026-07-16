@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { FolderOpen, ExternalLink, Video } from 'lucide-react';
 import { Projet } from '@/types';
+import { CATEGORY_COLORS, CategoryColorKey } from '@/config/colors';
 
 function getYoutubeId(url: string | null | undefined): string | null {
   if (!url) return null;
@@ -25,12 +26,8 @@ function getDriveFileId(urlOrId: string | null | undefined): string | null {
 }
 
 export default function ProjectCard({ project }: { project: Projet }) {
-  const badgeStyles: Record<string, string> = {
-    perso: "bg-blue-500/15 text-z-blue border-z-blue/30",
-    pro: "bg-gray-400/12 text-z-silver border-z-silver/25",
-    asso: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
-    larauze: "bg-purple-500/12 text-purple-400 border-purple-500/25",
-  };
+  const colorKey = (project.categorie?.color as CategoryColorKey) || 'blue';
+  const badgeTheme = CATEGORY_COLORS[colorKey] || CATEGORY_COLORS.blue;
 
   const miniatureUrl = project.miniature_url;
   let coverImageUrl = "";
@@ -58,7 +55,6 @@ export default function ProjectCard({ project }: { project: Projet }) {
 
   return (
     <article className="project-card group relative">
-      {/* L'image est devenue un conteneur purement graphique (plus de lien doublon) */}
       <div className="thumb-wrap">
         <img src={coverImageUrl} alt="" className="w-full h-full object-cover" />
         <div className="absolute inset-0 bg-z-night/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-3">
@@ -71,7 +67,7 @@ export default function ProjectCard({ project }: { project: Projet }) {
 
       <div className="p-5">
         <div className="flex items-center justify-between mb-4">
-          <span className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider border ${badgeStyles[project.categorie?.slug || ""] || ""}`}>
+          <span className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider border ${badgeTheme.bg} ${badgeTheme.text} ${badgeTheme.border}`}>
             {project.categorie?.name || "Général"}
           </span>
           
@@ -81,7 +77,6 @@ export default function ProjectCard({ project }: { project: Projet }) {
           </div>
         </div>
         
-        {/* Le seul et unique Link sémantique qui étire sa zone cliquable sur toute la carte */}
         <h3 className="font-display font-semibold text-z-text text-lg uppercase tracking-wide hover:text-z-blue transition-colors">
           <Link href={`/projet/${project.slug}`} className="after:absolute after:inset-0 focus:outline-none">
             {project.titre}
