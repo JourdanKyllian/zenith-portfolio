@@ -1,22 +1,21 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Mail, MessageSquare, Send, CheckCircle2, AlertCircle } from 'lucide-react';
 import { sendEmail } from '../actions/sendEmail';
 
 export default function ContactPage() {
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+  const formRef = useRef<HTMLFormElement>(null);
 
-  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
+  async function handleAction(formData: FormData) {
     setStatus('loading');
 
-    const formData = new FormData(event.currentTarget);
     const result = await sendEmail(formData);
 
     if (result.success) {
       setStatus('success');
-      (event.target as HTMLFormElement).reset();
+      formRef.current?.reset();
       setTimeout(() => setStatus('idle'), 5000);
     } else {
       setStatus('error');
@@ -70,9 +69,10 @@ export default function ContactPage() {
 
             {/* Colonne Droite : Formulaire */}
             <div className="lg:col-span-3 p-8 sm:p-10 rounded-2xl bg-z-card border border-z-border shadow-2xl">
-              <form onSubmit={handleSubmit} className="space-y-6">
+              {/* 4. Remplacement de onSubmit par action et ajout de ref */}
+              <form action={handleAction} ref={formRef} className="space-y-6">
                 
-                {/* PROTECTION ANTI-BOT (Honeypot) - Sécurisée pour empêcher l'autofill agressif */}
+                {/* PROTECTION ANTI-BOT (Honeypot) */}
                 <div className="absolute opacity-0 -z-10 h-0 w-0 overflow-hidden pointer-events-none" aria-hidden="true">
                   <label htmlFor="api_checksum" tabIndex={-1}>Ne pas remplir ce champ si vous êtes humain :</label>
                   <input 
