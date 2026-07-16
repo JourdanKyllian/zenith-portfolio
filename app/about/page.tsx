@@ -1,6 +1,7 @@
 import { Metadata } from 'next';
 import Link from 'next/link';
-import { Camera, Film, Palette, Target, ArrowRight } from 'lucide-react';
+import {Camera,Film,Palette,Target,ArrowRight,GraduationCap,Briefcase,Users,TrendingUp,} from 'lucide-react';
+import SoundwaveTimeline, {type TimelineItem,} from '@/components/SoundwaveTimeline';
 
 export const metadata: Metadata = {
   title: 'À Propos | ZENITH PRODUCTION',
@@ -35,6 +36,60 @@ export default function AboutPage() {
     }
   ];
 
+  // Contenu de la frise : défini côté serveur (texte présent dans le HTML
+  // initial pour le SEO), seule l'animation de l'onde est déléguée au
+  // composant client SoundwaveTimeline.
+  const parcours: TimelineItem[] = [
+    {
+      year: '2018',
+      title: 'Bac Général',
+      subtitle: 'Lycée Pierre Bayen',
+      description:
+        "Les spécialités HLP et Arts plastiques m'ont permis de développer mon esprit critique, ma créativité et mon sens de l'esthétique, des compétences essentielles dans mon parcours en audiovisuel et en communication.",
+      icon: <GraduationCap className="w-5 h-5" />,
+    },
+    {
+      year: '2021',
+      title: 'BTS Montage Audiovisuel',
+      subtitle: "Institut Supérieur de l'Audiovisuel — Paris",
+      description:
+        "Cette formation en alternance a été directement mise en pratique au sein de BH Digital, où j'ai occupé le poste d'alternant chargé de communication. J'y ai développé des compétences en développement web, SEO, montage et post-production, ainsi qu'en création graphique avec Photoshop, me permettant d'allier expertise technique et stratégie de communication.",
+      icon: <GraduationCap className="w-5 h-5" />,
+    },
+    {
+      year: '2023 – 2025',
+      title: 'Chargé de Communication',
+      subtitle: 'Mission Locale de Châlons-en-Champagne',
+      description:
+        "Développement de la communication digitale de la structure à travers le référencement SEO, la création graphique, la production de contenus audiovisuels et la gestion du site web. Conception et mise en place d'un studio dédié aux captations et aux diffusions en direct, afin de professionnaliser les événements et renforcer la communication auprès des différents publics.",
+      icon: <Briefcase className="w-5 h-5" />,
+    },
+    {
+      year: '2025 – auj.',
+      title: 'Responsable Communication',
+      subtitle: 'Collectif Châlonnais',
+      description:
+        "Pilotage de la stratégie de communication de l'association en développant son identité de marque et sa visibilité. Encadrement d'une équipe de production vidéo, coordination de la création de contenus audiovisuels et participation à l'organisation des événements. Conception d'un studio audiovisuel de 40 m² en collaboration avec une architecte d'intérieur.",
+      icon: <Users className="w-5 h-5" />,
+    },
+    {
+      year: '2025 – auj.',
+      title: 'Création de Zenith Production',
+      subtitle: 'Micro-entreprise',
+      description:
+        "Micro-entreprise spécialisée dans la production audiovisuelle et la communication visuelle : montage, post-production, captation vidéo, photographie, retouche photo et création graphique. Développement de l'activité sur ComeUp et couverture de la Foire de Châlons-en-Champagne ainsi que d'autres événements, avec des collaborations en France et à l'international.",
+      icon: <TrendingUp className="w-5 h-5" />,
+    },
+    {
+      year: '2026 – auj.',
+      title: 'Chargé de Communication',
+      subtitle: 'E.Leclerc — Troyes Saint-Parres-aux-Tertres',
+      description:
+        "Développement de la communication digitale et interne de l'enseigne. Conception de contenus pour les supports numériques et participation à la mise en œuvre de la stratégie de communication afin de renforcer la visibilité et l'engagement des collaborateurs et des clients.",
+      icon: <Briefcase className="w-5 h-5" />,
+    },
+  ];
+
   return (
     <main className="min-h-screen bg-z-bg text-z-text pb-20">
       <section className="relative pt-40 pb-20 px-6 overflow-hidden text-center">
@@ -59,12 +114,12 @@ export default function AboutPage() {
           />
           <div className="absolute inset-0 bg-linear-to-t from-z-bg via-transparent to-z-bg/40 opacity-90 pointer-events-none" />
           <div className="absolute inset-0 bg-radial from-z-blue/5 to-transparent pointer-events-none" />
-          
+
           <span className="absolute top-6 left-6 w-6 h-6 border-t-2 border-l-2 border-z-blue/40 z-10" />
           <span className="absolute top-6 right-6 w-6 h-6 border-t-2 border-r-2 border-z-blue/40 z-10" />
           <span className="absolute bottom-6 left-6 w-6 h-6 border-b-2 border-l-2 border-z-blue/40 z-10" />
           <span className="absolute bottom-6 right-6 w-6 h-6 border-b-2 border-r-2 border-z-blue/40 z-10" />
-          
+
           <div className="absolute bottom-8 left-1/2 -translate-x-1/2 text-center z-10 w-full px-4">
             <p className="font-sub text-[10px] uppercase tracking-[0.3em] text-z-text/90 drop-shadow-md">
               Gabin Husson — Live Focus
@@ -112,6 +167,15 @@ export default function AboutPage() {
             </li>
           ))}
         </ul>
+      </section>
+
+      {/* Frise chronologique du parcours */}
+      <section className="max-w-5xl mx-auto px-6 py-20">
+        <div className="text-center mb-20">
+          <span className="font-sub text-z-blue text-[10px] font-bold uppercase tracking-[0.3em] mb-4 block">Depuis 2018</span>
+          <h2 className="font-display font-bold text-3xl sm:text-5xl uppercase tracking-wide">Mon Parcours</h2>
+        </div>
+        <SoundwaveTimeline items={parcours} />
       </section>
 
       <section className="max-w-5xl mx-auto px-6 mt-16 text-center relative py-20 rounded-2xl border border-z-blue/10 bg-z-card overflow-hidden">
