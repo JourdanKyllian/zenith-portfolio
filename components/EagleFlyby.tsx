@@ -124,7 +124,7 @@ export default function EagleFlyby() {
           visibility: "hidden",
         }}
       >
-        <g fill="var(--color-z-border)" stroke="var(--color-z-blue)" strokeWidth="1.5" strokeLinejoin="round">
+        <g fill="var(--color-z-border)" stroke="var(--color-z-border)" strokeWidth="1.5" strokeLinejoin="round">
             <path d="M96,104 L84,138 L110,126 L136,138 L124,104 Z" />
             <ellipse cx="110" cy="78" rx="16" ry="30" />
             <g ref={wingLeftRef} style={{ transformOrigin: "96px 70px", transformBox: "view-box" }}>
