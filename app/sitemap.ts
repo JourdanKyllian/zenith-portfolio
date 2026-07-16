@@ -4,7 +4,7 @@ import { supabase } from '@/lib/supabase';
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = 'https://zenithproduction.fr';
 
-  // Récupération automatique de tous les projets actifs depuis Supabase
+  // Récupération automatique de tous les projets actifs depuis Supabase.
   const { data: projets } = await supabase
     .from('projet')
     .select('slug')
