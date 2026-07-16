@@ -30,11 +30,9 @@ export default function Hero({ categoriesCount, yearsOfExperience }: HeroProps) 
         </span>
       </div>
 
-      <div className="relative" style={{ "--eagle-size": "clamp(34px, 9vw, 84px)" } as React.CSSProperties}>
+      <div className="relative">
         <h1 className="animate-fade-up font-display tracking-wide mb-4 leading-none text-[clamp(3rem,9vw,7rem)]">
-          <span className="font-martyric text-z-text">
-            <span data-eagle-target className="relative inline-block">Z</span>ENITH
-          </span><br/>
+          <span className="font-martyric text-z-text">ZENITH</span><br/>
           <span className="font-bold text-glow">PRODUCTION</span>
         </h1>
         <EagleFlyby />
