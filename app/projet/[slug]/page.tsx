@@ -8,7 +8,6 @@ import ProjectMediaContent from '@/components/ProjectMediaContent';
 
 export const revalidate = 3600;
 
-// GÉNÉRATION DYNAMIQUE DES MÉTADONNÉES SEO (TITRE — CATÉGORIE)
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
 
@@ -19,9 +18,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     .single();
 
   if (!data) {
-    return {
-      title: 'Projet — ZENITH PRODUCTION',
-    };
+    return { title: 'Projet — ZENITH PRODUCTION' };
   }
 
   const project = data as unknown as Projet;
@@ -96,8 +93,6 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
 
   return (
     <main className="min-h-screen bg-z-bg text-z-text pb-20">
-      
-      {/* Hero */}
       <section className="relative h-[60vh] w-full overflow-hidden">
         <img 
           src={coverImageUrl} 
@@ -119,16 +114,12 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
         </div>
       </section>
 
-      {/* Contenu */}
       <section className="max-w-7xl mx-auto px-8 py-20 grid grid-cols-1 lg:grid-cols-3 gap-20">
-        
-        {/* Colonne Gauche */}
         <div className="lg:col-span-1 space-y-10">
           <div>
             <h3 className="text-z-muted font-sub text-[10px] font-bold uppercase tracking-widest mb-6">{"L'Artiste"}</h3>
             <p className="font-body text-z-text/80 leading-relaxed whitespace-pre-wrap">{project.description}</p>
           </div>
-          
           {hasAnyVideo && (
             <div className="flex flex-col gap-4">
               <div className="btn-blue p-4 rounded-lg flex items-center justify-center gap-3 text-[10px] font-bold uppercase tracking-widest opacity-80 cursor-default">
@@ -138,12 +129,12 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
           )}
         </div>
 
-        {/* Colonne Droite basculée sur le Client Component d'interactivité */}
+        {/* Le titre du projet est transmis pour parfaire le SEO des images */}
         <ProjectMediaContent 
           sousProjets={sousProjetsAvecMedias as any} 
-          coverImageUrl={coverImageUrl} 
+          coverImageUrl={coverImageUrl}
+          projectTitle={project.titre} 
         />
-
       </section>
     </main>
   );

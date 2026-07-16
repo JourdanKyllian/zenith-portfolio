@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { PlayCircle, ChevronLeft, ChevronRight, X, Maximize2 } from 'lucide-react';
+import Image from 'next/image';
+import { ChevronLeft, ChevronRight, X, Maximize2, Loader2 } from 'lucide-react';
 import PdfPreview from '@/components/PdfPreview';
 
 interface ExtendedSousProjet {
@@ -9,7 +10,6 @@ interface ExtendedSousProjet {
   projet_id: number;
   titre: string;
   description: string | null;
-  youtube_url: string | null;
   drive_url: string | null;
   ordre: number;
   created_at: string;
@@ -21,16 +21,25 @@ interface ExtendedSousProjet {
 interface ProjectMediaContentProps {
   sousProjets: ExtendedSousProjet[];
   coverImageUrl: string;
+  projectTitle: string;
 }
 
-export default function ProjectMediaContent({ sousProjets, coverImageUrl }: ProjectMediaContentProps) {
+export default function ProjectMediaContent({ sousProjets, coverImageUrl, projectTitle }: ProjectMediaContentProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [isImageLoading, setIsImageLoading] = useState(true);
 
-  // Extraction et aplatissement de TOUTES les images de TOUS les sous-projets pour le voyage global
   const allImages = sousProjets.flatMap(sp => sp.driveImages);
 
-  // Gestion des touches du clavier pour une navigation fluide
+  const getHdUrl = (url: string) => {
+    return url.includes('drive.google.com/thumbnail')
+      ? url.replace('sz=w1200', 'sz=w2048')
+      : url;
+  };
+
+  const nextIndex = (currentIndex + 1) % allImages.length;
+  const prevIndex = (currentIndex - 1 + allImages.length) % allImages.length;
+
   useEffect(() => {
     if (!isOpen) return;
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -43,23 +52,26 @@ export default function ProjectMediaContent({ sousProjets, coverImageUrl }: Proj
   }, [isOpen, currentIndex]);
 
   const handleNext = () => {
-    setCurrentIndex((prev) => (prev === allImages.length - 1 ? 0 : prev + 1));
+    setIsImageLoading(true);
+    setCurrentIndex(nextIndex);
   };
 
   const handlePrev = () => {
-    setCurrentIndex((prev) => (prev === 0 ? allImages.length - 1 : prev - 1));
+    setIsImageLoading(true);
+    setCurrentIndex(prevIndex);
   };
 
   const openLightbox = (url: string) => {
     const index = allImages.indexOf(url);
     if (index !== -1) {
+      setIsImageLoading(true);
       setCurrentIndex(index);
       setIsOpen(true);
     }
   };
 
   if (sousProjets.length === 0) {
-    return <img src={coverImageUrl} className="w-full rounded-2xl border border-z-blue/10" alt="Couverture du projet" />;
+    return <img src={coverImageUrl} className="w-full rounded-2xl border border-z-blue/10" alt={`Portfolio ${projectTitle}`} />;
   }
 
   return (
@@ -67,6 +79,7 @@ export default function ProjectMediaContent({ sousProjets, coverImageUrl }: Proj
       <div className="lg:col-span-2 space-y-16">
         {sousProjets.map((sp, idx) => {
           const hasMedia = sp.finalYoutubeUrl || sp.driveImages.length > 0 || sp.pdf;
+          const seoDescription = `${sp.titre || 'Rendu visuel'} — Projet ${projectTitle} par Zenith Production`;
 
           return (
             <div key={sp.id || idx} className="space-y-8 animate-fade-up">
@@ -87,7 +100,8 @@ export default function ProjectMediaContent({ sousProjets, coverImageUrl }: Proj
                   <iframe 
                     width="100%" height="100%" 
                     src={sp.finalYoutubeUrl.replace("watch?v=", "embed/").replace("youtu.be/", "youtube.com/embed/")} 
-                    frameBorder="0" allowFullScreen 
+                    allowFullScreen 
+                    className="border-none" // CORRIGÉ : frameBorder déprécié supprimé au profit de cette classe
                   />
                 </div>
               )}
@@ -101,16 +115,17 @@ export default function ProjectMediaContent({ sousProjets, coverImageUrl }: Proj
                       key={imgIndex}
                       onClick={() => openLightbox(imgUrl)}
                       className="group relative aspect-video rounded-2xl overflow-hidden border border-z-blue/10 bg-z-card hover:border-z-blue/40 transition-all duration-300 shadow-md block cursor-zoom-in text-left w-full"
-                      title="Cliquez pour ouvrir la visionneuse"
                     >
-                      <img 
+                      <Image 
                         src={imgUrl} 
-                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-102" 
-                        alt={`Rendu graphique ${imgIndex + 1}`} 
-                        loading="lazy" 
+                        fill
+                        sizes="(max-width: 768px) 100vw, 33vw"
+                        className="object-cover transition-transform duration-500 group-hover:scale-102" 
+                        alt={`${seoDescription} (${imgIndex + 1})`}
+                        loading="lazy"
                       />
                       
-                      <div className="absolute inset-0 bg-z-night/70 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-2">
+                      <div className="absolute inset-0 bg-z-night/70 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-2 z-10">
                         <div className="w-10 h-10 bg-z-blue/20 backdrop-blur-md rounded-full flex items-center justify-center border border-z-blue/40">
                           <Maximize2 size={16} className="text-z-blue" />
                         </div>
@@ -127,50 +142,56 @@ export default function ProjectMediaContent({ sousProjets, coverImageUrl }: Proj
         })}
       </div>
 
-      {/* VISIONNEUSE INTERACTIVE GLOBALE (LIGHTBOX) */}
+      {/* LIGHTBOX POPUP */}
       {isOpen && allImages.length > 0 && (
         <div className="fixed inset-0 z-2000 flex items-center justify-center bg-z-bg/95 backdrop-blur-md select-none animate-fade-in">
-          
-          {/* Bouton de fermeture */}
+          <div className="hidden" aria-hidden="true">
+            <img src={getHdUrl(allImages[nextIndex])} alt="" />
+            <img src={getHdUrl(allImages[prevIndex])} alt="" />
+          </div>
+
+          {/* CORRIGÉ : Utilisation de z-[2001] pour passer au-dessus des headers */}
           <button 
             onClick={() => setIsOpen(false)}
             className="absolute top-6 right-6 z-2001 p-3 text-z-muted hover:text-white bg-z-card border border-z-border rounded-full transition-colors cursor-pointer focus:outline-none"
-            aria-label="Fermer la visionneuse"
           >
             <X size={24} />
           </button>
 
-          {/* Bouton Précédent */}
           {allImages.length > 1 && (
             <button 
               onClick={handlePrev}
               className="absolute left-4 md:left-8 z-2001 p-4 text-white hover:text-z-blue bg-z-card/50 hover:bg-z-card border border-z-border/40 rounded-full transition-all cursor-pointer group focus:outline-none"
-              aria-label="Image précédente"
             >
               <ChevronLeft size={28} className="group-hover:-translate-x-0.5 transition-transform" />
             </button>
           )}
 
-          {/* Affichage central de la photo en ultra HD originelle */}
-          <div className="relative max-w-5xl max-h-[85vh] p-4 flex flex-col items-center justify-center">
+          <div className="relative max-w-5xl max-h-[85vh] p-4 flex flex-col items-center justify-center w-full">
+            {isImageLoading && (
+              <div className="absolute inset-0 flex items-center justify-center z-10 text-z-blue">
+                <Loader2 size={40} className="animate-spin" />
+              </div>
+            )}
+
             <img 
-              src={allImages[currentIndex].replace('sz=w1200', 'sz=w4000')} 
-              alt={`Rendu plein écran ${currentIndex + 1}`}
-              className="max-w-full max-h-[75vh] object-contain rounded-lg shadow-2xl animate-scale-in"
+              src={getHdUrl(allImages[currentIndex])} 
+              alt={`Agrandissement plein écran numéro ${currentIndex + 1} — ${projectTitle}`}
+              onLoad={() => setIsImageLoading(false)}
+              className={`max-w-full max-h-[75vh] object-contain rounded-lg shadow-2xl transition-opacity duration-300 ${
+                isImageLoading ? 'opacity-30' : 'opacity-100'
+              }`}
             />
             
-            {/* Indexateur bas de page */}
             <div className="mt-6 px-4 py-1.5 rounded-full bg-z-card/80 border border-z-border text-[10px] font-sub font-bold uppercase tracking-widest text-z-muted">
               {currentIndex + 1} / {allImages.length}
             </div>
           </div>
 
-          {/* Bouton Suivant */}
           {allImages.length > 1 && (
             <button 
               onClick={handleNext}
               className="absolute right-4 md:right-8 z-2001 p-4 text-white hover:text-z-blue bg-z-card/50 hover:bg-z-card border border-z-border/40 rounded-full transition-all cursor-pointer group focus:outline-none"
-              aria-label="Image suivante"
             >
               <ChevronRight size={28} className="group-hover:translate-x-0.5 transition-transform" />
             </button>
