@@ -56,6 +56,7 @@ export default function EagleFlyby() {
       });
 
       let orbitTween: gsap.core.Tween;
+
       const startOrbit = () => {
         const points = buildOrbitPoints();
         gsap.set(eagle, { x: points[0].x, y: points[0].y });
@@ -124,17 +125,19 @@ export default function EagleFlyby() {
           filter: "drop-shadow(0 0 10px rgba(0,123,255,0.55))",
         }}
       >
-        <g fill="var(--color-z-blue)">
-          <path d="M96,104 L84,138 L110,126 L136,138 L124,104 Z" />
-          <ellipse cx="110" cy="78" rx="16" ry="30" />
-          <g ref={wingLeftRef} style={{ transformOrigin: "96px 70px", transformBox: "view-box" }}>
-            <path d="M96,55 C60,45 25,45 12,55 L20,62 L10,70 L22,75 L14,84 L26,88 L96,100 Z" />
-          </g>
-          <g ref={wingRightRef} style={{ transformOrigin: "124px 70px", transformBox: "view-box" }}>
-            <path d="M124,55 C160,45 195,45 208,55 L200,62 L210,70 L198,75 L206,84 L194,88 L124,100 Z" />
-          </g>
-          <circle cx="110" cy="38" r="13" />
-          <polygon points="103,48 110,60 117,48" />
+        <g fill="var(--color-z-border)" stroke="var(--color-z-blue)" strokeWidth="1.5" strokeLinejoin="round">
+            <path d="M96,104 L84,138 L110,126 L136,138 L124,104 Z" />
+            <ellipse cx="110" cy="78" rx="16" ry="30" />
+            <g ref={wingLeftRef} style={{ transformOrigin: "96px 70px", transformBox: "view-box" }}>
+                <path d="M96,55 C60,45 25,45 12,55 L20,62 L10,70 L22,75 L14,84 L26,88 L96,100 Z" />
+            </g>
+            <g ref={wingRightRef} style={{ transformOrigin: "124px 70px", transformBox: "view-box" }}>
+                <path d="M124,55 C160,45 195,45 208,55 L200,62 L210,70 L198,75 L206,84 L194,88 L124,100 Z" />
+            </g>
+        </g>
+        <g fill="var(--color-z-text)">
+            <circle cx="110" cy="38" r="13" />
+            <polygon points="103,48 110,60 117,48" />
         </g>
       </svg>
     </div>
