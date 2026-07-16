@@ -4,19 +4,9 @@ import Link from 'next/link';
 import { ArrowLeft, Film, Calendar } from 'lucide-react';
 import ProjectMediaContent from '@/components/ProjectMediaContent';
 import { getProjectAssetsFromDrive } from '@/lib/googleDrive';
+import { Projet, SousProjet } from '@/types';
 
 export const revalidate = 3600;
-
-interface Projet {
-  id: number;
-  created_at: string;
-  titre: string;
-  description: string;
-  en_ligne: boolean;
-  categorie_id: number;
-  miniature_url: string;
-  slug: string;
-}
 
 /**
  * Génère les paramètres statiques pour le rendu côté serveur (SSG) des routes dynamiques.
@@ -40,7 +30,7 @@ export async function generateStaticParams() {
 
 /**
  * Server Component : Page de détail d'un projet.
- * Hydrate les données du projet via Supabase et agrège les médias distants via Google Drive API.
+ * Hydrate la description via Supabase et empile les galeries Google Drive dans la colonne principale.
  *
  * @param {Promise<{ slug: string }>} params - Promesse contenant le slug de l'URL du projet.
  */
@@ -61,9 +51,8 @@ export default async function ProjetUniquePage({
     notFound();
   }
 
-  const projet = dataProjet as Projet & { sousprojet: any[] };
+  const projet = dataProjet as Projet & { sousprojet: SousProjet[] };
 
-  // Agrégation asynchrone des sources médias (Drive & YouTube) pour les sous-projets
   const sousProjetsTransformes = await Promise.all(
     (projet.sousprojet || [])
       .sort((a, b) => a.ordre - b.ordre)
@@ -127,15 +116,28 @@ export default async function ProjetUniquePage({
           </div>
         </header>
 
-        <section className="grid grid-cols-1 md:grid-cols-3 gap-8 pt-4">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 pt-4 items-start">
           
-          <ProjectMediaContent 
-            sousProjets={sousProjetsTransformes} 
-            coverImageUrl={projet.miniature_url} 
-            projectTitle={projet.titre}
-          />
+          <div className="lg:col-span-2 space-y-12">
+            {projet.description && (
+              <div className="space-y-4">
+                <h2 className="text-xl font-bold text-z-blue uppercase tracking-wider">
+                  À propos du projet
+                </h2>
+                <p className="text-z-text/90 leading-relaxed text-base md:text-lg font-light whitespace-pre-line">
+                  {projet.description}
+                </p>
+              </div>
+            )}
 
-          <div className="md:col-span-1 p-6 bg-z-card border border-z-border rounded-xl h-fit space-y-4">
+            <ProjectMediaContent 
+              sousProjets={sousProjetsTransformes as any} 
+              coverImageUrl={projet.miniature_url || ''} 
+              projectTitle={projet.titre}
+            />
+          </div>
+
+          <div className="lg:col-span-1 p-6 bg-z-card border border-z-border rounded-xl h-fit space-y-4">
             <h3 className="font-bold text-sm uppercase tracking-wider text-z-text">
               Fiche Technique
             </h3>
@@ -157,7 +159,8 @@ export default async function ProjetUniquePage({
               </div>
             </div>
           </div>
-        </section>
+
+        </div>
 
       </div>
     </main>
