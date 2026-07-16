@@ -1,9 +1,16 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 import { ChevronLeft, ChevronRight, X, Maximize2, Loader2 } from 'lucide-react';
 import PdfPreview from '@/components/PdfPreview';
+
+interface DrivePdf {
+  id: string;
+  name: string;
+  previewUrl: string;
+  thumbnailUrl: string;
+}
 
 interface ExtendedSousProjet {
   id: number;
@@ -15,8 +22,8 @@ interface ExtendedSousProjet {
   created_at: string;
   finalYoutubeUrl: string | null;
   driveImages: string[];
-  pdf: any;
-  driveVideoUrl: string | null; // ✨ AJOUT
+  pdf: DrivePdf | null;
+  driveVideoUrl: string | null;
 }
 
 interface ProjectMediaContentProps {
@@ -41,6 +48,17 @@ export default function ProjectMediaContent({ sousProjets, coverImageUrl, projec
   const nextIndex = (currentIndex + 1) % allImages.length;
   const prevIndex = (currentIndex - 1 + allImages.length) % allImages.length;
 
+  // Déclaration des Handlers stabilisés en amont du useEffect pour satisfaire le compilateur
+  const handleNext = useCallback(() => {
+    setIsImageLoading(true);
+    setCurrentIndex(nextIndex);
+  }, [nextIndex]);
+
+  const handlePrev = useCallback(() => {
+    setIsImageLoading(true);
+    setCurrentIndex(prevIndex);
+  }, [prevIndex]);
+
   useEffect(() => {
     if (!isOpen) return;
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -50,17 +68,7 @@ export default function ProjectMediaContent({ sousProjets, coverImageUrl, projec
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, currentIndex]);
-
-  const handleNext = () => {
-    setIsImageLoading(true);
-    setCurrentIndex(nextIndex);
-  };
-
-  const handlePrev = () => {
-    setIsImageLoading(true);
-    setCurrentIndex(prevIndex);
-  };
+  }, [isOpen, handleNext, handlePrev]);
 
   const openLightbox = (url: string) => {
     const index = allImages.indexOf(url);
@@ -79,7 +87,6 @@ export default function ProjectMediaContent({ sousProjets, coverImageUrl, projec
     <>
       <div className="lg:col-span-2 space-y-16">
         {sousProjets.map((sp, idx) => {
-          // Ajustement de la détection sémantique
           const hasMedia = sp.finalYoutubeUrl || sp.driveVideoUrl || sp.driveImages.length > 0 || sp.pdf;
           const seoDescription = `${sp.titre || 'Rendu visuel'} — Projet ${projectTitle} par Zenith Production`;
 
@@ -97,7 +104,7 @@ export default function ProjectMediaContent({ sousProjets, coverImageUrl, projec
                 </div>
               )}
 
-              {/* BLOC 1 : Vidéo YouTube (Prioritaire si présente) */}
+              {/* Vidéo YouTube */}
               {sp.finalYoutubeUrl && (
                 <div className="aspect-video bg-z-card rounded-2xl overflow-hidden border border-z-blue/10 shadow-2xl">
                   <iframe 
@@ -105,11 +112,12 @@ export default function ProjectMediaContent({ sousProjets, coverImageUrl, projec
                     src={sp.finalYoutubeUrl.replace("watch?v=", "embed/").replace("youtu.be/", "youtube.com/embed/")} 
                     allowFullScreen 
                     className="border-none"
+                    title={`Vidéo YouTube — ${sp.titre || projectTitle}`}
                   />
                 </div>
               )}
 
-              {/* BLOC 2 ✨ AJOUT : Vidéo Google Drive Native (si pas de lien YouTube fourni) */}
+              {/* Vidéo Google Drive Native */}
               {sp.driveVideoUrl && !sp.finalYoutubeUrl && (
                 <div className="aspect-video bg-z-card rounded-2xl overflow-hidden border border-z-blue/10 shadow-2xl">
                   <iframe 

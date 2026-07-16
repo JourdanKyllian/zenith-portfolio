@@ -58,9 +58,8 @@ export default async function Home() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
-          {/* Correction : ajout de ": any" sur le paramètre p */}
-          {highlights?.map((p: any) => (
-            <ProjectCard key={p.id} project={p as unknown as Projet} />
+          {(highlights as unknown as Projet[])?.map((p) => (
+            <ProjectCard key={p.id} project={p} />
           ))}
         </div>
       </section>

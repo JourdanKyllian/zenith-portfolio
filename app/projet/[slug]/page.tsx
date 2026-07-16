@@ -1,149 +1,157 @@
-import { supabase } from '@/lib/supabase';
 import { notFound } from 'next/navigation';
-import { ArrowLeft, PlayCircle } from 'lucide-react';
+import { supabase } from '@/lib/supabase';
 import Link from 'next/link';
-import { getProjectAssetsFromDrive, DriveAssets } from '@/lib/googleDrive';
-import { SousProjet, Projet } from '@/types';
-import ProjectMediaContent from '@/components/ProjectMediaContent';
-import { getBadgeTheme } from '@/config/colors';
+import { ArrowLeft, Film, Calendar } from 'lucide-react';
 
+// Conserve ton comportement ISR : Revalidation toutes les heures
 export const revalidate = 3600;
 
-export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
+// Interface TypeScript stricte alignée avec ta table Supabase
+interface Projet {
+  id: number;
+  created_at: string;
+  titre: string;
+  description: string;
+  en_ligne: boolean;
+  categorie_id: number;
+  miniature_url: string;
+  slug: string;
+}
+
+/**
+ * 1. GÉNÉRATION DES PARAMÈTRES STATIQUES (generateStaticParams)
+ * Permet à Next.js de compiler toutes les pages au moment du build.
+ * Résultat : Ouverture instantanée (0ms) pour l'utilisateur au clic.
+ */
+export async function generateStaticParams() {
+  const { data: projets, error } = await supabase
+    .from('projet')
+    .select('slug');
+
+  if (error || !projets) {
+    console.error(' [StaticParams] Erreur de récupération des slugs:', error);
+    return [];
+  }
+
+  return projets.map((projet: { slug: string }) => ({
+    slug: projet.slug,
+  }));
+}
+
+/**
+ * 2. COMPOSANT PAGE PRINCIPAL
+ * Note : Conforme à Next.js 16, 'params' est traité comme une Promise.
+ */
+export default async function ProjetUniquePage({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
+  // Règle Next.js 16 absolue : On DOIT await les params avant d'extraire le slug
   const { slug } = await params;
 
-  const { data } = await supabase
+  // Récupération des données du projet actuel
+  const { data: dataProjet, error } = await supabase
     .from('projet')
-    .select('*, categorie(*)')
+    .select('*')
     .eq('slug', slug)
     .single();
 
-  if (!data) {
-    return { title: 'Projet — ZENITH PRODUCTION' };
+  // Redirection automatique vers la page 404 du framework si le slug n'existe pas
+  if (error || !dataProjet) {
+    notFound();
   }
 
-  const project = data as unknown as Projet;
-  const categoryName = project.categorie?.name || 'Général';
+  const projet = dataProjet as Projet;
 
-  return {
-    title: `${project.titre} — ${categoryName} | ZENITH PRODUCTION`,
-  };
-}
-
-function getDriveFileId(urlOrId: string | null | undefined): string | null {
-  if (!urlOrId) return null;
-  if (!urlOrId.includes('/')) return urlOrId;
-  
-  // Extrait l'ID des liens de partage standards (/d/ID/view)
-  const fileDMatch = urlOrId.match(/\/d\/([a-zA-Z0-9-_]+)/);
-  if (fileDMatch) return fileDMatch[1];
-  
-  // Extrait l'ID des liens alternatifs (?id=ID)
-  const idParamMatch = urlOrId.match(/id=([a-zA-Z0-9-_]+)/);
-  if (idParamMatch) return idParamMatch[1];
-  
-  return null;
-}
-
-export default async function ProjectPage({ params }: { params: Promise<{ slug: string }> }) {
-  const { slug } = await params;
-
-  const { data } = await supabase
-    .from('projet')
-    .select('*, categorie(*), sousprojet(*)')
-    .eq('slug', slug)
-    .single();
-
-  if (!data) return notFound();
-
-  const project = data as unknown as Projet;
-
-  // Tri des sous-projets par ordre
-  const sousProjets: SousProjet[] = (project.sousprojet || [])
-    .sort((a: SousProjet, b: SousProjet) => (a.ordre || 0) - (b.ordre || 0));
-
-  // Extraction asynchrone des assets via l'API Google Drive
-  const sousProjetsAvecMedias = await Promise.all(
-    sousProjets.map(async (sp) => {
-      const driveAssets: DriveAssets = sp.drive_url 
-        ? await getProjectAssetsFromDrive(sp.drive_url)
-        : { images: [], youtubeUrl: null, pdf: null, videoUrl: null };
-      
-      return {
-        ...sp,
-        finalYoutubeUrl: driveAssets.youtubeUrl || sp.youtube_url,
-        driveImages: driveAssets.images,
-        pdf: driveAssets.pdf,
-        driveVideoUrl: driveAssets.videoUrl
-      };
-    })
-  );
-
-  const hasAnyVideo = sousProjetsAvecMedias.some(sp => sp.finalYoutubeUrl || sp.driveVideoUrl);
-
-  // Résolution de la couleur du badge de catégorie
-  const badgeTheme = getBadgeTheme(project.categorie?.color);
-
-  // Traitement et nettoyage de l'image de couverture
-  const miniatureUrl = project.miniature_url;
-  let coverImageUrl = "https://images.unsplash.com/photo-1536440136628-849c177e76a1?q=80&w=1025&auto=format&fit=cover";
-
-  if (miniatureUrl) {
-    if (miniatureUrl.startsWith('http') && !miniatureUrl.includes('drive.google.com')) {
-      coverImageUrl = miniatureUrl;
-    } else {
-      const driveImageId = getDriveFileId(miniatureUrl);
-      if (driveImageId) {
-        coverImageUrl = `https://drive.google.com/thumbnail?id=${driveImageId}&sz=w2048`;
-      }
-    }
-  }
+  // Formater la date proprement (Ex: 11 juillet 2026)
+  const dateProjet = new Date(projet.created_at).toLocaleDateString('fr-FR', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
 
   return (
-    <main className="min-h-screen bg-z-bg text-z-text pb-20">
-      <section className="relative h-[60vh] w-full overflow-hidden">
-        <img 
-          src={coverImageUrl} 
-          alt={project.titre} 
-          className="w-full h-full object-cover opacity-30" 
-          loading="eager"
-        />
-        <div className="absolute inset-0 bg-linear-to-t from-z-bg to-transparent" />
-        <div className="absolute bottom-0 left-0 w-full p-8 sm:p-16 max-w-7xl mx-auto">
-          <Link href="/projet" className="flex items-center gap-2 text-z-blue text-[13px] font-bold uppercase tracking-widest mb-6 hover:translate-x-2 transition-transform">
-            <ArrowLeft size={14} /> Retour à la galerie
-          </Link>
-          <h1 className="font-display font-bold text-5xl sm:text-8xl uppercase tracking-tighter leading-none mb-4">
-            {project.titre}
+    <main className="min-h-screen bg-z-bg text-z-text px-4 py-12 md:py-24 transition-all duration-300">
+      <div className="max-w-5xl mx-auto space-y-8">
+        
+        {/* Bouton Retour avec jetons de couleur de ta charte */}
+        <Link 
+          href="/projet" 
+          className="inline-flex items-center space-x-2 text-z-muted hover:text-z-blue text-sm font-medium group transition-colors"
+        >
+          <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+          <span>Retour aux projets</span>
+        </Link>
+
+        {/* En-tête du Projet */}
+        <header className="space-y-4">
+          <h1 className="text-4xl md:text-6xl font-black uppercase tracking-tight text-z-text">
+            {projet.titre}
           </h1>
           
-          <span className={`px-3 py-1 rounded border transition-colors duration-300 ${badgeTheme.border} ${badgeTheme.bg} ${badgeTheme.text} text-[9px] font-bold uppercase tracking-widest`}>
-            {project.categorie?.name || "Général"}
-          </span>
-        </div>
-      </section>
-
-      <section className="max-w-7xl mx-auto px-8 py-20 grid grid-cols-1 lg:grid-cols-3 gap-20">
-        <div className="lg:col-span-1 space-y-10">
-          <div>
-            <h3 className="text-z-muted font-sub text-[10px] font-bold uppercase tracking-widest mb-6">L'Artiste</h3>
-            <p className="font-body text-z-text/80 leading-relaxed whitespace-pre-wrap">{project.description}</p>
+          <div className="flex flex-wrap items-center gap-4 text-xs md:text-sm text-z-muted font-medium">
+            <span className="flex items-center space-x-1.5">
+              <Calendar className="w-4 h-4 text-z-blue" />
+              <time>{dateProjet}</time>
+            </span>
+            <span className="w-1.5 h-1.5 rounded-full bg-z-border" />
+            <span className="flex items-center space-x-1.5 bg-z-card px-3 py-1 rounded-full border border-z-border">
+              <Film className="w-3.5 h-3.5 text-z-blue" />
+              <span>Production Réalisation</span>
+            </span>
           </div>
-          {hasAnyVideo && (
-            <div className="flex flex-col gap-4">
-              <div className="btn-blue p-4 rounded-lg flex items-center justify-center gap-3 text-[10px] font-bold uppercase tracking-widest opacity-80 cursor-default">
-                <PlayCircle size={18} /> Vidéos disponibles
+        </header>
+
+        {/* Zone Média Principale (Utilisation de la balise img autorisée par ton ESLint) */}
+        <section className="relative aspect-video w-full overflow-hidden rounded-2xl border border-z-border bg-z-card shadow-2xl group">
+          <img
+            src={projet.miniature_url}
+            alt={`Couverture du projet ${projet.titre}`}
+            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-102"
+            loading="eager"
+          />
+          {/* Overlay cinématique diffus en arrière-plan */}
+          <div className="absolute inset-0 bg-linear-to-t from-z-bg/60 via-transparent to-transparent pointer-events-none" />
+        </section>
+
+        {/* Section Descriptif */}
+        <section className="grid grid-cols-1 md:grid-cols-3 gap-8 pt-4">
+          <div className="md:col-span-2 space-y-4">
+            <h2 className="text-xl font-bold text-z-blue uppercase tracking-wider">
+              À propos du projet
+            </h2>
+            <p className="text-z-text/90 leading-relaxed text-base md:text-lg font-light whitespace-pre-line">
+              {projet.description}
+            </p>
+          </div>
+
+          {/* En-encadré Infos Complémentaires / Sidebar de droite */}
+          <div className="p-6 bg-z-card border border-z-border rounded-xl h-fit space-y-4">
+            <h3 className="font-bold text-sm uppercase tracking-wider text-z-text">
+              Fiche Technique
+            </h3>
+            <hr className="border-z-border" />
+            <div className="space-y-3 text-xs md:text-sm">
+              <div className="flex justify-between">
+                <span className="text-z-muted">Client</span>
+                <span className="font-medium text-z-text">Zenith Production</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-z-muted">Format</span>
+                <span className="font-medium text-z-text">4K UHD / 2.39:1</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-z-muted">Statut</span>
+                <span className="text-z-blue font-semibold uppercase text-xs tracking-wide">
+                  {projet.en_ligne ? "Disponible" : "Privé"}
+                </span>
               </div>
             </div>
-          )}
-        </div>
+          </div>
+        </section>
 
-        <ProjectMediaContent 
-          sousProjets={sousProjetsAvecMedias as any} 
-          coverImageUrl={coverImageUrl}
-          projectTitle={project.titre} 
-        />
-      </section>
+      </div>
     </main>
   );
 }

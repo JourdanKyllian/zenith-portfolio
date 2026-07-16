@@ -10,7 +10,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     .select('slug')
     .eq('en_ligne', true);
 
-  const projetUrls = (projets || []).map((p: any) => ({
+  const projetUrls = (projets as { slug: string }[] || []).map((p) => ({
     url: `${baseUrl}/projet/${p.slug}`,
     lastModified: new Date(),
   }));

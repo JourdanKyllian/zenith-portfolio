@@ -6,4 +6,4 @@ const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 // On exporte l'instance uniquement si les clés existent pour éviter de crash au build Vercel
 export const supabase = supabaseUrl && supabaseAnonKey 
   ? createClient(supabaseUrl, supabaseAnonKey)
-  : (null as any);
+  : (null as unknown as ReturnType<typeof createClient>);

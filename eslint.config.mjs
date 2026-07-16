@@ -5,15 +5,15 @@ import nextTs from "eslint-config-next/typescript";
 const eslintConfig = defineConfig([
   ...nextVitals,
   ...nextTs,
-  // Désactivation globale de la règle sur les balises <img>
   {
     rules: {
+      // Désactivation de la règle stricte sur les balises <img> natives
       "@next/next/no-img-element": "off",
+      // Autorise les apostrophes brutes (') pour les textes en français
+      "react/no-unescaped-entities": ["error", { "forbid": [">", "}", "\""] }]
     },
   },
-  // Override default ignores of eslint-config-next.
   globalIgnores([
-    // Default ignores of eslint-config-next:
     ".next/**",
     "out/**",
     "build/**",

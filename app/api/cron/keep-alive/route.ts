@@ -21,8 +21,9 @@ export async function GET(request: Request) {
     if (error) throw error;
 
     return NextResponse.json({ success: true, message: 'Supabase est bien réveillé !' });
-  } catch (err: any) {
+  } catch (err) {
     console.error('Erreur lors du réveil de Supabase:', err);
-    return NextResponse.json({ success: false, error: err.message }, { status: 500 });
+    const errorMessage = err instanceof Error ? err.message : 'Une erreur inconnue est survenue';
+    return NextResponse.json({ success: false, error: errorMessage }, { status: 500 });
   }
 }
