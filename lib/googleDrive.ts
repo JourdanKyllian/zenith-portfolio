@@ -1,3 +1,4 @@
+// lib/googleDrive.ts
 import { google } from 'googleapis';
 
 const auth = new google.auth.JWT({
@@ -101,10 +102,10 @@ export async function getCvAssetsFromDrive(folderUrlOrId: string): Promise<{ cvU
 
     const pdfFile = files.find(f => f.mimeType === 'application/pdf');
     if (pdfFile?.id) {
-      // Lien natif pour la consultation / le téléchargement du PDF
+      // Lien de téléchargement natif du PDF
       cvUrl = `https://docs.google.com/uc?export=view&id=${pdfFile.id}`;
       
-      // On génère le visuel directement à partir du PDF
+      // ✨ CORRECTIF PRÉVIEW : Génération automatique de l'aperçu image directement depuis le PDF
       previewUrl = `https://drive.google.com/thumbnail?id=${pdfFile.id}&sz=w1200`;
     }
 
