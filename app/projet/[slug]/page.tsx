@@ -1,6 +1,7 @@
+// app/projet/[slug]/page.tsx
 import { supabase } from '@/lib/supabase';
 import { notFound } from 'next/navigation';
-import { ArrowLeft, PlayCircle } from 'lucide-react';
+import { ArrowLeft, PlayCircle, Maximize2 } from 'lucide-react';
 import Link from 'next/link';
 import { getProjectAssetsFromDrive, DriveAssets } from '@/lib/googleDrive';
 import { SousProjet, Projet } from '@/types';
@@ -172,16 +173,40 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                       {sp.pdf && <PdfPreview pdf={sp.pdf} />}
 
-                      {sp.driveImages.map((imgUrl: string, imgIndex: number) => (
-                        <div key={imgIndex} className="aspect-video rounded-2xl overflow-hidden border border-z-blue/10 bg-z-card hover:border-z-blue/40 transition-all duration-300 shadow-md">
-                          <img 
-                            src={imgUrl} 
-                            className="w-full h-full object-cover" 
-                            alt={`Rendu ${imgIndex + 1}`} 
-                            loading="lazy" 
-                          />
-                        </div>
-                      ))}
+                      {sp.driveImages.map((imgUrl: string, imgIndex: number) => {
+                        // On génère le lien HD en remplaçant la taille w1200 de base par w4000 (taille d'origine)
+                        const highResImgUrl = imgUrl.includes('drive.google.com/thumbnail')
+                          ? imgUrl.replace('sz=w1200', 'sz=w4000')
+                          : imgUrl;
+
+                        return (
+                          <a 
+                            key={imgIndex}
+                            href={highResImgUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="group relative aspect-video rounded-2xl overflow-hidden border border-z-blue/10 bg-z-card hover:border-z-blue/40 transition-all duration-300 shadow-md block cursor-zoom-in"
+                            title="Cliquez pour agrandir l'image"
+                          >
+                            <img 
+                              src={imgUrl} 
+                              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-102" 
+                              alt={`Rendu ${imgIndex + 1}`} 
+                              loading="lazy" 
+                            />
+                            
+                            {/* Overlay d'agrandissement moderne au survol */}
+                            <div className="absolute inset-0 bg-z-night/70 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-2">
+                              <div className="w-10 h-10 bg-z-blue/20 backdrop-blur-md rounded-full flex items-center justify-center border border-z-blue/40">
+                                <Maximize2 size={16} className="text-z-blue animate-pulse" />
+                              </div>
+                              <span className="text-white font-sub text-[9px] font-bold uppercase tracking-widest">
+                                Taille d'origine
+                              </span>
+                            </div>
+                          </a>
+                        );
+                      })}
                     </div>
                   )}
                 </div>
