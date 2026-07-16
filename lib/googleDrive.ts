@@ -101,12 +101,11 @@ export async function getCvAssetsFromDrive(folderUrlOrId: string): Promise<{ cvU
 
     const pdfFile = files.find(f => f.mimeType === 'application/pdf');
     if (pdfFile?.id) {
+      // Lien natif pour la consultation / le téléchargement du PDF
       cvUrl = `https://docs.google.com/uc?export=view&id=${pdfFile.id}`;
-    }
-
-    const imgFile = files.find(f => f.mimeType?.startsWith('image/'));
-    if (imgFile?.id) {
-      previewUrl = `https://drive.google.com/thumbnail?id=${imgFile.id}&sz=w1600`;
+      
+      // On génère le visuel directement à partir du PDF
+      previewUrl = `https://drive.google.com/thumbnail?id=${pdfFile.id}&sz=w1200`;
     }
 
     return { cvUrl, previewUrl };

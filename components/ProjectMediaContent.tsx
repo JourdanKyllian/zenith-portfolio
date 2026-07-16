@@ -101,7 +101,7 @@ export default function ProjectMediaContent({ sousProjets, coverImageUrl, projec
                     width="100%" height="100%" 
                     src={sp.finalYoutubeUrl.replace("watch?v=", "embed/").replace("youtu.be/", "youtube.com/embed/")} 
                     allowFullScreen 
-                    className="border-none" // CORRIGÉ : frameBorder déprécié supprimé au profit de cette classe
+                    className="border-none"
                   />
                 </div>
               )}
@@ -142,7 +142,7 @@ export default function ProjectMediaContent({ sousProjets, coverImageUrl, projec
         })}
       </div>
 
-      {/* LIGHTBOX POPUP */}
+      {/* LIGHTBOX POPUP MODERNE */}
       {isOpen && allImages.length > 0 && (
         <div className="fixed inset-0 z-2000 flex items-center justify-center bg-z-bg/95 backdrop-blur-md select-none animate-fade-in">
           <div className="hidden" aria-hidden="true">
@@ -150,7 +150,6 @@ export default function ProjectMediaContent({ sousProjets, coverImageUrl, projec
             <img src={getHdUrl(allImages[prevIndex])} alt="" />
           </div>
 
-          {/* CORRIGÉ : Utilisation de z-[2001] pour passer au-dessus des headers */}
           <button 
             onClick={() => setIsOpen(false)}
             className="absolute top-6 right-6 z-2001 p-3 text-z-muted hover:text-white bg-z-card border border-z-border rounded-full transition-colors cursor-pointer focus:outline-none"
