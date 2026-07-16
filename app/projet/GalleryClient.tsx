@@ -4,6 +4,8 @@ import { useState } from 'react';
 import ProjectCard from '../../components/ProjectCard';
 import { Projet, Categorie } from '@/types'; 
 
+export const revalidate = 3600;
+
 export default function GalleryClient({ 
   initialProjets, 
   toutesLesCategories 
