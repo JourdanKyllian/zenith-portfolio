@@ -10,7 +10,26 @@ import { getBadgeTheme } from '@/config/colors';
 export const revalidate = 3600;
 
 /**
+ * Interface locale pour typer les données enrichies issues de Google Drive.
+ * Assure la compatibilité stricte avec le composant d'affichage multimédia sans utiliser le type 'any'.
+ */
+interface ProcessedSousProjet extends SousProjet {
+  finalYoutubeUrl: string | null;
+  driveImages: string[];
+  pdf: {
+    id: string;
+    name: string;
+    previewUrl: string;
+    thumbnailUrl: string;
+  } | null;
+  driveVideoUrl: string | null;
+}
+
+/**
  * Génère les métadonnées SEO dynamiques pour la page projet.
+ * 
+ * @param {Promise<{ slug: string }>} params - Paramètres dynamiques de la route.
+ * @returns {Promise<{ title: string }>} Les métadonnées formatées.
  */
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
@@ -35,7 +54,10 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
 /**
  * Extrait l'ID d'un fichier hébergé sur Google Drive.
- * Supporte plusieurs formats d'URL (paramètres id= ou chemin /d/).
+ * Supporte plusieurs formats d'URL (paramètres id=, chemin /d/ ou drive-viewer).
+ * 
+ * @param {string | null | undefined} urlOrId - L'URL source.
+ * @returns {string | null} L'identifiant Drive extrait.
  */
 function getDriveFileId(urlOrId: string | null | undefined): string | null {
   if (!urlOrId) return null;
@@ -55,7 +77,9 @@ function getDriveFileId(urlOrId: string | null | undefined): string | null {
 
 /**
  * Server Component : Page de détail d'un projet.
- * Affiche la bannière hero, la description, la grille des sous-projets et la fiche technique.
+ * Affiche la bannière hero, la description textuelle, la grille des sous-projets multimédias et la fiche technique.
+ *
+ * @param {Promise<{ slug: string }>} params - Promesse contenant le slug de l'URL du projet.
  */
 export default async function ProjectPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
@@ -70,12 +94,10 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
 
   const project = data as unknown as Projet;
 
-  // Tri des sous-projets selon l'ordre défini en base
   const sousProjets: SousProjet[] = (project.sousprojet || [])
     .sort((a: SousProjet, b: SousProjet) => (a.ordre || 0) - (b.ordre || 0));
 
-  // Hydratation asynchrone des médias via Google Drive API
-  const sousProjetsAvecMedias = await Promise.all(
+  const sousProjetsAvecMedias: ProcessedSousProjet[] = await Promise.all(
     sousProjets.map(async (sp) => {
       const driveAssets: DriveAssets = sp.drive_url 
         ? await getProjectAssetsFromDrive(sp.drive_url)
@@ -113,7 +135,6 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
 
   return (
     <main className="min-h-screen bg-z-bg text-z-text pb-20">
-      {/* SECTION HERO */}
       <section className="relative h-[60vh] w-full overflow-hidden">
         <img 
           src={coverImageUrl} 
@@ -136,7 +157,6 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
         </div>
       </section>
 
-      {/* CONTENU PRINCIPAL */}
       <section className="max-w-7xl mx-auto px-8 py-20 grid grid-cols-1 lg:grid-cols-3 gap-20">
         <div className="lg:col-span-1 space-y-10">
           <div>
@@ -153,7 +173,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
         </div>
 
         <ProjectMediaContent 
-          sousProjets={sousProjetsAvecMedias as any} 
+          sousProjets={sousProjetsAvecMedias} 
           coverImageUrl={coverImageUrl}
           projectTitle={project.titre} 
         />

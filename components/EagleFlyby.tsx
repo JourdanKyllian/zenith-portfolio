@@ -7,10 +7,17 @@ import { MotionPathPlugin } from "gsap/MotionPathPlugin";
 
 gsap.registerPlugin(MotionPathPlugin, useGSAP);
 
-const ORBIT_DURATION = 9; // secondes par tour complet, vol lent
+/** Durée d'une orbite complète (en secondes) */
+const ORBIT_DURATION = 9;
 
 type Point = { x: number; y: number };
 
+/**
+ * Client Component : Animation vectorielle GSAP d'un aigle en vol.
+ * Génère le tracé elliptique et l'animation de battement d'ailes.
+ * Intègre un IntersectionObserver pour mettre l'animation en pause lorsque
+ * le composant quitte la fenêtre d'affichage afin d'optimiser les performances.
+ */
 export default function EagleFlyby() {
   const sceneRef = useRef<HTMLDivElement>(null);
   const eagleRef = useRef<SVGSVGElement>(null);
@@ -23,8 +30,9 @@ export default function EagleFlyby() {
       const eagle = eagleRef.current;
       if (!scene || !eagle) return;
 
+      // Désactivation de l'animation si les préférences utilisateur système le requièrent
       if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-        return; // reste caché, aucune animation
+        return;
       }
 
       const buildOrbitPoints = (): Point[] => {
@@ -34,6 +42,7 @@ export default function EagleFlyby() {
         const radiusY = Math.min(rect.height * 1.15, window.innerHeight * 0.24, radiusX * 0.55);
         const samples = 48;
         const pts: Point[] = [];
+        
         for (let i = 0; i <= samples; i++) {
           const angle = -Math.PI / 2 + (i / samples) * Math.PI * 2;
           pts.push({
@@ -41,7 +50,7 @@ export default function EagleFlyby() {
             y: center.y + Math.sin(angle) * radiusY,
           });
         }
-        return pts; // premier et dernier point identiques -> boucle sans à-coup
+        return pts;
       };
 
       gsap.set(eagle, { xPercent: -50, yPercent: -50, autoAlpha: 1 });
@@ -67,9 +76,10 @@ export default function EagleFlyby() {
           repeat: -1,
         });
       };
+      
       startOrbit();
 
-      // Ne tourne que quand le hero est effectivement visible à l'écran
+      // Optimisation : Pause de l'animation lorsque le composant est hors de l'écran
       const io = new IntersectionObserver(
         ([entry]) => {
           if (entry.isIntersecting) {
@@ -92,6 +102,7 @@ export default function EagleFlyby() {
           startOrbit();
         }, 200);
       };
+      
       window.addEventListener("resize", onResize);
 
       return () => {

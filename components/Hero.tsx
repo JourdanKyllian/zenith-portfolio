@@ -11,6 +11,7 @@ interface HeroProps {
 
 /**
  * Client Component : En-tête principal de la page d'accueil (Hero Section).
+ * Intègre la navigation principale, les appels à l'action et l'animation vectorielle (EagleFlyby).
  *
  * @param {number} categoriesCount - Nombre total de catégories actives.
  * @param {number} yearsOfExperience - Calcul des années d'expérience généré côté serveur.
