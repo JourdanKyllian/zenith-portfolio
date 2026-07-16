@@ -7,6 +7,8 @@ import Footer from "@/components/Footer";
 import Navbar from "@/components/Navbar";
 import { fetchCvData } from "@/app/actions/getCv";
 
+export const revalidate = 3600; 
+
 const rajdhani = Rajdhani({ 
   subsets: ["latin"], 
   weight: ["400", "500", "600", "700"],
@@ -86,7 +88,7 @@ export default async function RootLayout({
         />
       </head>
       <body className={`${rajdhani.variable} ${roboto.variable} ${montserrat.variable} antialiased flex flex-col min-h-screen`}>
-        {/* On transmet les deux propriétés à la Navbar */}
+        {/* On transmet les deux propriétés dynamiques à la Navbar */}
         <Navbar cvUrl={cvData.cvUrl} previewUrl={cvData.previewUrl} />
         
         <main className="grow">
