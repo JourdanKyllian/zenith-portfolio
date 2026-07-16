@@ -1,4 +1,3 @@
-// app/projet/[slug]/page.tsx
 import { supabase } from '@/lib/supabase';
 import { notFound } from 'next/navigation';
 import { ArrowLeft, PlayCircle } from 'lucide-react';
@@ -35,14 +34,13 @@ function getDriveFileId(urlOrId: string | null | undefined): string | null {
   if (!urlOrId) return null;
   if (!urlOrId.includes('/')) return urlOrId;
   
+  // Extrait l'ID des liens de partage standards (/d/ID/view)
   const fileDMatch = urlOrId.match(/\/d\/([a-zA-Z0-9-_]+)/);
   if (fileDMatch) return fileDMatch[1];
   
+  // Extrait l'ID des liens alternatifs (?id=ID)
   const idParamMatch = urlOrId.match(/id=([a-zA-Z0-9-_]+)/);
   if (idParamMatch) return idParamMatch[1];
-
-  const driveViewerMatch = urlOrId.match(/\/drive-viewer\/([a-zA-Z0-9-_]+)/);
-  if (driveViewerMatch) return driveViewerMatch[1];
   
   return null;
 }
@@ -60,11 +58,11 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
 
   const project = data as unknown as Projet;
 
-  // 1. Réactivation du tri par ordre
+  // Tri des sous-projets par ordre
   const sousProjets: SousProjet[] = (project.sousprojet || [])
     .sort((a: SousProjet, b: SousProjet) => (a.ordre || 0) - (b.ordre || 0));
 
-  // 2. Réactivation de la passerelle d'extraction Google Drive
+  // Extraction asynchrone des assets via l'API Google Drive
   const sousProjetsAvecMedias = await Promise.all(
     sousProjets.map(async (sp) => {
       const driveAssets: DriveAssets = sp.drive_url 
@@ -83,23 +81,22 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
 
   const hasAnyVideo = sousProjetsAvecMedias.some(sp => sp.finalYoutubeUrl || sp.driveVideoUrl);
 
-  // 3. Résolution dynamique de la couleur de badge
+  // Résolution de la couleur du badge de catégorie
   const badgeTheme = getBadgeTheme(project.categorie?.color);
 
+  // Traitement et nettoyage de l'image de couverture
   const miniatureUrl = project.miniature_url;
-  let coverImageUrl = "";
+  let coverImageUrl = "https://images.unsplash.com/photo-1536440136628-849c177e76a1?q=80&w=1025&auto=format&fit=cover";
 
   if (miniatureUrl) {
     if (miniatureUrl.startsWith('http') && !miniatureUrl.includes('drive.google.com')) {
       coverImageUrl = miniatureUrl;
     } else {
       const driveImageId = getDriveFileId(miniatureUrl);
-      coverImageUrl = driveImageId 
-        ? `https://drive.google.com/thumbnail?id=${driveImageId}&sz=w2048` // ✨ Changé w1600 par w2048 ici
-        : miniatureUrl;
+      if (driveImageId) {
+        coverImageUrl = `https://drive.google.com/thumbnail?id=${driveImageId}&sz=w2048`;
+      }
     }
-  } else {
-    coverImageUrl = "https://images.unsplash.com/photo-1536440136628-849c177e76a1?q=80&w=1025&auto=format&fit=cover";
   }
 
   return (

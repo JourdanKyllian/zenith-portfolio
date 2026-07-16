@@ -1,4 +1,3 @@
-// components/ProjectCard.tsx
 "use client";
 
 import Link from 'next/link';
@@ -22,15 +21,11 @@ function getDriveFileId(urlOrId: string | null | undefined): string | null {
   
   const idParamMatch = urlOrId.match(/id=([a-zA-Z0-9-_]+)/);
   if (idParamMatch) return idParamMatch[1];
-
-  const driveViewerMatch = urlOrId.match(/\/drive-viewer\/([a-zA-Z0-9-_]+)/);
-  if (driveViewerMatch) return driveViewerMatch[1];
   
   return null;
 }
 
 export default function ProjectCard({ project }: { project: Projet }) {
-  // Résolution sécurisée via notre fonction utilitaire commune
   const badgeTheme = getBadgeTheme(project.categorie?.color);
 
   const miniatureUrl = project.miniature_url;
