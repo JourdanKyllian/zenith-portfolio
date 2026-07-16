@@ -9,6 +9,44 @@ import { Projet, SousProjet } from '@/types';
 export const revalidate = 3600;
 
 /**
+ * Extrait l'identifiant d'un fichier Google Drive depuis son URL.
+ * 
+ * @param {string | null | undefined} urlOrId - L'URL ou l'ID brut du fichier.
+ * @returns {string | null} L'identifiant du fichier résolu.
+ */
+function getDriveFileId(urlOrId: string | null | undefined): string | null {
+  if (!urlOrId) return null;
+  if (!urlOrId.includes('/')) return urlOrId;
+  
+  const fileDMatch = urlOrId.match(/\/d\/([a-zA-Z0-9-_]+)/);
+  if (fileDMatch) return fileDMatch[1];
+  
+  const idParamMatch = urlOrId.match(/id=([a-zA-Z0-9-_]+)/);
+  if (idParamMatch) return idParamMatch[1];
+  
+  return null;
+}
+
+/**
+ * Convertit une URL de miniature ou un lien Google Drive en source d'image valide.
+ * 
+ * @param {string | null | undefined} miniatureUrl - L'URL source enregistrée.
+ * @returns {string} L'URL finale de l'image résolue.
+ */
+function getCoverImageUrl(miniatureUrl: string | null | undefined): string {
+  if (!miniatureUrl) {
+    return "https://images.unsplash.com/photo-1536440136628-849c177e76a1?q=80&w=1025&auto=format&fit=cover";
+  }
+  if (miniatureUrl.startsWith('http') && !miniatureUrl.includes('drive.google.com')) {
+    return miniatureUrl;
+  }
+  const driveImageId = getDriveFileId(miniatureUrl);
+  return driveImageId 
+    ? `https://drive.google.com/thumbnail?id=${driveImageId}&sz=w1200`
+    : miniatureUrl;
+}
+
+/**
  * Génère les paramètres statiques pour le rendu côté serveur (SSG) des routes dynamiques.
  *
  * @returns {Promise<{ slug: string }[]>} Les paramètres de routage pré-compilés.
@@ -30,7 +68,7 @@ export async function generateStaticParams() {
 
 /**
  * Server Component : Page de détail d'un projet.
- * Hydrate la description via Supabase et empile les galeries Google Drive dans la colonne principale.
+ * Restaure la structure de mise en page originale avec traitement hybride des médias.
  *
  * @param {Promise<{ slug: string }>} params - Promesse contenant le slug de l'URL du projet.
  */
@@ -86,6 +124,8 @@ export default async function ProjetUniquePage({
     day: 'numeric',
   });
 
+  const coverImageUrl = getCoverImageUrl(projet.miniature_url);
+
   return (
     <main className="min-h-screen bg-z-bg text-z-text px-4 py-12 md:py-24 transition-all duration-300">
       <div className="max-w-5xl mx-auto space-y-8">
@@ -116,9 +156,21 @@ export default async function ProjetUniquePage({
           </div>
         </header>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 pt-4 items-start">
+        {/* RESTAURATION : Zone Média Principale en plein écran sous l'en-tête */}
+        <section className="relative aspect-video w-full overflow-hidden rounded-2xl border border-z-border bg-z-card shadow-2xl group">
+          <img
+            src={coverImageUrl}
+            alt={`Couverture du projet ${projet.titre}`}
+            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-102"
+            loading="eager"
+          />
+          <div className="absolute inset-0 bg-linear-to-t from-z-bg/60 via-transparent to-transparent pointer-events-none" />
+        </section>
+
+        {/* RESTAURATION : Grille de contenu originale (Description + Galerie à gauche, Fiche technique à droite) */}
+        <section className="grid grid-cols-1 md:grid-cols-3 gap-8 pt-4 items-start">
           
-          <div className="lg:col-span-2 space-y-12">
+          <div className="md:col-span-2 space-y-12">
             {projet.description && (
               <div className="space-y-4">
                 <h2 className="text-xl font-bold text-z-blue uppercase tracking-wider">
@@ -130,14 +182,18 @@ export default async function ProjetUniquePage({
               </div>
             )}
 
-            <ProjectMediaContent 
-              sousProjets={sousProjetsTransformes as any} 
-              coverImageUrl={projet.miniature_url || ''} 
-              projectTitle={projet.titre}
-            />
+            {/* Affiche les sous-projets ou grilles uniquement s'ils existent (comme pour Gabzer & Guigzer) */}
+            {sousProjetsTransformes.length > 0 && (
+              <ProjectMediaContent 
+                sousProjets={sousProjetsTransformes as any} 
+                coverImageUrl={coverImageUrl} 
+                projectTitle={projet.titre}
+              />
+            )}
           </div>
 
-          <div className="lg:col-span-1 p-6 bg-z-card border border-z-border rounded-xl h-fit space-y-4">
+          {/* Fiche Technique latérale originale */}
+          <div className="p-6 bg-z-card border border-z-border rounded-xl h-fit space-y-4">
             <h3 className="font-bold text-sm uppercase tracking-wider text-z-text">
               Fiche Technique
             </h3>
@@ -160,7 +216,7 @@ export default async function ProjetUniquePage({
             </div>
           </div>
 
-        </div>
+        </section>
 
       </div>
     </main>
