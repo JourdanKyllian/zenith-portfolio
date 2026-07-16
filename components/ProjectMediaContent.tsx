@@ -16,6 +16,7 @@ interface ExtendedSousProjet {
   finalYoutubeUrl: string | null;
   driveImages: string[];
   pdf: any;
+  driveVideoUrl: string | null; // ✨ AJOUT
 }
 
 interface ProjectMediaContentProps {
@@ -78,7 +79,8 @@ export default function ProjectMediaContent({ sousProjets, coverImageUrl, projec
     <>
       <div className="lg:col-span-2 space-y-16">
         {sousProjets.map((sp, idx) => {
-          const hasMedia = sp.finalYoutubeUrl || sp.driveImages.length > 0 || sp.pdf;
+          // Ajustement de la détection sémantique
+          const hasMedia = sp.finalYoutubeUrl || sp.driveVideoUrl || sp.driveImages.length > 0 || sp.pdf;
           const seoDescription = `${sp.titre || 'Rendu visuel'} — Projet ${projectTitle} par Zenith Production`;
 
           return (
@@ -95,6 +97,7 @@ export default function ProjectMediaContent({ sousProjets, coverImageUrl, projec
                 </div>
               )}
 
+              {/* BLOC 1 : Vidéo YouTube (Prioritaire si présente) */}
               {sp.finalYoutubeUrl && (
                 <div className="aspect-video bg-z-card rounded-2xl overflow-hidden border border-z-blue/10 shadow-2xl">
                   <iframe 
@@ -102,6 +105,20 @@ export default function ProjectMediaContent({ sousProjets, coverImageUrl, projec
                     src={sp.finalYoutubeUrl.replace("watch?v=", "embed/").replace("youtu.be/", "youtube.com/embed/")} 
                     allowFullScreen 
                     className="border-none"
+                  />
+                </div>
+              )}
+
+              {/* BLOC 2 ✨ AJOUT : Vidéo Google Drive Native (si pas de lien YouTube fourni) */}
+              {sp.driveVideoUrl && !sp.finalYoutubeUrl && (
+                <div className="aspect-video bg-z-card rounded-2xl overflow-hidden border border-z-blue/10 shadow-2xl">
+                  <iframe 
+                    width="100%" height="100%" 
+                    src={sp.driveVideoUrl} 
+                    allow="autoplay"
+                    allowFullScreen 
+                    className="border-none bg-black"
+                    title={`Vidéo native — ${sp.titre || projectTitle}`}
                   />
                 </div>
               )}
@@ -142,7 +159,7 @@ export default function ProjectMediaContent({ sousProjets, coverImageUrl, projec
         })}
       </div>
 
-      {/* LIGHTBOX POPUP MODERNE */}
+      {/* LIGHTBOX POPUP */}
       {isOpen && allImages.length > 0 && (
         <div className="fixed inset-0 z-2000 flex items-center justify-center bg-z-bg/95 backdrop-blur-md select-none animate-fade-in">
           <div className="hidden" aria-hidden="true">

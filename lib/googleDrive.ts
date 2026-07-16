@@ -1,4 +1,3 @@
-// lib/googleDrive.ts
 import { google } from 'googleapis';
 
 const auth = new google.auth.JWT({
@@ -20,6 +19,7 @@ export interface DriveAssets {
     previewUrl: string;
     thumbnailUrl: string;
   } | null;
+  videoUrl: string | null; // ✨ AJOUT : Prise en charge des vidéos natives
 }
 
 export function extractFolderId(urlOrId: string): string {
@@ -30,7 +30,7 @@ export function extractFolderId(urlOrId: string): string {
 
 export async function getProjectAssetsFromDrive(folderUrlOrId: string): Promise<DriveAssets> {
   const folderId = extractFolderId(folderUrlOrId);
-  if (!folderId) return { images: [], youtubeUrl: null, pdf: null };
+  if (!folderId) return { images: [], youtubeUrl: null, pdf: null, videoUrl: null };
 
   try {
     const response = await drive.files.list({
@@ -42,16 +42,19 @@ export async function getProjectAssetsFromDrive(folderUrlOrId: string): Promise<
     const images: string[] = [];
     let youtubeUrl: string | null = null;
     let pdf: DriveAssets['pdf'] = null;
+    let videoUrl: string | null = null; // ✨ AJOUT
 
     files.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
 
     for (const file of files) {
       if (!file.id) continue;
 
+      // 1. Détection des images
       if (file.mimeType?.startsWith('image/')) {
         images.push(`https://drive.google.com/thumbnail?id=${file.id}&sz=w1200`);
       }
 
+      // 2. Détection du PDF de Charte Graphique
       if (file.mimeType === 'application/pdf') {
         pdf = {
           id: file.id,
@@ -61,6 +64,12 @@ export async function getProjectAssetsFromDrive(folderUrlOrId: string): Promise<
         };
       }
 
+      // 3. ✨ AJOUT : Détection d'un fichier vidéo natif (mp4, mov, mkv, etc.)
+      if (file.mimeType?.startsWith('video/')) {
+        videoUrl = `https://drive.google.com/file/d/${file.id}/preview`;
+      }
+
+      // 4. Détection du fichier texte YouTube alternatif
       if (file.name === 'youtube.txt') {
         try {
           const fileContent = await drive.files.get({
@@ -79,10 +88,10 @@ export async function getProjectAssetsFromDrive(folderUrlOrId: string): Promise<
       }
     }
 
-    return { images, youtubeUrl, pdf };
+    return { images, youtubeUrl, pdf, videoUrl }; // ✨ AJOUT de videoUrl
   } catch (error) {
     console.error('Erreur lors de la récupération Google Drive:', error);
-    return { images: [], youtubeUrl: null, pdf: null };
+    return { images: [], youtubeUrl: null, pdf: null, videoUrl: null };
   }
 }
 
@@ -102,10 +111,7 @@ export async function getCvAssetsFromDrive(folderUrlOrId: string): Promise<{ cvU
 
     const pdfFile = files.find(f => f.mimeType === 'application/pdf');
     if (pdfFile?.id) {
-      // Lien direct de téléchargement
       cvUrl = `https://docs.google.com/uc?export=view&id=${pdfFile.id}`;
-      
-      // Lien de prévisualisation officiel embeddable
       previewUrl = `https://drive.google.com/file/d/${pdfFile.id}/preview`;
     }
 

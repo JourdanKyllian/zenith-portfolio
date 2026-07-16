@@ -62,18 +62,20 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
     sousProjets.map(async (sp) => {
       const driveAssets: DriveAssets = sp.drive_url 
         ? await getProjectAssetsFromDrive(sp.drive_url)
-        : { images: [], youtubeUrl: null, pdf: null };
+        : { images: [], youtubeUrl: null, pdf: null, videoUrl: null };
       
       return {
         ...sp,
         finalYoutubeUrl: driveAssets.youtubeUrl || sp.youtube_url,
         driveImages: driveAssets.images,
-        pdf: driveAssets.pdf
+        pdf: driveAssets.pdf,
+        driveVideoUrl: driveAssets.videoUrl // ✨ AJOUT : On passe l'url vidéo ici
       };
     })
   );
 
-  const hasAnyVideo = sousProjetsAvecMedias.some(sp => sp.finalYoutubeUrl);
+  // Correction de la détection globale : le bouton "vidéo disponible" s'active s'il y a du YouTube OU du Drive natif
+  const hasAnyVideo = sousProjetsAvecMedias.some(sp => sp.finalYoutubeUrl || sp.driveVideoUrl);
 
   const miniatureUrl = project.miniature_url;
   let coverImageUrl = "";
@@ -129,7 +131,6 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
           )}
         </div>
 
-        {/* Le titre du projet est transmis pour parfaire le SEO des images */}
         <ProjectMediaContent 
           sousProjets={sousProjetsAvecMedias as any} 
           coverImageUrl={coverImageUrl}
