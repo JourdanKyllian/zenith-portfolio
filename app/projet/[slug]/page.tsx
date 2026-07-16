@@ -92,7 +92,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
     } else {
       const driveImageId = getDriveFileId(miniatureUrl);
       coverImageUrl = driveImageId 
-        ? `https://drive.google.com/thumbnail?id=${driveImageId}&sz=w1600`
+        ? `https://drive.google.com/thumbnail?id=${driveImageId}&sz=w2048` // ✨ Changé w1600 par w2048 ici
         : miniatureUrl;
     }
   } else {
