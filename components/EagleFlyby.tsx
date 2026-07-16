@@ -122,7 +122,6 @@ export default function EagleFlyby() {
           width: "var(--eagle-size)",
           height: "var(--eagle-size)",
           visibility: "hidden",
-          filter: "drop-shadow(0 0 10px rgba(0,123,255,0.55))",
         }}
       >
         <g fill="var(--color-z-border)" stroke="var(--color-z-blue)" strokeWidth="1.5" strokeLinejoin="round">
