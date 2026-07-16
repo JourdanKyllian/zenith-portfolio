@@ -3,10 +3,8 @@ import { supabase } from '@/lib/supabase';
 import Link from 'next/link';
 import { ArrowLeft, Film, Calendar } from 'lucide-react';
 
-// Conserve ton comportement ISR : Revalidation toutes les heures
 export const revalidate = 3600;
 
-// Interface TypeScript stricte alignée avec ta table Supabase
 interface Projet {
   id: number;
   created_at: string;
@@ -19,9 +17,10 @@ interface Projet {
 }
 
 /**
- * 1. GÉNÉRATION DES PARAMÈTRES STATIQUES (generateStaticParams)
- * Permet à Next.js de compiler toutes les pages au moment du build.
- * Résultat : Ouverture instantanée (0ms) pour l'utilisateur au clic.
+ * Indique à Next.js les routes dynamiques à pré-générer au moment du build (SSG).
+ * Permet d'éliminer la latence au clic pour les slugs connus.
+ *
+ * @returns {Promise<{ slug: string }[]>} Tableau des paramètres de routage statiques.
  */
 export async function generateStaticParams() {
   const { data: projets, error } = await supabase
@@ -29,7 +28,7 @@ export async function generateStaticParams() {
     .select('slug');
 
   if (error || !projets) {
-    console.error(' [StaticParams] Erreur de récupération des slugs:', error);
+    console.error('Erreur lors de la pré-génération des routes dynamiques:', error);
     return [];
   }
 
@@ -39,32 +38,30 @@ export async function generateStaticParams() {
 }
 
 /**
- * 2. COMPOSANT PAGE PRINCIPAL
- * Note : Conforme à Next.js 16, 'params' est traité comme une Promise.
+ * Server Component : Page de détail d'un projet spécifique.
+ * Gère le paramètre dynamique de manière asynchrone (Next.js 16+).
+ *
+ * @param {Promise<{ slug: string }>} params - Promesse contenant le slug de l'URL.
  */
 export default async function ProjetUniquePage({
   params,
 }: {
   params: Promise<{ slug: string }>;
 }) {
-  // Règle Next.js 16 absolue : On DOIT await les params avant d'extraire le slug
   const { slug } = await params;
 
-  // Récupération des données du projet actuel
   const { data: dataProjet, error } = await supabase
     .from('projet')
     .select('*')
     .eq('slug', slug)
     .single();
 
-  // Redirection automatique vers la page 404 du framework si le slug n'existe pas
   if (error || !dataProjet) {
     notFound();
   }
 
   const projet = dataProjet as Projet;
 
-  // Formater la date proprement (Ex: 11 juillet 2026)
   const dateProjet = new Date(projet.created_at).toLocaleDateString('fr-FR', {
     year: 'numeric',
     month: 'long',
@@ -75,7 +72,6 @@ export default async function ProjetUniquePage({
     <main className="min-h-screen bg-z-bg text-z-text px-4 py-12 md:py-24 transition-all duration-300">
       <div className="max-w-5xl mx-auto space-y-8">
         
-        {/* Bouton Retour avec jetons de couleur de ta charte */}
         <Link 
           href="/projet" 
           className="inline-flex items-center space-x-2 text-z-muted hover:text-z-blue text-sm font-medium group transition-colors"
@@ -84,7 +80,6 @@ export default async function ProjetUniquePage({
           <span>Retour aux projets</span>
         </Link>
 
-        {/* En-tête du Projet */}
         <header className="space-y-4">
           <h1 className="text-4xl md:text-6xl font-black uppercase tracking-tight text-z-text">
             {projet.titre}
@@ -103,7 +98,6 @@ export default async function ProjetUniquePage({
           </div>
         </header>
 
-        {/* Zone Média Principale (Utilisation de la balise img autorisée par ton ESLint) */}
         <section className="relative aspect-video w-full overflow-hidden rounded-2xl border border-z-border bg-z-card shadow-2xl group">
           <img
             src={projet.miniature_url}
@@ -111,11 +105,9 @@ export default async function ProjetUniquePage({
             className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-102"
             loading="eager"
           />
-          {/* Overlay cinématique diffus en arrière-plan */}
           <div className="absolute inset-0 bg-linear-to-t from-z-bg/60 via-transparent to-transparent pointer-events-none" />
         </section>
 
-        {/* Section Descriptif */}
         <section className="grid grid-cols-1 md:grid-cols-3 gap-8 pt-4">
           <div className="md:col-span-2 space-y-4">
             <h2 className="text-xl font-bold text-z-blue uppercase tracking-wider">
@@ -126,7 +118,6 @@ export default async function ProjetUniquePage({
             </p>
           </div>
 
-          {/* En-encadré Infos Complémentaires / Sidebar de droite */}
           <div className="p-6 bg-z-card border border-z-border rounded-xl h-fit space-y-4">
             <h3 className="font-bold text-sm uppercase tracking-wider text-z-text">
               Fiche Technique

@@ -4,15 +4,16 @@ import { useState } from 'react';
 import ProjectCard from '../../components/ProjectCard';
 import { Projet, Categorie } from '@/types'; 
 
-export const revalidate = 3600;
-
-export default function GalleryClient({ 
-  initialProjets, 
-  toutesLesCategories 
-}: { 
+interface GalleryClientProps {
   initialProjets: Projet[];
-  toutesLesCategories: Categorie[]; 
-}) {
+  toutesLesCategories: Categorie[];
+}
+
+/**
+ * Client Component : Interface interactive de la galerie.
+ * Gère l'état de filtrage actif et le rendu conditionnel de la grille de projets.
+ */
+export default function GalleryClient({ initialProjets, toutesLesCategories }: GalleryClientProps) {
   const [activeFilter, setActiveFilter] = useState<string>('all');
 
   const projetsFiltres = initialProjets.filter((p: Projet) => {
@@ -22,15 +23,13 @@ export default function GalleryClient({
 
   return (
     <main className="min-h-screen bg-z-bg text-z-text pb-24">
-
       <header className="max-w-7xl mx-auto px-6 pt-40 pb-12">
         <span className="font-sub text-z-blue text-[10px] font-bold uppercase tracking-[0.5em] mb-4 block">Archives</span>
         <h1 className="font-display font-bold text-5xl sm:text-8xl uppercase tracking-tighter mb-8">
           La <span className="text-glow">Galerie</span>
         </h1>
 
-        {/* Boutons de Filtres */}
-        <div className="flex flex-wrap gap-3 mt-12 border-b border-z-blue/10 pb-8">
+        <nav className="flex flex-wrap gap-3 mt-12 border-b border-z-blue/10 pb-8" aria-label="Filtrage par univers">
           <button
             onClick={() => setActiveFilter('all')}
             className={`px-5 py-2.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all border ${
@@ -43,7 +42,6 @@ export default function GalleryClient({
           </button>
 
           {toutesLesCategories.map((cat) => {
-            // Correction : ajout du type explicite ": Projet" sur le paramètre p
             const count = initialProjets.filter((p: Projet) => p.categorie?.slug === cat.slug).length;
             return (
               <button
@@ -59,10 +57,9 @@ export default function GalleryClient({
               </button>
             );
           })}
-        </div>
+        </nav>
       </header>
 
-      {/* Grille de résultats */}
       <section className="max-w-7xl mx-auto px-6">
         {projetsFiltres.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">

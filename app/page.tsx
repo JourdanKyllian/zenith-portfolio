@@ -6,8 +6,12 @@ import { Projet } from '@/types';
 
 export const revalidate = 3600;
 
+/**
+ * Server Component : Page d'accueil.
+ * Calcule dynamiquement l'expérience professionnelle de l'auteur
+ * et récupère les trois derniers projets mis en avant depuis Supabase.
+ */
 export default async function Home() {
-  // Récupère les 3 derniers projets en ligne
   const { data: highlights } = await supabase
     .from('projet') 
     .select('*, categorie(*), sousprojet(*)')
@@ -15,26 +19,22 @@ export default async function Home() {
     .order('created_at', { ascending: false })
     .limit(3);
 
-  // Récupère dynamiquement le nombre total de catégories (Univers)
   const { count: categoriesCount } = await supabase
     .from('categorie')
     .select('*', { count: 'exact', head: true });
 
-  // Calcul dynamique de l'expérience côté SERVEUR (Date de départ : 1er Septembre 2017)
   const startDate = new Date("2017-09-01");
   const today = new Date();
   
   let yearsOfExperience = today.getFullYear() - startDate.getFullYear();
   const monthDiff = today.getMonth() - startDate.getMonth();
   
-  // Si on n'est pas encore en septembre, ou qu'on est en septembre mais avant le 1er
   if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < startDate.getDate())) {
     yearsOfExperience--;
   }
 
   return (
     <main className="min-h-screen bg-z-bg overflow-x-hidden">
-      {/* On transmet les deux valeurs calculées au Hero */}
       <Hero 
         categoriesCount={categoriesCount || 0} 
         yearsOfExperience={yearsOfExperience} 
@@ -77,7 +77,6 @@ export default async function Home() {
           </Link>
         </div>
       </section>
-
     </main>
   );
 }

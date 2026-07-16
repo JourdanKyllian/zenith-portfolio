@@ -12,9 +12,13 @@ interface FiltersProps {
   onFilterChange: (slug: string) => void;
 }
 
+/**
+ * Client Component : Barre de navigation pour filtrer les projets.
+ * Délègue la mise à jour de l'état au composant parent via onFilterChange.
+ */
 export default function ProjectFilters({ categories, activeFilter, onFilterChange }: FiltersProps) {
   return (
-    <nav className="flex flex-wrap gap-3 border-b border-z-blue/10 pb-8">
+    <nav className="flex flex-wrap gap-3 border-b border-z-blue/10 pb-8" aria-label="Filtres de projets">
       <button
         onClick={() => onFilterChange('all')}
         className={`px-6 py-2.5 rounded-full font-sub text-[10px] font-bold uppercase tracking-widest transition-all duration-300 ${

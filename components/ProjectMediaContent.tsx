@@ -32,6 +32,14 @@ interface ProjectMediaContentProps {
   projectTitle: string;
 }
 
+/**
+ * Client Component : Gère l'affichage asynchrone des médias (Drive, YouTube, PDF) 
+ * et implémente une Lightbox interactive (navigation clavier/souris).
+ * 
+ * @param {ExtendedSousProjet[]} sousProjets - Tableau des médias résolus par l'API Drive
+ * @param {string} coverImageUrl - Miniature de repli si aucun média n'est trouvé
+ * @param {string} projectTitle - Titre principal pour le contexte et l'accessibilité
+ */
 export default function ProjectMediaContent({ sousProjets, coverImageUrl, projectTitle }: ProjectMediaContentProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -48,7 +56,6 @@ export default function ProjectMediaContent({ sousProjets, coverImageUrl, projec
   const nextIndex = (currentIndex + 1) % allImages.length;
   const prevIndex = (currentIndex - 1 + allImages.length) % allImages.length;
 
-  // Déclaration des Handlers stabilisés en amont du useEffect pour satisfaire le compilateur
   const handleNext = useCallback(() => {
     setIsImageLoading(true);
     setCurrentIndex(nextIndex);
@@ -104,7 +111,6 @@ export default function ProjectMediaContent({ sousProjets, coverImageUrl, projec
                 </div>
               )}
 
-              {/* Vidéo YouTube */}
               {sp.finalYoutubeUrl && (
                 <div className="aspect-video bg-z-card rounded-2xl overflow-hidden border border-z-blue/10 shadow-2xl">
                   <iframe 
@@ -117,7 +123,6 @@ export default function ProjectMediaContent({ sousProjets, coverImageUrl, projec
                 </div>
               )}
 
-              {/* Vidéo Google Drive Native */}
               {sp.driveVideoUrl && !sp.finalYoutubeUrl && (
                 <div className="aspect-video bg-z-card rounded-2xl overflow-hidden border border-z-blue/10 shadow-2xl">
                   <iframe 
@@ -167,7 +172,6 @@ export default function ProjectMediaContent({ sousProjets, coverImageUrl, projec
         })}
       </div>
 
-      {/* LIGHTBOX POPUP */}
       {isOpen && allImages.length > 0 && (
         <div className="fixed inset-0 z-2000 flex items-center justify-center bg-z-bg/95 backdrop-blur-md select-none animate-fade-in">
           <div className="hidden" aria-hidden="true">

@@ -5,6 +5,13 @@ import { FolderOpen, ExternalLink, Video } from 'lucide-react';
 import { Projet } from '@/types';
 import { getBadgeTheme } from '@/config/colors';
 
+/**
+ * Extrait l'ID d'une vidéo YouTube à partir de son URL.
+ * Supporte divers formats d'URL (youtu.be, v=, embed/, etc.).
+ *
+ * @param {string | null | undefined} url - L'URL source.
+ * @returns {string | null} L'identifiant vidéo ou null si non valide.
+ */
 function getYoutubeId(url: string | null | undefined): string | null {
   if (!url) return null;
   const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
@@ -12,6 +19,13 @@ function getYoutubeId(url: string | null | undefined): string | null {
   return match && match[2].length === 11 ? match[2] : null;
 }
 
+/**
+ * Extrait l'ID natif d'un fichier hébergé sur Google Drive.
+ * Supporte les formats d'URL avec paramètre id= ou dossier /d/.
+ *
+ * @param {string | null | undefined} urlOrId - L'URL source ou l'ID brut.
+ * @returns {string | null} L'identifiant fichier ou null.
+ */
 function getDriveFileId(urlOrId: string | null | undefined): string | null {
   if (!urlOrId) return null;
   if (!urlOrId.includes('/')) return urlOrId;
@@ -25,6 +39,12 @@ function getDriveFileId(urlOrId: string | null | undefined): string | null {
   return null;
 }
 
+/**
+ * Composant d'interface : Affiche la carte de présentation d'un projet.
+ * Gère la fallback visuelle de miniature (Drive -> YouTube -> Placeholder).
+ * 
+ * @param {Projet} project - Les données métier du projet issues de Supabase
+ */
 export default function ProjectCard({ project }: { project: Projet }) {
   const badgeTheme = getBadgeTheme(project.categorie?.color);
 

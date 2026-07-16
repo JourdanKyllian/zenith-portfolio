@@ -4,18 +4,24 @@ import { supabase as publicSupabase } from '@/lib/supabase';
 import { createClient } from '@supabase/supabase-js';
 import { getCvAssetsFromDrive } from '@/lib/googleDrive';
 
+/**
+ * Server Action : Récupère le lien de prévisualisation et de téléchargement du CV.
+ * Utilise la clé Service Role si disponible pour contourner les règles RLS de Supabase,
+ * sinon se replie de manière sécurisée sur le client public anonyme.
+ *
+ * @returns {Promise<{ cvUrl: string | null; previewUrl: string | null }>}
+ */
 export async function fetchCvData() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-  // Repli de sécurité automatique sur le client public
   let client = publicSupabase;
 
   if (supabaseUrl && serviceRoleKey) {
     try {
       client = createClient(supabaseUrl, serviceRoleKey);
     } catch (e) {
-      console.error("Échec d'initialisation admin, repli sur le client public :", e);
+      console.error("Échec de l'initialisation du client administrateur Supabase :", e);
     }
   }
 
@@ -27,14 +33,14 @@ export async function fetchCvData() {
       .single();
 
     if (error || !data?.valeur) {
-      console.error("Dossier CV non configuré dans la table parametres.");
+      console.error("Identifiant du dossier CV non trouvé dans la configuration.");
       return { cvUrl: null, previewUrl: null };
     }
 
     return await getCvAssetsFromDrive(data.valeur);
     
   } catch (error) {
-    console.error("Erreur globale lors de la récupération du CV:", error);
+    console.error("Erreur lors de la récupération des métadonnées du CV:", error);
     return { cvUrl: null, previewUrl: null };
   }
 }

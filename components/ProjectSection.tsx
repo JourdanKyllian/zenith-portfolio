@@ -10,8 +10,11 @@ interface ProjectSectionProps {
   colorKey?: string;
 }
 
+/**
+ * UI Component : Wrapper regroupant une liste de cartes de projets.
+ * Utilisé principalement pour structurer des catégories avec une entête stylisée.
+ */
 export default function ProjectSection({ id, title, description, projects, colorKey = 'blue' }: ProjectSectionProps) {
-  
   const theme = CATEGORY_COLORS[colorKey as CategoryColorKey] || CATEGORY_COLORS.blue;
 
   return (

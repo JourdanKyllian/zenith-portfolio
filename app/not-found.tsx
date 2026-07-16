@@ -1,10 +1,14 @@
 import Link from "next/link";
 import { VideoOff, Radio, Home } from "lucide-react";
 
+/**
+ * Server Component : Page 404 globale.
+ * Rendu statique affiché lorsqu'une route Next.js n'est pas résolue
+ * ou lorsqu'un appel explicite à `notFound()` est déclenché.
+ */
 export default function NotFound() {
   return (
     <main className="relative min-h-screen bg-z-bg flex flex-col items-center justify-center overflow-hidden px-6 text-center">
-      {/* Voile de scanlines */}
       <div
         className="pointer-events-none absolute inset-0 z-10 opacity-[0.06]"
         style={{
@@ -12,16 +16,13 @@ export default function NotFound() {
             "repeating-linear-gradient(to bottom, #fff 0px, #fff 1px, transparent 1px, transparent 3px)",
         }}
       />
-      {/* Barre de balayage */}
       <div
         className="pointer-events-none absolute inset-x-0 h-24 z-10 scanline-sweep"
         style={{ background: "linear-gradient(to bottom, transparent, rgba(0,123,255,0.08), transparent)" }}
       />
 
-      {/* Halo d'ambiance */}
       <div className="absolute inset-0 hero-bg" />
 
-      {/* Repères de viseur */}
       <div className="absolute inset-8 sm:inset-16 pointer-events-none">
         <span className="absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 border-z-blue/30" />
         <span className="absolute top-0 right-0 w-8 h-8 border-t-2 border-r-2 border-z-blue/30" />
@@ -66,7 +67,6 @@ export default function NotFound() {
         </Link>
       </div>
 
-      {/* Barres de mire en pied de page */}
       <div className="absolute bottom-0 inset-x-0 h-1.5 flex opacity-40 z-10">
         {["#3D3D55", "#007BFF", "#151522", "#0A0A12", "#007BFF", "#3D3D55"].map((c, i) => (
           <div key={i} className="flex-1" style={{ background: c }} />

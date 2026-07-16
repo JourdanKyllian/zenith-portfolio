@@ -6,16 +6,16 @@ export const metadata: Metadata = {
   description: 'Conformité, mentions légales et politique de confidentialité de Zenith Production.',
 };
 
+/**
+ * Server Component : Page statique des mentions légales.
+ * Contient les informations juridiques obligatoires et la politique de confidentialité (RGPD).
+ */
 export default function MentionsLegalesPage() {
   return (
     <main className="min-h-screen bg-z-bg text-z-text pt-32 pb-20 px-6">
-      
-      {/* Halo d'arrière-plan */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-3xl h-96 bg-z-blue/5 blur-[120px] pointer-events-none" />
 
       <div className="max-w-4xl mx-auto relative z-10 bg-z-card border border-z-border p-8 sm:p-12 rounded-2xl shadow-2xl">
-        
-        {/* En-tête */}
         <div className="flex items-center gap-4 text-z-blue mb-10 border-b border-z-blue/10 pb-8">
           <Scale size={32} />
           <h1 className="font-display font-bold text-2xl sm:text-4xl uppercase tracking-wide text-z-text">
@@ -23,10 +23,7 @@ export default function MentionsLegalesPage() {
           </h1>
         </div>
 
-        {/* Corps du texte */}
         <div className="space-y-10 font-body text-sm sm:text-base text-z-text/80 leading-relaxed">
-          
-          {/* Section 1 : ÉQUIPE */}
           <section className="space-y-4">
             <h2 className="font-display text-lg font-bold uppercase tracking-wider text-white flex items-center gap-2">
               <span className="text-z-blue">1.</span> Édition du site
@@ -44,7 +41,6 @@ export default function MentionsLegalesPage() {
             </ul>
           </section>
 
-          {/* Section 2 : HÉBERGEMENT */}
           <section className="space-y-4">
             <h2 className="font-display text-lg font-bold uppercase tracking-wider text-white flex items-center gap-2">
               <span className="text-z-blue">2.</span> Hébergement
@@ -54,7 +50,6 @@ export default function MentionsLegalesPage() {
             </p>
           </section>
 
-          {/* Section 3 : RGPD */}
           <section className="space-y-4">
             <h2 className="font-display text-lg font-bold uppercase tracking-wider text-white flex items-center gap-2">
               <ShieldCheck size={20} className="text-emerald-400" />
@@ -72,7 +67,6 @@ export default function MentionsLegalesPage() {
             </ul>
           </section>
 
-          {/* Section 4 : COOKIES */}
           <section className="space-y-4">
             <h2 className="font-display text-lg font-bold uppercase tracking-wider text-white flex items-center gap-2">
               <EyeOff size={20} className="text-z-blue" />
@@ -86,7 +80,6 @@ export default function MentionsLegalesPage() {
             </p>
           </section>
 
-          {/* Section 5 : PROPRIÉTÉ INTÉLECTUELLE */}
           <section className="space-y-4">
             <h2 className="font-display text-lg font-bold uppercase tracking-wider text-white flex items-center gap-2">
               <span className="text-z-blue">5.</span> Propriété intellectuelle

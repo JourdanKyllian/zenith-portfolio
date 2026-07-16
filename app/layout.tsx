@@ -7,7 +7,6 @@ import Footer from "@/components/Footer";
 import Navbar from "@/components/Navbar";
 import { fetchCvData } from "@/app/actions/getCv";
 
-// Force le layout global à rafraîchir le cache du CV au runtime toutes les heures
 export const revalidate = 3600; 
 
 const rajdhani = Rajdhani({ 
@@ -46,15 +45,18 @@ export const metadata: Metadata = {
   },
 };
 
+/**
+ * Root Layout : Structure globale de l'application.
+ * Intègre les polices Google Fonts, la navigation, le footer, les outils d'analyse Vercel
+ * et la structure sémantique JSON-LD pour le référencement local.
+ */
 export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  // Récupération des données du CV (PDF + Image) côté serveur
   const cvData = await fetchCvData();
 
-  // Carte d'identité sémantique (JSON-LD)
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "ProfessionalService",
@@ -90,11 +92,9 @@ export default async function RootLayout({
       </head>
       <body className={`${rajdhani.variable} ${roboto.variable} ${montserrat.variable} antialiased flex flex-col min-h-screen`}>
         <Navbar cvUrl={cvData.cvUrl} previewUrl={cvData.previewUrl} />
-        
         <main className="grow">
           {children}
         </main>
-        
         <Footer />
         <Analytics />
         <SpeedInsights />

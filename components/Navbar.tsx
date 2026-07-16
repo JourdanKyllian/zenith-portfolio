@@ -10,6 +10,13 @@ interface NavbarProps {
   previewUrl: string | null;
 }
 
+/**
+ * Client Component : Navigation principale du site.
+ * Gère le statut sticky au défilement et le basculement dynamique du menu mobile.
+ *
+ * @param {string | null} cvUrl - URL Drive de téléchargement du CV.
+ * @param {string | null} previewUrl - URL Drive de visualisation iframe.
+ */
 export default function Navbar({ cvUrl, previewUrl }: NavbarProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -25,15 +32,10 @@ export default function Navbar({ cvUrl, previewUrl }: NavbarProps) {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Correction du bug de scroll en mode paysage
   useEffect(() => {
     const handleResize = () => {
-      // Si on passe sur un grand écran (>= 768px) et que le menu est ouvert, on le force à se fermer
-      if (window.innerWidth >= 768 && isOpen) {
-        setIsOpen(false);
-      }
+      if (window.innerWidth >= 768 && isOpen) setIsOpen(false);
     };
-
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, [isOpen]);
@@ -51,8 +53,6 @@ export default function Navbar({ cvUrl, previewUrl }: NavbarProps) {
         scrolled ? 'bg-z-bg/95 backdrop-blur-md border-b border-z-blue/20 py-1' : 'py-4'
       }`}>
         <div className="max-w-7xl mx-auto px-6 flex items-center justify-between h-16">
-          
-          {/* Logo uniquement textuel avec la police Martyric */}
           <Link href="/" className="group flex flex-col items-start z-1001 select-none" onClick={() => setIsOpen(false)}>
             <span className="font-martyric text-3xl text-white group-hover:text-z-blue transition-colors duration-300 drop-shadow-lg leading-none">
               ZENITH
@@ -91,7 +91,6 @@ export default function Navbar({ cvUrl, previewUrl }: NavbarProps) {
           </div>
         </div>
 
-        {/* MENU MOBILE - Changé de div à nav sémantique avec propriétés d'accessibilité */}
         <nav 
           id="mobile-menu"
           aria-hidden={!isOpen}

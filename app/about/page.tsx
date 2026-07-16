@@ -7,6 +7,10 @@ export const metadata: Metadata = {
   description: 'Découvrez le parcours de Gabin Husson, l\'esprit créatif derrière Zenith Production. Graphisme, cadrage, montage vidéo & marketing.',
 };
 
+/**
+ * Server Component : Page de présentation du profil et des expertises.
+ * Contenu entièrement statique favorisant un rendu optimal pour le SEO.
+ */
 export default function AboutPage() {
   const expertises = [
     {
@@ -33,8 +37,6 @@ export default function AboutPage() {
 
   return (
     <main className="min-h-screen bg-z-bg text-z-text pb-20">
-      
-      {/* Hero Section */}
       <section className="relative pt-40 pb-20 px-6 overflow-hidden text-center">
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-4xl h-96 bg-z-blue/10 blur-[120px] pointer-events-none" />
         <div className="max-w-4xl mx-auto relative z-10">
@@ -48,29 +50,21 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* Profile Presentation */}
       <section className="max-w-7xl mx-auto px-6 py-12 grid grid-cols-1 lg:grid-cols-12 gap-16 items-center">
-        
-        {/* Colonne visuelle (Viseur Caméra avec Photo de Gabin) */}
         <div className="lg:col-span-5 relative aspect-square rounded-2xl border border-z-blue/10 bg-z-card/50 overflow-hidden flex items-center justify-center group shadow-2xl">
-          {/* Photo de Gabin en fond */}
           <img
             src="/gabin.jpg"
-            alt="Gabin Husson"
+            alt="Portrait de Gabin Husson"
             className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:opacity-85 group-hover:scale-105 transition-all duration-700 ease-out"
           />
-
-          {/* Overlay dégradé pour la lisibilité des contours et du texte */}
           <div className="absolute inset-0 bg-linear-to-t from-z-bg via-transparent to-z-bg/40 opacity-90 pointer-events-none" />
           <div className="absolute inset-0 bg-radial from-z-blue/5 to-transparent pointer-events-none" />
           
-          {/* Repères de viseur cinématique (placés au-dessus de la photo grâce à z-10) */}
           <span className="absolute top-6 left-6 w-6 h-6 border-t-2 border-l-2 border-z-blue/40 z-10" />
           <span className="absolute top-6 right-6 w-6 h-6 border-t-2 border-r-2 border-z-blue/40 z-10" />
           <span className="absolute bottom-6 left-6 w-6 h-6 border-b-2 border-l-2 border-z-blue/40 z-10" />
           <span className="absolute bottom-6 right-6 w-6 h-6 border-b-2 border-r-2 border-z-blue/40 z-10" />
           
-          {/* Légende du viseur incrustée en bas */}
           <div className="absolute bottom-8 left-1/2 -translate-x-1/2 text-center z-10 w-full px-4">
             <p className="font-sub text-[10px] uppercase tracking-[0.3em] text-z-text/90 drop-shadow-md">
               Gabin Husson — Live Focus
@@ -78,7 +72,6 @@ export default function AboutPage() {
           </div>
         </div>
 
-        {/* Colonne Texte */}
         <div className="lg:col-span-7 space-y-6">
           <h2 className="font-display font-bold text-3xl sm:text-5xl uppercase tracking-wide">
             Qui est Gabin Husson ?
@@ -98,14 +91,12 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* Expertises Grid */}
       <section className="max-w-7xl mx-auto px-6 py-20">
         <div className="text-center mb-16">
           <span className="font-sub text-z-blue text-[10px] font-bold uppercase tracking-[0.3em] mb-4 block">Champs d'action</span>
           <h2 className="font-display font-bold text-3xl sm:text-5xl uppercase tracking-wide">Une Double Compétence</h2>
         </div>
 
-        {/* Grille restructurée sous forme d'une liste (ul / li) sémantique pour le SEO */}
         <ul className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {expertises.map((exp, index) => (
             <li key={index} className="p-6 rounded-xl bg-z-card border border-z-border hover:border-z-blue/30 transition-all duration-300">
@@ -123,7 +114,6 @@ export default function AboutPage() {
         </ul>
       </section>
 
-      {/* Bottom CTA */}
       <section className="max-w-5xl mx-auto px-6 mt-16 text-center relative py-20 rounded-2xl border border-z-blue/10 bg-z-card overflow-hidden">
         <div className="absolute inset-0 bg-radial from-z-blue/5 to-transparent pointer-events-none" />
         <div className="relative z-10 space-y-6">
@@ -139,7 +129,6 @@ export default function AboutPage() {
           </Link>
         </div>
       </section>
-
     </main>
   );
 }

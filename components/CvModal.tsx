@@ -9,6 +9,10 @@ interface CvModalProps {
   previewUrl: string | null;
 }
 
+/**
+ * Client Component : Fenêtre modale gérant la prévisualisation asynchrone du CV.
+ * L'iframe pointe directement sur la source Drive pour un affichage natif.
+ */
 export default function CvModal({ isOpen, onClose, cvUrl, previewUrl }: CvModalProps) {
   if (!isOpen) return null;
 
@@ -29,7 +33,6 @@ export default function CvModal({ isOpen, onClose, cvUrl, previewUrl }: CvModalP
           </button>
         </div>
 
-        {/* Zone de l'aperçu adaptée pour l'Iframe interactive */}
         <div className="grow rounded-lg bg-z-bg border border-z-border/40 mb-6 overflow-hidden relative min-h-0 w-full">
           {previewUrl ? (
             <iframe 

@@ -3,6 +3,14 @@
 import { useEffect, useState } from "react";
 import { AlertTriangle, RotateCcw, Aperture } from "lucide-react";
 
+/**
+ * Client Component : Error Boundary globale de l'application.
+ * Capture et isole les erreurs non gérées au niveau de l'arbre de composants (React 19).
+ * Fournit une interface de secours stylisée et une mécanique de récupération (reset).
+ *
+ * @param {Error & { digest?: string }} error - L'objet d'erreur natif avec le hash de Next.js.
+ * @param {() => void} reset - Fonction de tentative de re-rendu du segment défaillant.
+ */
 export default function Error({
   error,
   reset,
@@ -13,7 +21,7 @@ export default function Error({
   const [time, setTime] = useState("00:00:00");
 
   useEffect(() => {
-    console.error("Erreur attrapée par le layout :", error);
+    console.error("Erreur critique capturée par le layout :", error);
     const start = Date.now();
     const id = setInterval(() => {
       const s = Math.floor((Date.now() - start) / 1000);
@@ -36,14 +44,12 @@ export default function Error({
         }}
       />
 
-      {/* Incrustation REC */}
       <div className="absolute top-24 left-8 md:top-28 md:left-12 flex items-center gap-2 font-sub text-[11px] uppercase tracking-[0.25em] text-z-muted">
         <span className="w-2 h-2 rounded-full bg-red-500 rec-pulse" />
         REC <span className="ml-1 tabular-nums text-z-text/70">{time}</span>
       </div>
 
       <div className="relative z-20 flex flex-col items-center">
-        {/* Viseur autofocus */}
         <div className="relative w-28 h-28 sm:w-36 sm:h-36 mb-8">
           <span className="absolute top-0 left-0 w-7 h-7 border-t-2 border-l-2 border-z-blue bracket-hunt" />
           <span

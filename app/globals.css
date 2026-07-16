@@ -17,13 +17,13 @@
   --font-sub: var(--font-montserrat);
   --font-body: var(--font-roboto);
 
-  /* Palette Zenith Production */
+  /* Palette de couleurs de l'application */
   --color-z-blue: #007BFF;
   --color-z-silver: #C0C0C0;
   --color-z-bg: #040407;
   --color-z-card: #0A0A12;
   --color-z-border: #151522;
-  --color-z-muted: #8E8EA8; /* MODIFIÉ : Contraste rehaussé pour l'accessibilité */
+  --color-z-muted: #8E8EA8; 
   --color-z-text: #E8E8F8;
   --color-z-night: #06091A;
 }
@@ -40,7 +40,8 @@
     min-height: 100vh;
     overflow-x: hidden;
   }
-  /* Texture de grain sur tout le site */
+  
+  /* Texture de grain globale superposée au DOM */
   body::before {
     content: '';
     position: fixed; inset: 0; z-index: 0;
@@ -51,7 +52,7 @@
 }
 
 @layer components {
-  /* Hero & Backgrounds */
+  /* Arrière-plans statiques */
   .hero-bg {
     background:
       radial-gradient(ellipse 80% 55% at 50% -5%, rgba(0,123,255,0.18) 0%, transparent 65%),
@@ -72,13 +73,13 @@
   .diag-lines::before { left: 20%; transform: rotate(15deg); top: -50%; }
   .diag-lines::after  { right: 25%; transform: rotate(-12deg); top: -30%; opacity: 0.5; }
 
-  /* Effets de texte */
+  /* Utilitaires typographiques */
   .text-glow {
     color: #007BFF;
     text-shadow: 0 0 20px rgba(0,123,255,0.7), 0 0 60px rgba(0,123,255,0.3);
   }
 
-  /* Cartes de projets */
+  /* Composants : Cartes */
   .project-card {
     background: #0A0A12;
     border: 1px solid #151522;
@@ -104,7 +105,7 @@
   }
   .project-card:hover .thumb-wrap img { transform: scale(1.06); filter: saturate(1.1) brightness(0.8); }
 
-  /* Boutons & Badges */
+  /* Boutons */
   .btn-blue {
     background: #007BFF;
     color: #fff;
@@ -125,11 +126,10 @@
   .action-btn:hover { color: #007BFF; border-color: rgba(0,123,255,0.5); transform: scale(1.1); }
 }
 
-/* Animations */
+/* Animations globales et Keyframes */
 @keyframes pingCustom { 0%,100%{transform:scale(1);opacity:.8} 50%{transform:scale(1.8);opacity:0} }
 .ping-dot { animation: pingCustom 1.8s ease-in-out infinite; }
 
-/* --- États 404 / Erreur --- */
 @keyframes scanline-sweep {
   0%   { transform: translateY(-100%); }
   100% { transform: translateY(100vh); }
@@ -166,7 +166,6 @@
 }
 .af-hunt { animation: af-hunt 3.2s ease-in-out infinite; }
 
-/* Glitch RGB-split (utilisé sur le "404") */
 .glitch { position: relative; }
 .glitch::before,
 .glitch::after {

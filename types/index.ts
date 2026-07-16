@@ -1,3 +1,7 @@
+/**
+ * Modèles de données stricts pour le typage TypeScript des retours de l'API Supabase.
+ */
+
 export interface Categorie {
   id: number;
   name: string;

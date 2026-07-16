@@ -4,6 +4,11 @@ import { useState, useRef } from 'react';
 import { Mail, MessageSquare, Send, CheckCircle2, AlertCircle } from 'lucide-react';
 import { sendEmail } from '../actions/sendEmail';
 
+/**
+ * Client Component : Interface du formulaire de contact.
+ * Gère l'état de soumission asynchrone, les validations côté client et 
+ * délègue l'envoi de mail à la Server Action correspondante.
+ */
 export default function ContactPage() {
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const formRef = useRef<HTMLFormElement>(null);
@@ -24,7 +29,6 @@ export default function ContactPage() {
 
   return (
     <main className="min-h-screen bg-z-bg text-z-text">
-
       <section className="relative pt-32 pb-20 px-4 overflow-hidden">
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-4xl h-96 bg-z-blue/10 blur-[120px] pointer-events-none" />
         
@@ -39,8 +43,6 @@ export default function ContactPage() {
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-12 items-start">
-            
-            {/* Colonne Gauche : Infos */}
             <div className="lg:col-span-2 space-y-8">
               <div className="p-8 rounded-2xl bg-z-card border border-z-border">
                 <h3 className="font-display font-bold text-xl uppercase mb-6">Coordonnées</h3>
@@ -67,12 +69,10 @@ export default function ContactPage() {
               </div>
             </div>
 
-            {/* Colonne Droite : Formulaire */}
             <div className="lg:col-span-3 p-8 sm:p-10 rounded-2xl bg-z-card border border-z-border shadow-2xl">
-              {/* 4. Remplacement de onSubmit par action et ajout de ref */}
               <form action={handleAction} ref={formRef} className="space-y-6">
                 
-                {/* PROTECTION ANTI-BOT (Honeypot) */}
+                {/* Structure Honeypot invisble : Sécurité anti-spam bots */}
                 <div className="absolute opacity-0 -z-10 h-0 w-0 overflow-hidden pointer-events-none" aria-hidden="true">
                   <label htmlFor="api_checksum" tabIndex={-1}>Ne pas remplir ce champ si vous êtes humain :</label>
                   <input 
@@ -129,7 +129,6 @@ export default function ContactPage() {
                 </button>
               </form>
             </div>
-
           </div>
         </div>
       </section>

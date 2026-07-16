@@ -8,6 +8,12 @@ interface HeroProps {
   yearsOfExperience: number;
 }
 
+/**
+ * Client Component : En-tête principal de la page d'accueil (Hero Section).
+ *
+ * @param {number} categoriesCount - Nombre total de catégories actives.
+ * @param {number} yearsOfExperience - Calcul des années d'expérience généré côté serveur.
+ */
 export default function Hero({ categoriesCount, yearsOfExperience }: HeroProps) {
   return (
     <section className="hero-bg relative min-h-screen flex flex-col items-center justify-center text-center px-4 pt-32 pb-16 overflow-hidden">

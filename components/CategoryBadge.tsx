@@ -1,4 +1,3 @@
-// components/CategoryBadge.tsx
 import { getBadgeTheme } from '@/config/colors';
 
 interface CategoryBadgeProps {
@@ -8,6 +7,10 @@ interface CategoryBadgeProps {
   };
 }
 
+/**
+ * UI Component : Étiquette de catégorie (Badge).
+ * Utilise la configuration centralisée pour appliquer les couleurs appropriées.
+ */
 export function CategoryBadge({ category }: CategoryBadgeProps) {
   const styles = getBadgeTheme(category.color);
 

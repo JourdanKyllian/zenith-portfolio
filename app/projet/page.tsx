@@ -9,8 +9,12 @@ export const metadata: Metadata = {
   description: 'Explorez les univers artistiques et l’ensemble des projets de Zenith Production : clips, vidéos, et créations graphiques.',
 };
 
+/**
+ * Server Component : Point d'entrée de la galerie des projets.
+ * Pré-charge l'intégralité des projets actifs et de leurs relations depuis Supabase
+ * avant de les transmettre au composant client responsable du filtrage.
+ */
 export default async function GalleryPage() {
-  // L'appel se fait pendant le rendu serveur
   const { data: projets } = await supabase
     .from('projet')
     .select('*, categorie(*), sousprojet(*)')

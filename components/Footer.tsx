@@ -1,14 +1,16 @@
 import Link from 'next/link';
 import { LinkedinIcon, InstagramIcon, FacebookIcon, YoutubeIcon, TiktokIcon } from './SocialIcons';
 
+/**
+ * Server Component : Pied de page global du site.
+ * Contient les liens de réseaux sociaux et les mentions obligatoires.
+ */
 export default function Footer() {
   const currentYear = new Date().getFullYear();
 
   return (
     <footer className="w-full bg-z-night border-t border-z-silver/10 pt-16 pb-8 px-6 mt-20">
       <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-10">
-        
-        {/* LOGO CUSTOM FONT */}
         <div className="flex flex-col items-center md:items-start gap-1">
           <Link href="/" className="group">
             <span className="font-martyric text-6xl text-white group-hover:text-z-blue transition-colors duration-300 drop-shadow-lg">
@@ -17,7 +19,6 @@ export default function Footer() {
           </Link>
         </div>
 
-        {/* SOCIAL BUBBLES */}
         <div className="flex items-center gap-3">
           <SocialBubble href="https://www.linkedin.com/in/gabin-husson-08244521b/" ariaLabel="LinkedIn">
             <LinkedinIcon size={18} />
@@ -41,7 +42,6 @@ export default function Footer() {
         </div>
       </div>
 
-      {/* BOTTOM SECTION */}
       <div className="max-w-7xl mx-auto mt-16 pt-6 border-t border-z-silver/10 flex flex-col md:flex-row items-center justify-between gap-4 font-sub text-[10px] font-bold uppercase tracking-widest text-z-muted">
         <p>© 2025-{currentYear} ZENITH PRODUCTION - TOUS DROITS RÉSERVÉS</p>
         

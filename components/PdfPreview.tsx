@@ -11,6 +11,10 @@ interface PdfPreviewProps {
   };
 }
 
+/**
+ * UI Component : Carte de prévisualisation cliquable pour les documents PDF.
+ * Redirige vers le visualiseur Google Drive natif lors du clic.
+ */
 export default function PdfPreview({ pdf }: PdfPreviewProps) {
   return (
     <a 
@@ -22,7 +26,7 @@ export default function PdfPreview({ pdf }: PdfPreviewProps) {
       <img 
         src={pdf.thumbnailUrl} 
         className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-103" 
-        alt={pdf.name} 
+        alt={`Aperçu du document PDF : ${pdf.name}`} 
       />
       
       <div className="absolute inset-0 bg-z-night/75 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-2">
