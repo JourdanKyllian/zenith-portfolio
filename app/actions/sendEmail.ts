@@ -20,11 +20,14 @@ export async function sendEmail(formData: FormData) {
   const type = formData.get("type") as string; 
   const message = formData.get("message") as string;
   
-  // --- PROTECTION HONEYPOT ---
-  const honeyPot = formData.get("verify_phone") as string;
-  if (honeyPot) return { success: true };
+  // --- PROTECTION HONEYPOT (Modifiée pour éviter l'autofill des navigateurs) ---
+  const honeyPot = formData.get("api_checksum") as string;
+  if (honeyPot) {
+    console.log("🤖 Tentative de spam ou autofill bloquée sur le honeypot.");
+    return { success: true }; // Succès fictif pour tromper le bot
+  }
 
-  // Formatage des retours à la ligne en HTML[cite: 1]
+  // Formatage des retours à la ligne en HTML
   const formattedMessage = message ? message.replace(/\n/g, '<br />') : '';
 
   // Génération d'une référence unique (ex: ZP-H6Y9B) pour forcer un thread séparé dans Gmail
@@ -40,7 +43,7 @@ export async function sendEmail(formData: FormData) {
       to: gabinGmail, 
       // Permet à Gabin de répondre directement au client d'un seul clic
       replyTo: email, 
-      // L'ID unique garantit qu'un autre client du même nom n'écrase pas cette boîte[cite: 1]
+      // L'ID unique garantit qu'un autre client du même nom n'écrase pas cette boîte
       subject: `[${ticketId}] Nouveau projet ${type} : ${name}`,
       html: `
         <div style="font-family: sans-serif; line-height: 1.6; color: #151522; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
@@ -81,7 +84,6 @@ export async function sendEmail(formData: FormData) {
     const { error: errorClient } = await resend.emails.send({
       from: 'Zenith Production <contact@zenithproduction.fr>',
       to: email, 
-      // Si le client clique sur "Répondre", cela s'envoie directement sur le Gmail de Gabin
       replyTo: gabinGmail, 
       subject: `[${ticketId}] Votre demande de projet ${type} x Zenith Production`,
       html: `

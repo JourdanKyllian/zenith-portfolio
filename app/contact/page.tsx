@@ -72,10 +72,16 @@ export default function ContactPage() {
             <div className="lg:col-span-3 p-8 sm:p-10 rounded-2xl bg-z-card border border-z-border shadow-2xl">
               <form onSubmit={handleSubmit} className="space-y-6">
                 
-                {/* PROTECTION ANTI-BOT (Honeypot) - Masqué sémantiquement pour les lecteurs d'écran */}
+                {/* PROTECTION ANTI-BOT (Honeypot) - Sécurisée pour empêcher l'autofill agressif */}
                 <div className="absolute opacity-0 -z-10 h-0 w-0 overflow-hidden pointer-events-none" aria-hidden="true">
-                  <label htmlFor="verify_phone" tabIndex={-1}>Ne pas remplir ce champ si vous êtes humain :</label>
-                  <input type="text" id="verify_phone" name="verify_phone" tabIndex={-1} autoComplete="off" />
+                  <label htmlFor="api_checksum" tabIndex={-1}>Ne pas remplir ce champ si vous êtes humain :</label>
+                  <input 
+                    type="text" 
+                    id="api_checksum" 
+                    name="api_checksum" 
+                    tabIndex={-1} 
+                    autoComplete="new-password" 
+                  />
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
@@ -106,8 +112,10 @@ export default function ContactPage() {
 
                 <button 
                   type="submit" 
-                  disabled={status === 'loading'}
-                  className={`btn-blue w-full p-4 rounded-lg flex items-center justify-center gap-3 text-xs font-bold transition-all ${status === 'loading' ? 'opacity-70 cursor-not-allowed' : 'hover:scale-[1.01]'}`}
+                  disabled={status === 'loading' || status === 'success'}
+                  className={`btn-blue w-full p-4 rounded-lg flex items-center justify-center gap-3 text-xs font-bold transition-all ${
+                    status === 'loading' || status === 'success' ? 'opacity-70 cursor-not-allowed' : 'hover:scale-[1.01]'
+                  }`}
                 >
                   {status === 'loading' ? (
                     'Envoi en cours...'
