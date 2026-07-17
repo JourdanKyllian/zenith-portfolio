@@ -160,7 +160,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
       <section className="max-w-7xl mx-auto px-8 py-20 grid grid-cols-1 lg:grid-cols-3 gap-20">
         <div className="lg:col-span-1 space-y-10">
           <div>
-            <h3 className="text-z-muted font-sub text-[10px] font-bold uppercase tracking-widest mb-6">L'Artiste</h3>
+            <h3 className="text-z-muted font-sub text-[10px] font-bold uppercase tracking-widest mb-6">Introduction</h3>
             <p className="font-body text-z-text/80 leading-relaxed whitespace-pre-wrap">{project.description}</p>
           </div>
           {hasAnyVideo && (
