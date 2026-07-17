@@ -11,11 +11,12 @@ interface NavbarProps {
 }
 
 /**
- * Client Component : Navigation principale du site.
- * Gère le statut sticky au défilement et le basculement dynamique du menu mobile.
+ * Client Component : Navigation principale globale.
+ * Gère l'état d'ancrage dynamique au défilement, l'affichage synchrone du menu tiroir mobile,
+ * et l'isolation du défilement du document sous-jacent.
  *
- * @param {string | null} cvUrl - URL Drive de téléchargement du CV.
- * @param {string | null} previewUrl - URL Drive de visualisation iframe.
+ * @param {string | null} cvUrl - Point de terminaison du fichier PDF de téléchargement.
+ * @param {string | null} previewUrl - Source d'intégration pour le composant de prévisualisation PDF (iframe).
  */
 export default function Navbar({ cvUrl, previewUrl }: NavbarProps) {
   const [isOpen, setIsOpen] = useState(false);
@@ -91,10 +92,14 @@ export default function Navbar({ cvUrl, previewUrl }: NavbarProps) {
           </div>
         </div>
 
+        {/* 
+          Remplacement de h-screen par h-dvh (Dynamic Viewport Height) pour forcer le conteneur 
+          à se recalculer dynamiquement lors du déploiement ou du masquage des barres d'outils mobiles.
+        */}
         <nav 
           id="mobile-menu"
           aria-hidden={!isOpen}
-          className={`fixed inset-0 w-full h-screen bg-z-bg z-1000 transition-transform duration-500 ease-in-out md:hidden ${
+          className={`fixed inset-0 w-full h-dvh bg-z-bg z-1000 transition-transform duration-500 ease-in-out md:hidden ${
             isOpen ? 'translate-y-0' : '-translate-y-full'
           }`}
         >
@@ -107,7 +112,12 @@ export default function Navbar({ cvUrl, previewUrl }: NavbarProps) {
                 </Link>
               ))}
             </div>
-            <div className="mt-auto pb-12">
+
+            {/* 
+              Calcul de marge compensatoire (safe-area-inset-bottom) pour éviter la superposition 
+              de l'appel à l'action avec l'indicateur d'accueil matériel iOS / Android Gestures.
+            */}
+            <div className="mt-auto pb-[calc(2rem+env(safe-area-inset-bottom))]">
               <button 
                 onClick={() => { setIsOpen(false); setIsCvOpen(true); }}
                 className="btn-blue w-full p-5 rounded-xl flex items-center justify-center gap-3 font-bold uppercase tracking-widest text-sm mb-6 cursor-pointer"
