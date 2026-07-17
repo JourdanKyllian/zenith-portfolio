@@ -14,7 +14,9 @@ interface SoundwaveTimelineProps {
   items: TimelineItem[];
 }
 
-/* --- Réglages de l'onde ----------------------------------------------- */
+/**
+ * Paramètres physiques et comportementaux du moteur de rendu de l'onde SVG.
+ */
 const VIEW_WIDTH = 120; // largeur du repère SVG (unités arbitraires)
 const POINT_STEP = 16; // distance verticale entre deux points de contrôle
 const BASE_AMPLITUDE = 9; // amplitude au repos (respiration lente)
@@ -24,6 +26,13 @@ const IDLE_SPEED = 0.00026; // vitesse d'évolution de la phase au repos
 const ENERGY_DECAY = 0.94; // taux de retour au calme par frame (0-1)
 const MAX_ENERGY = 1; // plafond de l'énergie accumulée
 
+/**
+ * Client Component : Interface de chronologie avec onde de fond réactive.
+ * Le tracé vectoriel est recalculé dynamiquement via requestAnimationFrame
+ * en fonction de la vélocité de défilement du navigateur.
+ *
+ * @param {SoundwaveTimelineProps} props - Tableau d'objets modélisant les étapes de la timeline.
+ */
 export default function SoundwaveTimeline({ items }: SoundwaveTimelineProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const svgRef = useRef<SVGSVGElement>(null);
@@ -40,24 +49,25 @@ export default function SoundwaveTimeline({ items }: SoundwaveTimelineProps) {
       '(prefers-reduced-motion: reduce)'
     ).matches;
 
-    // La hauteur réelle dépend du texte (donc du viewport) : on la mesure
-    // plutôt que de la deviner, pour que l'onde colle toujours à la liste.
+    // Ajustement dynamique du viewBox SVG en fonction de la hauteur calculée du conteneur DOM.
     const resizeObserver = new ResizeObserver((entries) => {
       const h = entries[0].contentRect.height;
       heightRef.current = h;
       svg.setAttribute('viewBox', `0 0 ${VIEW_WIDTH} ${h}`);
+      
       if (prefersReducedMotion) {
         drawWave(path, h, 0, BASE_AMPLITUDE, 1);
       }
     });
     resizeObserver.observe(container);
 
+    // Blocage de la boucle de rendu si les préférences système limitent l'animation.
     if (prefersReducedMotion) {
-      // Tracé statique et discret : aucune boucle rAF, aucun coût CPU.
       return () => resizeObserver.disconnect();
     }
 
-    // L'onde ne tourne que lorsque la frise est effectivement à l'écran.
+    // Optimisation de la charge CPU : le calcul du requestAnimationFrame n'est
+    // actif que si le composant croise la zone d'affichage (viewport).
     let isVisible = false;
     const intersectionObserver = new IntersectionObserver(
       ([entry]) => {
@@ -79,15 +89,13 @@ export default function SoundwaveTimeline({ items }: SoundwaveTimelineProps) {
       const dt = lastTimestamp ? timestamp - lastTimestamp : 16;
       lastTimestamp = timestamp;
 
-      // Vitesse de scroll échantillonnée DANS la boucle rAF : aucun
-      // "scroll" listener, donc aucun risque de jank lié aux events natifs.
+      // Mesure de la vélocité intra-frame, permettant de s'affranchir d'un event listener 
+      // 'scroll' classique qui bloquerait le fil principal.
       const scrollY = window.scrollY;
       const rawVelocity = Math.abs(scrollY - lastScrollY) / Math.max(dt, 1);
       lastScrollY = scrollY;
 
-      // L'énergie grimpe vite avec la vitesse instantanée, puis retombe en
-      // douceur (comme une corde qu'on relâche) — c'est ce qui donne
-      // l'impression d'une onde "vivante" plutôt qu'un simple va-et-vient.
+      // Calcul de la dissipation cinétique de l'onde (amortissement).
       energy = Math.min(
         MAX_ENERGY,
         Math.max(rawVelocity * 0.12, energy * ENERGY_DECAY)
@@ -106,6 +114,7 @@ export default function SoundwaveTimeline({ items }: SoundwaveTimelineProps) {
     function start() {
       if (rafId === null) rafId = requestAnimationFrame(tick);
     }
+    
     function stop() {
       if (rafId !== null) {
         cancelAnimationFrame(rafId);
@@ -123,7 +132,6 @@ export default function SoundwaveTimeline({ items }: SoundwaveTimelineProps) {
 
   return (
     <div ref={containerRef} className="relative">
-      {/* Onde décorative : purement visuelle, masquée aux lecteurs d'écran */}
       <svg
         ref={svgRef}
         aria-hidden="true"
@@ -154,12 +162,10 @@ export default function SoundwaveTimeline({ items }: SoundwaveTimelineProps) {
             key={item.year + item.title}
             className="grid grid-cols-[1fr_auto_1fr] items-start gap-4 sm:gap-10"
           >
-            {/* Colonne gauche */}
             <div className="text-right">
               <TimelineCard item={item} />
             </div>
 
-            {/* Marqueur central, aligné sur l'onde */}
             <div className="flex flex-col items-center pt-1">
               <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-z-blue/30 bg-z-card text-z-blue shadow-[0_0_20px_rgba(0,123,255,0.25)]">
                 {item.icon}
@@ -169,7 +175,6 @@ export default function SoundwaveTimeline({ items }: SoundwaveTimelineProps) {
               </span>
             </div>
 
-            {/* Colonne droite (vide ici : une seule carte par étape, cf. variante ci-dessous) */}
             <div />
           </li>
         ))}
@@ -178,6 +183,9 @@ export default function SoundwaveTimeline({ items }: SoundwaveTimelineProps) {
   );
 }
 
+/**
+ * Composant de présentation interne encapsulant la structure d'une carte de la timeline.
+ */
 function TimelineCard({ item }: { item: TimelineItem }) {
   return (
     <div>
@@ -196,8 +204,17 @@ function TimelineCard({ item }: { item: TimelineItem }) {
   );
 }
 
-/* --- Génération de la vague ------------------------------------------- */
-
+/**
+ * Calcule l'altération de la forme d'onde via la superposition de trois signaux
+ * sinusoïdaux distincts (afin de générer une signature asymétrique et naturelle).
+ * Modifie directement l'attribut DOM du path SVG pour des performances optimales.
+ *
+ * @param {SVGPathElement} path - Référence du nœud DOM path.
+ * @param {number} height - Hauteur dynamique de la zone de calcul.
+ * @param {number} time - Phase temporelle courante.
+ * @param {number} amplitude - Intensité du mouvement sur l'axe X.
+ * @param {number} freqBoost - Multiplicateur de fréquence conditionné par la vélocité.
+ */
 function drawWave(
   path: SVGPathElement,
   height: number,
@@ -212,14 +229,11 @@ function drawWave(
 
   for (let i = 0; i <= steps; i++) {
     const y = (height * i) / steps;
-    // Trois composantes sinusoïdales de fréquences/phases différentes :
-    // la somme ne se répète pas visuellement et produit une onde
-    // asymétrique, fidèle à l'esprit "waveform" de la maquette — sans
-    // dépendance externe de type bruit de Perlin/Simplex.
+
     const w1 = Math.sin(y * BASE_FREQ * freqBoost + time) * 0.6;
-    const w2 =
-      Math.sin(y * BASE_FREQ * 2.4 * freqBoost - time * 1.3 + 1.4) * 0.3;
+    const w2 = Math.sin(y * BASE_FREQ * 2.4 * freqBoost - time * 1.3 + 1.4) * 0.3;
     const w3 = Math.sin(y * BASE_FREQ * 0.4 * freqBoost + time * 0.5) * 0.35;
+    
     const x = VIEW_WIDTH / 2 + (w1 + w2 + w3) * amplitude;
     points.push({ x, y });
   }
@@ -227,20 +241,27 @@ function drawWave(
   path.setAttribute('d', toSmoothPath(points));
 }
 
-// Construit une courbe lissée (quadratique, via points milieux) à partir
-// d'une liste de points — évite les angles vifs entre segments, sans avoir
-// à recalculer des tangentes de Catmull-Rom à chaque frame.
+/**
+ * Convertit un nuage de coordonnées linéaires en une courbe de Bézier quadratique SVG (Q).
+ * Exploite les points médians mathématiques pour éliminer les ruptures d'angles
+ * de manière moins coûteuse en CPU que les tangentes de Catmull-Rom.
+ *
+ * @param {{ x: number; y: number }[]} points - Matrice de coordonnées sources.
+ * @returns {string} Path 'd' paramétré pour l'interprétation vectorielle SVG.
+ */
 function toSmoothPath(points: { x: number; y: number }[]): string {
   if (points.length < 2) return '';
+  
   let d = `M ${points[0].x.toFixed(2)} ${points[0].y.toFixed(2)}`;
+  
   for (let i = 1; i < points.length - 1; i++) {
     const mx = (points[i].x + points[i + 1].x) / 2;
     const my = (points[i].y + points[i + 1].y) / 2;
-    d += ` Q ${points[i].x.toFixed(2)} ${points[i].y.toFixed(2)} ${mx.toFixed(
-      2
-    )} ${my.toFixed(2)}`;
+    d += ` Q ${points[i].x.toFixed(2)} ${points[i].y.toFixed(2)} ${mx.toFixed(2)} ${my.toFixed(2)}`;
   }
+  
   const last = points[points.length - 1];
   d += ` T ${last.x.toFixed(2)} ${last.y.toFixed(2)}`;
+  
   return d;
 }
