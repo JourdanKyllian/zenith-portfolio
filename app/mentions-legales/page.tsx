@@ -1,18 +1,26 @@
 import { Metadata } from 'next';
 import { Scale, ShieldCheck, EyeOff } from 'lucide-react';
 
+/**
+ * Métadonnées sémantiques pour l'indexation de la page de conformité.
+ * Déclarées statiquement pour maximiser l'efficience du crawling SEO.
+ */
 export const metadata: Metadata = {
   title: 'Mentions Légales | ZENITH PRODUCTION',
   description: 'Conformité, mentions légales et politique de confidentialité de Zenith Production.',
 };
 
 /**
- * Server Component : Page statique des mentions légales.
- * Contient les informations juridiques obligatoires et la politique de confidentialité (RGPD).
+ * Server Component (RSC) : Page statique des mentions légales.
+ * Centralise les obligations légales d'édition de l'identité d'entreprise individuel (EI)
+ * et formalise la politique de traitement des données à caractère personnel conformément au RGPD.
+ * 
+ * @purity Évalué statiquement au build, coût d'hydratation nul pour le client.
  */
 export default function MentionsLegalesPage() {
   return (
     <main className="min-h-screen bg-z-bg text-z-text pt-32 pb-20 px-6">
+      {/* Halo lumineux décoratif arrière-plan */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-3xl h-96 bg-z-blue/5 blur-[120px] pointer-events-none" />
 
       <div className="max-w-4xl mx-auto relative z-10 bg-z-card border border-z-border p-8 sm:p-12 rounded-2xl shadow-2xl">
@@ -59,11 +67,11 @@ export default function MentionsLegalesPage() {
               Zenith Production s'engage à ce que la collecte et le traitement de vos données, effectués à partir de notre formulaire de contact, soient conformes au règlement général sur la protection des données (RGPD) et à la loi Informatique et Libertés.
             </p>
             <ul className="list-disc pl-5 space-y-2 text-z-muted">
-              <li><strong className="text-z-text">Données collectées :</strong> Nom, adresse e-mail et contenu du message via le formulaire de contact.</li>
-              <li><strong className="text-z-text">Finalité :</strong> Ces données sont uniquement utilisées pour traiter, recontacter et répondre à vos demandes de devis ou de collaboration de projet. Aucune donnée n'est cédée ou revendue à des tiers.</li>
-              <li><strong className="text-z-text">Sous-traitant technique :</strong> Les emails sont propulsés de manière sécurisée via l'infrastructure applicative de <strong className="text-white">Resend</strong>.</li>
-              <li><strong className="text-z-text">Durée de conservation :</strong> Les données sont conservées pendant une durée maximale de 3 ans après le dernier échange commercial.</li>
-              <li><strong className="text-z-text">Vos droits :</strong> Vous disposez d'un droit d'accès, de rectification et de suppression de vos données. Pour exercer ce droit, écrivez directement à : <span className="text-z-blue">zenithprod.contact@gmail.com</span>.</li>
+              <li><strong className="text-z-text">Données collectées :</strong> Nom, adresse e-mail, contenu du message, ainsi que l'adresse IP publique de l'expéditeur lors de la soumission du formulaire de contact.</li>
+              <li><strong className="text-z-text">Finalité & Base légale :</strong> Les données d'identité et de message sont traitées à des fins de gestion de la relation commerciale (devis, collaborations). L'adresse IP publique est collectée sur la base légale de l'intérêt légitime de l'éditeur (Article 6, paragraphe 1, point f du RGPD) afin d'assurer la sécurité informatique de l'infrastructure, la traçabilité des transactions cryptographiques et la prévention des abus automatisés (attaques par déni de service, spams répétés). Aucune donnée n'est cédée ou revendue à des tiers.</li>
+              <li><strong className="text-z-text">Sous-traitant technique :</strong> Les e-mails de notification et accusés de réception sont propulsés de manière chiffrée via l'infrastructure cloud applicative de la société <strong className="text-white">Resend</strong>.</li>
+              <li><strong className="text-z-text">Durée de conservation :</strong> Les données relatives aux demandes de projets sont stockées pendant une durée maximale de 3 ans après le dernier échange commercial. Les métadonnées de sécurité techniques (adresses IP de connexions stockées en base de données applicative) font l'objet d'une purge logicielle automatisée glissante sous un délai strict de 7 jours.</li>
+              <li><strong className="text-z-text">Vos droits :</strong> Vous disposez d'un droit d'accès, de rectification, de limitation et de suppression de vos données. Pour exercer ce droit, écrivez directement à la direction de la publication : <span className="text-z-blue">zenithprod.contact@gmail.com</span>.</li>
             </ul>
           </section>
 
@@ -73,10 +81,10 @@ export default function MentionsLegalesPage() {
               4. Politique relative aux Cookies
             </h2>
             <p>
-              Ce site n'utilise <strong className="text-white">aucun cookie publicitaire, marketing ou de traçage comportemental</strong>. Aucun bandeau de consentement n'est requis car nous protégeons nativement votre navigation. 
+              Ce site n'utilise <strong className="text-white">aucun cookie tiers publicitaire, marketing ou de ciblage comportemental</strong>. Aucun bandeau d'acceptation intrusive n'est requis à l'écran car notre architecture protège nativement la vie privée de l'internaute dès son initialisation.
             </p>
             <p>
-              Seul un outil de mesure d'audience anonymisé et axé sur les performances (<strong className="text-white">Vercel Analytics & Speed Insights</strong>) est activé. Les adresses IP y sont cryptées, respectant scrupuleusement les recommandations d'exemption de la CNIL.
+              Seul un composant de télémétrie et de mesure de performance d'audience anonymisé (<strong className="text-white">Vercel Analytics & Speed Insights</strong>) est actif pour optimiser l'affichage des médias. Les signatures d'adresses IP associées y sont immédiatement hashées et chiffrées au niveau du réseau périphérique, respectant scrupuleusement les critères d'exemption de consentement formulés par la CNIL.
             </p>
           </section>
 
@@ -85,7 +93,7 @@ export default function MentionsLegalesPage() {
               <span className="text-z-blue">5.</span> Propriété intellectuelle
             </h2>
             <p>
-              L'ensemble des contenus présents sur ce site (créations graphiques, vidéos, logos, textes, animations, arborescences) est protégé par le droit d'auteur. Toute reproduction, distribution ou modification sans l'accord écrit préalable de Gabin Husson est strictement interdite.
+              L'ensemble des contenus présents sur ce site (créations graphiques, montages vidéo, maquettes photographiques, logos, compositions textuelles, animations d'ondes sonores et arborescences de code source) est protégé au titre du droit d'auteur et de la propriété intellectuelle. Toute reproduction numérique, distribution systémique ou modification sans l'accord écrit préalable de Gabin Husson est strictement interdite et constitue un délit de contrefaçon.
             </p>
           </section>
 

@@ -3,6 +3,10 @@
     {
       "path": "/api/cron/keep-alive",
       "schedule": "0 5 * * *"
+    },
+    {
+      "path": "/api/cron/cleanup-limits",
+      "schedule": "0 4 * * 0"
     }
   ]
 }

@@ -1,12 +1,15 @@
 "use server";
 
 import { Resend } from 'resend';
+import { headers } from 'next/headers';
+import { supabase } from '@/lib/supabase';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 /**
- * Génère un identifiant alphanumérique court pour le suivi des tickets.
- * @returns {string} Un jeton de 5 caractères.
+ * Génère un identifiant alphanumérique unique pour l'indexation des tickets.
+ * 
+ * @returns {string} Token de 5 caractères majuscules et numériques.
  */
 function generateTicketId(): string {
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
@@ -18,28 +21,84 @@ function generateTicketId(): string {
 }
 
 /**
- * Server Action : Traite la soumission du formulaire de contact et route les emails via Resend.
- * Implémente une vérification Honeypot silencieuse pour bloquer les bots.
+ * Traite la soumission du formulaire de contact via un pipeline de validation
+ * multicouche cookieless (Honeypot, Analyse de vélocité, Filtrage IP PostgreSQL).
  *
- * @param {FormData} formData - Les données issues du formulaire client.
- * @returns {Promise<{ success: boolean }>} L'état final de la transaction d'envoi.
+ * @param {FormData} formData - Données sérialisées du formulaire client.
+ * @returns {Promise<{ success: boolean; error?: string }>} Bilan de la transaction d'envoi.
  */
 export async function sendEmail(formData: FormData) {
-  const name = formData.get("name") as string;
-  const email = formData.get("email") as string;
-  const type = formData.get("type") as string; 
-  const message = formData.get("message") as string;
-  
-  const honeyPot = formData.get("api_checksum") as string;
-  if (honeyPot) {
+  // 1. Validation du mécanisme Honeypot anti-bot
+  const honeyPot = formData.get("company_tax_id") as string;
+  if (honeyPot && honeyPot.trim() !== '') {
     return { success: true }; 
   }
 
-  const formattedMessage = message ? message.replace(/\n/g, '<br />') : '';
+  // 2. Vérification de la cohérence temporelle (Analyse de vélocité de saisie)
+  const formTimestamp = formData.get("form_timestamp") as string;
+  if (formTimestamp) {
+    const loadTime = parseInt(formTimestamp, 10);
+    const now = Date.now();
+    if (now - loadTime < 3000) {
+      return { 
+        success: false, 
+        error: "Soumission trop rapide. Veuillez prendre le temps de rédiger votre message." 
+      };
+    }
+  }
+
+  // Extraction et normalisation des variables d'entrée
+  const name = (formData.get("name") as string || '').trim();
+  const email = (formData.get("email") as string || '').trim();
+  const type = formData.get("type") as string; 
+  const message = (formData.get("message") as string || '').trim();
+
+  // 3. Validation de surface des types de données
+  if (!name || !email || !message) {
+    return { success: false, error: "Tous les champs obligatoires doivent être renseignés." };
+  }
+  if (name.length > 60 || message.length > 2000) {
+    return { success: false, error: "La taille des champs texte dépasse les limites autorisées." };
+  }
+  
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) {
+    return { success: false, error: "Le format de l'adresse e-mail est invalide." };
+  }
+
+  // 4. Évaluation des quotas de requêtes par adresse IP (Rate Limiting glissant sur 7 jours)
+  const headerList = await headers();
+  const ip = headerList.get('x-forwarded-for')?.split(',')[0].trim() || '127.0.0.1';
+  const oneWeekAgo = new Date();
+  oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+
+  if (supabase) {
+    try {
+      const { count, error: countError } = await supabase
+        .from('form_rate_limits')
+        .select('*', { count: 'exact', head: true })
+        .eq('ip_address', ip)
+        .gte('created_at', oneWeekAgo.toISOString());
+
+      if (countError) throw countError;
+
+      if (count && count >= 2) {
+        return { 
+          success: false, 
+          error: "Limite de contact atteinte pour cette semaine (maximum 2 messages autorisés)." 
+        };
+      }
+    } catch (dbError) {
+      console.error("Erreur d'interrogation du composant de sécurité Supabase :", dbError);
+    }
+  }
+
+  const formattedMessage = message.replace(/\n/g, '<br />');
   const ticketId = `ZP-${generateTicketId()}`;
   const adminEmail = 'zenithprod.contact@gmail.com';
 
   try {
+    // Dispatch du flux d'information vers l'administrateur
     const { error: errorAdmin } = await resend.emails.send({
       from: 'Zenith Production <contact@zenithproduction.fr>',
       to: adminEmail, 
@@ -48,7 +107,7 @@ export async function sendEmail(formData: FormData) {
       html: `
         <div style="font-family: sans-serif; line-height: 1.6; color: #151522; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
           <h2 style="color: #007BFF; margin-top: 0;">Nouveau message de contact ! 🎬</h2>
-          <p style="font-size: 11px; color: #999;">Référence unique : ${ticketId}</p>
+          <p style="font-size: 11px; color: #999;">Référence unique : ${ticketId} | Origine IP : ${ip}</p>
           <p>Nouvelle demande de collaboration de la part de <strong>${name}</strong>.</p>
           <p>Récapitulatif du projet (<strong>${type}</strong>) :</p>
           <blockquote style="background-color: #f8f9fa; border-left: 4px solid #007BFF; padding: 15px; color: #3D3D55; font-style: italic; border-radius: 0 8px 8px 0; margin: 0 0 20px 0;">
@@ -64,8 +123,9 @@ export async function sendEmail(formData: FormData) {
       `,
     });
 
-    if (errorAdmin) return { success: false };
+    if (errorAdmin) return { success: false, error: "Le serveur SMTP distant a rejeté la demande d'envoi administrateur." };
 
+    // Envoi de l'accusé de réception automatique au client
     await resend.emails.send({
       from: 'Zenith Production <contact@zenithproduction.fr>',
       to: email, 
@@ -91,9 +151,16 @@ export async function sendEmail(formData: FormData) {
       `,
     });
 
+    // 5. Inscription de la signature réseau dans les journaux de sécurité
+    if (supabase) {
+      await supabase
+        .from('form_rate_limits')
+        .insert([{ ip_address: ip }]);
+    }
+
     return { success: true };
   } catch (err) {
-    console.error("Erreur d'exécution de la Server Action sendEmail :", err);
-    return { success: false };
+    console.error("Échec d'exécution de la Server Action sendEmail :", err);
+    return { success: false, error: "Une erreur critique interne est survenue sur l'infrastructure d'envoi." };
   }
 }

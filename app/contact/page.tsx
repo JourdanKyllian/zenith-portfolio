@@ -1,29 +1,45 @@
 "use client";
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Mail, MessageSquare, Send, CheckCircle2, AlertCircle } from 'lucide-react';
 import { sendEmail } from '../actions/sendEmail';
 
 /**
- * Client Component : Interface du formulaire de contact.
- * Gère l'état de soumission asynchrone, les validations côté client et 
- * délègue l'envoi de mail à la Server Action correspondante.
+ * Client Component : Gère l'affichage, les états d'envoi synchrones, 
+ * et l'injection des charges utiles techniques requises par les processus de sécurité.
  */
 export default function ContactPage() {
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+  const [feedbackMessage, setFeedbackMessage] = useState<string | null>(null);
+  const [mountedAt, setMountedAt] = useState<number>(0);
   const formRef = useRef<HTMLFormElement>(null);
 
+  useEffect(() => {
+    setMountedAt(Date.now());
+  }, []);
+
+  /**
+   * Intercepte l'événement de soumission, injecte les métadonnées temporelles
+   * et transmet la charge utile au traitement asynchrone côté serveur.
+   * 
+   * @param {FormData} formData - Instance de données du formulaire natif HTML.
+   */
   async function handleAction(formData: FormData) {
     setStatus('loading');
+    setFeedbackMessage(null);
+
+    formData.append('form_timestamp', mountedAt.toString());
 
     const result = await sendEmail(formData);
 
     if (result.success) {
       setStatus('success');
       formRef.current?.reset();
+      setMountedAt(Date.now());
       setTimeout(() => setStatus('idle'), 5000);
     } else {
       setStatus('error');
+      setFeedbackMessage(result.error || "Une erreur est survenue lors du traitement du message.");
     }
   }
 
@@ -72,15 +88,19 @@ export default function ContactPage() {
             <div className="lg:col-span-3 p-8 sm:p-10 rounded-2xl bg-z-card border border-z-border shadow-2xl">
               <form action={handleAction} ref={formRef} className="space-y-6">
                 
-                {/* Structure Honeypot invisble : Sécurité anti-spam bots */}
+                {/* 
+                  Champ Honeypot masqué aux technologies d'assistance et utilisateurs humains.
+                  Utilise un nommage métier neutre et désactive explicitement l'auto-complétion
+                  pour contourner l'auto-remplissage des gestionnaires de mots de passe.
+                */}
                 <div className="absolute opacity-0 -z-10 h-0 w-0 overflow-hidden pointer-events-none" aria-hidden="true">
-                  <label htmlFor="api_checksum" tabIndex={-1}>Ne pas remplir ce champ si vous êtes humain :</label>
+                  <label htmlFor="company_tax_id" tabIndex={-1}>Identifiant légal de l'entreprise :</label>
                   <input 
                     type="text" 
-                    id="api_checksum" 
-                    name="api_checksum" 
+                    id="company_tax_id" 
+                    name="company_tax_id" 
                     tabIndex={-1} 
-                    autoComplete="new-password" 
+                    autoComplete="off" 
                   />
                 </div>
 
@@ -110,6 +130,13 @@ export default function ContactPage() {
                   <textarea id="message" name="message" required rows={5} placeholder="Dites-moi tout sur votre projet..." className="w-full bg-z-bg border border-z-border rounded-lg p-4 text-sm focus:border-z-blue focus:outline-none transition-colors resize-none"></textarea>
                 </div>
 
+                {status === 'error' && feedbackMessage && (
+                  <div className="flex items-start gap-2.5 p-4 rounded-lg border border-red-500/20 bg-red-500/5 text-red-400 text-xs font-body leading-relaxed animate-fade-in">
+                    <AlertCircle size={16} className="shrink-0 mt-0.5" />
+                    <span>{feedbackMessage}</span>
+                  </div>
+                )}
+
                 <button 
                   type="submit" 
                   disabled={status === 'loading' || status === 'success'}
@@ -122,7 +149,7 @@ export default function ContactPage() {
                   ) : status === 'success' ? (
                     <><CheckCircle2 size={16} /> Envoyé !</>
                   ) : status === 'error' ? (
-                    <><AlertCircle size={16} /> Erreur, réessayez</>
+                    <><AlertCircle size={16} /> Échec de la demande</>
                   ) : (
                     <><Send size={16} /> Envoyer la demande</>
                   )}
