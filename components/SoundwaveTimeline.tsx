@@ -16,10 +16,10 @@ interface SoundwaveTimelineProps {
 
 /* --- Réglages de l'onde ----------------------------------------------- */
 const VIEW_WIDTH = 120; // largeur du repère SVG (unités arbitraires)
-const POINT_STEP = 9; // distance verticale entre deux points de contrôle (dense, pour bien échantillonner l'onde resserrée)
+const POINT_STEP = 5; // distance verticale entre deux points de contrôle (dense : garantit des courbes rondes, pas hachées)
 const BASE_AMPLITUDE = 9; // amplitude au repos (respiration lente)
 const MAX_EXTRA_AMPLITUDE = 26; // amplitude additionnelle max sous l'effet du scroll
-const PRIMARY_WAVELENGTH = 70; // longueur d'un cycle complet, en px — plus petit = onde plus "resserrée"
+const PRIMARY_WAVELENGTH = 140; // longueur d'un cycle complet, en px
 const PRIMARY_FREQ = (2 * Math.PI) / PRIMARY_WAVELENGTH;
 const IDLE_SPEED = 0.00026; // vitesse d'évolution de la phase au repos
 const ENERGY_DECAY = 0.94; // taux de retour au calme par frame (0-1)
@@ -87,8 +87,7 @@ export default function SoundwaveTimeline({ items }: SoundwaveTimelineProps) {
       lastScrollY = scrollY;
 
       // L'énergie grimpe vite avec la vitesse instantanée, puis retombe en
-      // douceur (comme une corde qu'on relâche) — c'est ce qui donne
-      // l'impression d'une onde "vivante" plutôt qu'un simple va-et-vient.
+      // douceur (comme une corde qu'on relâche).
       energy = Math.min(
         MAX_ENERGY,
         Math.max(rawVelocity * 0.12, energy * ENERGY_DECAY)
@@ -149,40 +148,82 @@ export default function SoundwaveTimeline({ items }: SoundwaveTimelineProps) {
         />
       </svg>
 
-      <ol className="relative flex flex-col gap-14 sm:gap-20">
-        {items.map((item) => (
-          <li
-            key={item.year + item.title}
-            className="grid grid-cols-[1fr_auto_1fr] items-start gap-4 sm:gap-10"
-          >
-            {/* Colonne gauche : le texte */}
-            <div className="flex justify-end text-right">
-              <TimelineCard item={item} />
-            </div>
-
-            {/* Marqueur central, sur l'onde */}
-            <div className="flex justify-center pt-1">
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-z-blue/30 bg-z-card text-z-blue shadow-[0_0_20px_rgba(0,123,255,0.25)]">
-                {item.icon}
-              </span>
-            </div>
-
-            {/* Colonne droite : l'année, en grand, face au texte */}
-            <div className="flex justify-start pt-1">
-              <span className="font-display text-2xl font-bold uppercase leading-tight text-z-blue sm:text-4xl lg:text-5xl">
-                {item.year}
-              </span>
-            </div>
-          </li>
-        ))}
+      <ol className="relative flex flex-col gap-16 sm:gap-24">
+        {items.map((item, index) => {
+          // Alternance stricte, fidèle à la maquette : icône + texte d'un
+          // côté, date en grand de l'autre — et ça s'inverse à chaque étape.
+          const contentOnLeft = index % 2 === 0;
+          return (
+            <li
+              key={item.year + item.title}
+              className="grid grid-cols-2 items-start gap-6 sm:gap-16 lg:gap-20"
+            >
+              {contentOnLeft ? (
+                <>
+                  <div className="flex flex-col items-end gap-3">
+                    <IconBadge icon={item.icon} side="left" />
+                    <TimelineCard item={item} align="right" />
+                  </div>
+                  <div className="flex justify-start pt-2">
+                    <YearLabel year={item.year} align="left" />
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="flex justify-end pt-2">
+                    <YearLabel year={item.year} align="right" />
+                  </div>
+                  <div className="flex flex-col items-start gap-3">
+                    <IconBadge icon={item.icon} side="right" />
+                    <TimelineCard item={item} align="left" />
+                  </div>
+                </>
+              )}
+            </li>
+          );
+        })}
       </ol>
     </div>
   );
 }
 
-function TimelineCard({ item }: { item: TimelineItem }) {
+function IconBadge({ icon, side }: { icon: ReactNode; side: 'left' | 'right' }) {
+  const badge = (
+    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-z-blue/30 bg-z-card text-z-blue shadow-[0_0_20px_rgba(0,123,255,0.25)]">
+      {icon}
+    </span>
+  );
+  // Petit connecteur en pointillés qui tend vers l'onde centrale, comme
+  // sur la maquette — masqué sur mobile pour ne pas surcharger.
+  const connector = (
+    <span className="hidden h-px w-6 border-t border-dashed border-z-blue/40 sm:block sm:w-10" />
+  );
   return (
-    <div>
+    <div className="flex items-center gap-2">
+      {side === 'left' ? (
+        <>
+          {badge}
+          {connector}
+        </>
+      ) : (
+        <>
+          {connector}
+          {badge}
+        </>
+      )}
+    </div>
+  );
+}
+
+function TimelineCard({
+  item,
+  align,
+}: {
+  item: TimelineItem;
+  align: 'left' | 'right';
+}) {
+  return (
+    <div className={align === 'right' ? 'text-right' : 'text-left'}>
       <h3 className="font-display text-base font-bold uppercase tracking-wide text-white sm:text-lg">
         {item.title}
       </h3>
@@ -195,6 +236,24 @@ function TimelineCard({ item }: { item: TimelineItem }) {
         {item.description}
       </p>
     </div>
+  );
+}
+
+function YearLabel({
+  year,
+  align,
+}: {
+  year: string;
+  align: 'left' | 'right';
+}) {
+  return (
+    <span
+      className={`font-display text-2xl font-bold uppercase leading-tight text-z-blue sm:text-4xl lg:text-5xl ${
+        align === 'right' ? 'text-right' : 'text-left'
+      }`}
+    >
+      {year}
+    </span>
   );
 }
 
@@ -214,16 +273,20 @@ function drawWave(
 
   for (let i = 0; i <= steps; i++) {
     const y = (height * i) / steps;
-    // Enveloppe lente : fait varier l'amplitude des bumps le long de la
-    // frise (certains resserrés, d'autres plus amples). C'est cette
-    // variation qui casse la régularité d'un simple sinus et donne un
-    // vrai rendu "waveform" irrégulier — sans dépendance externe de type
-    // bruit de Perlin/Simplex.
-    const envelope = 0.75 + 0.35 * Math.sin(y * PRIMARY_FREQ * 0.14 + 0.6);
-    const w1 = Math.sin(y * PRIMARY_FREQ * freqBoost + time) * 0.7;
-    const w2 =
-      Math.sin(y * PRIMARY_FREQ * 1.85 * freqBoost - time * 1.4 + 1.1) * 0.35;
-    const x = VIEW_WIDTH / 2 + (w1 + w2) * amplitude * envelope;
+    const theta = y * PRIMARY_FREQ * freqBoost + time;
+
+    // Une seule fréquence fondamentale + son 2e harmonique EXACT, verrouillé
+    // en phase sur la même variable theta : ça donne une onde asymétrique
+    // (pas un sinus parfaitement symétrique) mais parfaitement stable, sans
+    // battement/interférence — contrairement à deux fréquences indépendantes
+    // qui dérivent l'une par rapport à l'autre et produisent un tracé haché.
+    const wave = Math.sin(theta) * 0.78 + Math.sin(theta * 2 + 0.6) * 0.22;
+
+    // Enveloppe lente : certains bumps plus amples que d'autres le long de
+    // la frise, pour casser la répétition régulière.
+    const envelope = 0.65 + 0.35 * Math.sin(y * PRIMARY_FREQ * 0.22 + 0.5);
+
+    const x = VIEW_WIDTH / 2 + wave * amplitude * envelope;
     points.push({ x, y });
   }
 
@@ -231,8 +294,8 @@ function drawWave(
 }
 
 // Construit une courbe lissée (quadratique, via points milieux) à partir
-// d'une liste de points — évite les angles vifs entre segments, sans avoir
-// à recalculer des tangentes de Catmull-Rom à chaque frame.
+// d'une liste de points — avec un échantillonnage aussi dense (POINT_STEP),
+// le résultat est visuellement rond, jamais anguleux.
 function toSmoothPath(points: { x: number; y: number }[]): string {
   if (points.length < 2) return '';
   let d = `M ${points[0].x.toFixed(2)} ${points[0].y.toFixed(2)}`;
