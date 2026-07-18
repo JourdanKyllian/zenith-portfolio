@@ -87,7 +87,7 @@ export default function ContactPage() {
               {/* Élément visuel décoratif (Desktop uniquement) : intégration fluide sans cadre. */}
               <div className="relative w-full aspect-[4/5] hidden lg:block animate-fade-in group overflow-hidden" style={{ animationDelay: '0.2s' }}>
                 <img
-                  src="/aigle.jpg"
+                  src="/aigle.png"
                   alt="Emblème Zenith Production"
                   /* mix-blend-lighten neutralise le fond noir de l'image en le fusionnant avec l'arrière-plan du site */
                   className="w-full h-full object-cover mix-blend-lighten filter brightness-90 saturate-50 contrast-125 group-hover:saturate-100 group-hover:scale-105 transition-all duration-700"
