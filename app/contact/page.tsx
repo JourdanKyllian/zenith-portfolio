@@ -85,9 +85,9 @@ export default function ContactPage() {
               </div>
 
               {/* Élément visuel décoratif (Desktop uniquement) : intégration subtile en filigrane (watermark). */}
-              <div className="relative w-full h-[350px] xl:h-[450px] hidden lg:block animate-fade-in group overflow-hidden" style={{ animationDelay: '0.2s' }}>
+              <div className="relative w-full h-87.5 xl:h-112.5 hidden lg:block animate-fade-in group overflow-hidden" style={{ animationDelay: '0.2s' }}>
                 <img
-                  src="/aigle.jpg"
+                  src="/aigle.png"
                   alt="Emblème Zenith Production"
                   className="w-full h-full object-cover object-top block mix-blend-lighten opacity-25 filter grayscale contrast-125 group-hover:opacity-60 group-hover:grayscale-0 group-hover:scale-[1.03] origin-top transition-all duration-1000"
                   loading="lazy"
