@@ -83,6 +83,20 @@ export default function ContactPage() {
                   </div>
                 </div>
               </div>
+
+              {/* Élément visuel décoratif (Desktop uniquement) pour équilibrer la hauteur du formulaire. */}
+              <div className="relative w-full aspect-[4/5] rounded-2xl overflow-hidden border border-z-border shadow-2xl group hidden lg:block animate-fade-in" style={{ animationDelay: '0.2s' }}>
+                <img
+                  src="/aigle-contact.jpg"
+                  alt="Emblème Zenith Production"
+                  className="w-full h-full object-cover filter brightness-90 saturate-50 contrast-125 group-hover:saturate-100 group-hover:scale-105 transition-all duration-700"
+                  loading="lazy"
+                />
+                {/* Masque de fondu vertical assurant la transition avec la charte sombre. */}
+                <div className="absolute inset-0 bg-linear-to-t from-z-bg via-transparent to-transparent opacity-90 pointer-events-none" />
+                {/* Bordure interne subtile (Glassmorphism). */}
+                <div className="absolute inset-0 ring-1 ring-inset ring-white/10 rounded-2xl pointer-events-none" />
+              </div>
             </div>
 
             <div className="lg:col-span-3 p-8 sm:p-10 rounded-2xl bg-z-card border border-z-border shadow-2xl">
