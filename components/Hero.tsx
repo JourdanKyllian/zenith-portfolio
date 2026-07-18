@@ -2,7 +2,6 @@
 
 import { Eye, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
-import EagleFlyby from './EagleFlyby';
 
 interface HeroProps {
   categoriesCount: number;
@@ -36,7 +35,6 @@ export default function Hero({ categoriesCount, yearsOfExperience }: HeroProps) 
           <span className="font-martyric text-z-text">ZENITH</span><br/>
           <span className="font-bold text-glow">PRODUCTION</span>
         </h1>
-        <EagleFlyby />
       </div>
 
       <p className="animate-fade-up font-sub font-semibold tracking-[0.35em] uppercase text-z-muted text-sm mb-4">
