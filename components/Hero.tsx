@@ -31,10 +31,13 @@ export default function Hero({ categoriesCount, yearsOfExperience }: HeroProps) 
       </div>
 
       <div className="relative">
-        <h1 className="animate-fade-up font-display tracking-wide mb-4 leading-none text-[clamp(3rem,9vw,7rem)]">
-          <span className="font-martyric text-z-text">ZENITH</span><br/>
-          {/* Échelle typographique encore plus réduite pour un effet ultra-subtil */}
-          <span className="font-bold text-glow text-[clamp(1.2rem,4.5vw,2.8rem)] tracking-[0.15em]">PRODUCTION</span>
+        <h1 className="animate-fade-up font-display tracking-wide mb-4 flex flex-col items-center">
+          <span className="font-martyric text-z-text text-[clamp(3rem,9vw,7rem)] leading-none">
+            ZENITH
+          </span>
+          <span className="font-bold text-glow text-[clamp(1.2rem,4.5vw,2.8rem)] tracking-[0.15em] leading-none -mt-2 sm:-mt-3">
+            PRODUCTION
+          </span>
         </h1>
       </div>
 
@@ -52,7 +55,7 @@ export default function Hero({ categoriesCount, yearsOfExperience }: HeroProps) 
           Explorer les projets
         </Link>
         <Link href="/contact" className="btn-outline px-7 py-3.5 rounded-md flex items-center gap-3 text-sm">
-          Me contacter
+           Me contacter
           <ArrowRight size={14} />
         </Link>
       </div>
