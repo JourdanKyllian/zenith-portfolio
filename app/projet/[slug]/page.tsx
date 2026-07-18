@@ -143,17 +143,74 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
           loading="eager"
         />
         <div className="absolute inset-0 bg-linear-to-t from-z-bg to-transparent" />
-        <div className="absolute bottom-0 left-0 w-full p-8 sm:p-16 max-w-7xl mx-auto">
+        <div className="absolute bottom-0 left-0 w-full p-8 sm:p-16 max-w-7xl mx-auto z-10">
           <Link href="/projet" className="flex items-center gap-2 text-z-blue text-[13px] font-bold uppercase tracking-widest mb-6 hover:translate-x-2 transition-transform">
             <ArrowLeft size={14} /> Retour à la galerie
           </Link>
-          <h1 className="font-display font-bold text-5xl sm:text-8xl uppercase tracking-tighter leading-none mb-4">
+          <h1 className="font-display font-bold text-5xl sm:text-8xl uppercase tracking-tighter leading-none mb-6 text-glow">
             {project.titre}
           </h1>
           
-          <span className={`px-3 py-1 rounded border transition-colors duration-300 ${badgeTheme.border} ${badgeTheme.bg} ${badgeTheme.text} text-[9px] font-bold uppercase tracking-widest`}>
-            {project.categorie?.name || "Général"}
-          </span>
+          {(project.categorie?.name || project.link_instagram || project.link_youtube || project.link_tiktok || project.link_twitch || project.link_facebook) && (
+            <div className="flex flex-wrap items-center gap-4 animate-fade-in" style={{ animationDelay: '0.1s' }}>
+              
+              {project.categorie && (
+                <div className={`px-3 py-1 rounded border transition-colors duration-300 ${badgeTheme.border} ${badgeTheme.bg} ${badgeTheme.text} text-[9px] font-bold uppercase tracking-widest`}>
+                  {project.categorie?.name || "Général"}
+                </div>
+              )}
+
+              {/* Remplacement par des SVG natifs pour s'affranchir des limitations de marques déposées de lucide-react */}
+              {(project.link_instagram || project.link_youtube || project.link_tiktok || project.link_twitch || project.link_facebook) && (
+                <div className="flex items-center gap-2 border-l border-z-border pl-4 md:flex">
+                  
+                  {project.link_instagram && (
+                    <a href={project.link_instagram} target="_blank" rel="noopener noreferrer" className="group p-1.5 rounded-lg border border-z-border bg-z-card/50 hover:bg-pink-500/10 hover:border-pink-500/20 transition-all" title="Suivre sur Instagram">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-z-muted group-hover:text-pink-500 transition-colors">
+                        <rect width="20" height="20" x="2" y="2" rx="5" ry="5"/>
+                        <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/>
+                        <line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/>
+                      </svg>
+                    </a>
+                  )}
+
+                  {project.link_youtube && (
+                    <a href={project.link_youtube} target="_blank" rel="noopener noreferrer" className="group p-1.5 rounded-lg border border-z-border bg-z-card/50 hover:bg-red-500/10 hover:border-red-500/20 transition-all" title="Suivre sur Youtube">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-z-muted group-hover:text-red-500 transition-colors">
+                        <path d="M2.5 7.1C2.6 5.9 3.5 5 4.7 4.9 7 4.5 12 4.5 12 4.5s5 0 7.3.4c1.2.1 2.1 1 2.2 2.2.4 2.4.4 4.9.4 4.9s0 2.5-.4 4.9c-.1 1.2-1 2.1-2.2 2.2-2.3.4-7.3.4-7.3.4s-5 0-7.3-.4c-1.2-.1-2.1-1-2.2-2.2C2 14.5 2 12 2 12s0-2.5.5-4.9z"/>
+                        <path d="M10 15l5-3-5-3v6z"/>
+                      </svg>
+                    </a>
+                  )}
+
+                  {project.link_tiktok && (
+                    <a href={project.link_tiktok} target="_blank" rel="noopener noreferrer" className="group p-1.5 rounded-lg border border-z-border bg-z-card/50 hover:bg-cyan-400/10 hover:border-cyan-400/20 transition-all" title="Suivre sur TikTok">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="none" className="text-z-muted group-hover:text-cyan-400 transition-colors">
+                        <path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.02 1.6 4.17 1.12 1.25 2.7 2.02 4.37 2.15v3.77c-1.62-.02-3.21-.45-4.57-1.33-.16-.1-.3-.22-.44-.33v6.7c0 5.61-4.66 10.16-10.3 9.98-4.99-.16-9.15-4.32-9.3-9.31-.22-6.07 4.74-11.14 10.82-10.93v3.83c-3.19-.24-6.06 2.05-6.4 5.22-.43 3.96 2.62 7.42 6.58 7.42 3.65 0 6.61-2.96 6.61-6.61V0h.03z"/>
+                      </svg>
+                    </a>
+                  )}
+
+                  {project.link_twitch && (
+                    <a href={project.link_twitch} target="_blank" rel="noopener noreferrer" className="group p-1.5 rounded-lg border border-z-border bg-z-card/50 hover:bg-purple-500/10 hover:border-purple-500/20 transition-all" title="Suivre sur Twitch">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-z-muted group-hover:text-purple-500 transition-colors">
+                        <path d="M21 2H3v16h5v4l4-4h5l4-4V2zm-10 9V7m5 4V7"/>
+                      </svg>
+                    </a>
+                  )}
+
+                  {project.link_facebook && (
+                    <a href={project.link_facebook} target="_blank" rel="noopener noreferrer" className="group p-1.5 rounded-lg border border-z-border bg-z-card/50 hover:bg-blue-500/10 hover:border-blue-500/20 transition-all" title="Suivre sur Facebook">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-z-muted group-hover:text-blue-500 transition-colors">
+                        <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/>
+                      </svg>
+                    </a>
+                  )}
+
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </section>
 

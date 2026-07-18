@@ -32,4 +32,9 @@ export interface Projet {
   categorie?: Categorie;
   sousprojet?: SousProjet[];
   created_at: string;
+  link_instagram?: string | null;
+  link_youtube?: string | null;
+  link_tiktok?: string | null;
+  link_twitch?: string | null;
+  link_facebook?: string | null;
 }
