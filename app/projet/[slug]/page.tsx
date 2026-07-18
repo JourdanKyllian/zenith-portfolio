@@ -1,6 +1,6 @@
 import { supabase } from '@/lib/supabase';
 import { notFound } from 'next/navigation';
-import { ArrowLeft, PlayCircle } from 'lucide-react';
+import { ArrowLeft, PlayCircle, Instagram, Youtube, Twitch, Facebook } from 'lucide-react';
 import Link from 'next/link';
 import { getProjectAssetsFromDrive, DriveAssets } from '@/lib/googleDrive';
 import { SousProjet, Projet } from '@/types';
@@ -197,8 +197,9 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
 
                   {project.link_tiktok && (
                     <a href={project.link_tiktok} target="_blank" rel="noopener noreferrer" className="group p-1.5 rounded-lg border border-z-border bg-z-card/50 hover:bg-cyan-400/10 hover:border-cyan-400/20 transition-all" title="Suivre sur TikTok">
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="none" className="text-z-muted group-hover:text-cyan-400 transition-colors">
-                        <path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.02 1.6 4.17 1.12 1.25 2.7 2.02 4.37 2.15v3.77c-1.62-.02-3.21-.45-4.57-1.33-.16-.1-.3-.22-.44-.33v6.7c0 5.61-4.66 10.16-10.3 9.98-4.99-.16-9.15-4.32-9.3-9.31-.22-6.07 4.74-11.14 10.82-10.93v3.83c-3.19-.24-6.06 2.05-6.4 5.22-.43 3.96 2.62 7.42 6.58 7.42 3.65 0 6.61-2.96 6.61-6.61V0h.03z"/>
+                      {/* Logo TikTok en mode 'outline' avec les attributs de tracé Lucide */}
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-z-muted group-hover:text-cyan-400 transition-colors">
+                        <path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5"/>
                       </svg>
                     </a>
                   )}
