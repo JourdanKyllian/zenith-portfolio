@@ -10,7 +10,7 @@ interface HeroProps {
 
 /**
  * Client Component : En-tête principal de la page d'accueil (Hero Section).
- * Intègre la navigation principale, les appels à l'action et l'animation vectorielle (EagleFlyby).
+ * Intègre la navigation principale et les appels à l'action.
  *
  * @param {number} categoriesCount - Nombre total de catégories actives.
  * @param {number} yearsOfExperience - Calcul des années d'expérience généré côté serveur.
@@ -33,7 +33,8 @@ export default function Hero({ categoriesCount, yearsOfExperience }: HeroProps) 
       <div className="relative">
         <h1 className="animate-fade-up font-display tracking-wide mb-4 leading-none text-[clamp(3rem,9vw,7rem)]">
           <span className="font-martyric text-z-text">ZENITH</span><br/>
-          <span className="font-bold text-glow">PRODUCTION</span>
+          {/* Réduction ciblée de l'échelle typographique de PRODUCTION uniquement */}
+          <span className="font-bold text-glow text-[clamp(2rem,6.5vw,5rem)]">PRODUCTION</span>
         </h1>
       </div>
 
