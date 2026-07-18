@@ -41,18 +41,19 @@ export default function AboutPage() {
 
   // Icônes réelles (fournies par le graphiste) : next/image les redimensionne
   // et les optimise automatiquement (elles partent de 1500x1500 en source,
-  // affichées à ~20px — l'optimisation évite d'envoyer l'image brute).
+  // affichées en grand comme sur la maquette — l'optimisation évite quand
+  // même d'envoyer l'image brute à pleine résolution).
   const iconEtude = (
-    <Image src="/icons/etude.png" alt="" width={40} height={40} className="h-5 w-5 object-contain" />
+    <Image src="/icons/etude.png" alt="" width={96} height={96} className="h-14 w-14 object-contain sm:h-20 sm:w-20" />
   );
   const iconSalarie = (
-    <Image src="/icons/salarie.png" alt="" width={40} height={40} className="h-5 w-5 object-contain" />
+    <Image src="/icons/salarie.png" alt="" width={96} height={96} className="h-14 w-14 object-contain sm:h-20 sm:w-20" />
   );
   const iconAsso = (
-    <Image src="/icons/asso.png" alt="" width={40} height={40} className="h-5 w-5 object-contain" />
+    <Image src="/icons/asso.png" alt="" width={96} height={96} className="h-14 w-14 object-contain sm:h-20 sm:w-20" />
   );
   const iconChefZenith = (
-    <Image src="/icons/chef-zenith.png" alt="" width={40} height={40} className="h-5 w-5 object-contain" />
+    <Image src="/icons/chef-zenith.png" alt="" width={96} height={96} className="h-14 w-14 object-contain sm:h-20 sm:w-20" />
   );
 
   // Contenu de la frise : défini côté serveur (texte présent dans le HTML

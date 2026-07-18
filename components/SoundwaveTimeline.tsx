@@ -197,7 +197,7 @@ export default function SoundwaveTimeline({ items }: SoundwaveTimelineProps) {
             >
               {contentOnLeft ? (
                 <>
-                  <div className="flex flex-col items-end gap-3">
+                  <div className="flex flex-col items-end gap-4">
                     <IconBadge icon={item.icon} side="left" />
                     <TimelineCard item={item} align="right" />
                   </div>
@@ -210,7 +210,7 @@ export default function SoundwaveTimeline({ items }: SoundwaveTimelineProps) {
                   <div className="flex justify-end pt-2">
                     <YearLabel year={item.year} align="right" />
                   </div>
-                  <div className="flex flex-col items-start gap-3">
+                  <div className="flex flex-col items-start gap-4">
                     <IconBadge icon={item.icon} side="right" />
                     <TimelineCard item={item} align="left" />
                   </div>
@@ -225,27 +225,22 @@ export default function SoundwaveTimeline({ items }: SoundwaveTimelineProps) {
 }
 
 function IconBadge({ icon, side }: { icon: ReactNode; side: 'left' | 'right' }) {
-  const badge = (
-    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-z-blue/30 bg-z-card text-z-blue shadow-[0_0_20px_rgba(0,123,255,0.25)]">
-      {icon}
-    </span>
-  );
   // Petit connecteur en pointillés qui tend vers l'onde centrale, comme
   // sur la maquette — masqué sur mobile pour ne pas surcharger.
   const connector = (
     <span className="hidden h-px w-6 border-t border-dashed border-z-blue/40 sm:block sm:w-10" />
   );
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center gap-3">
       {side === 'left' ? (
         <>
-          {badge}
+          {icon}
           {connector}
         </>
       ) : (
         <>
           {connector}
-          {badge}
+          {icon}
         </>
       )}
     </div>
