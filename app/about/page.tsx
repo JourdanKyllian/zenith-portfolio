@@ -1,7 +1,10 @@
 import { Metadata } from 'next';
 import Link from 'next/link';
-import {Camera,Film,Palette,Target,ArrowRight,GraduationCap,Briefcase,Users,TrendingUp,} from 'lucide-react';
-import SoundwaveTimeline, {type TimelineItem,} from '@/components/SoundwaveTimeline';
+import Image from 'next/image';
+import { Camera, Film, Palette, Target, ArrowRight } from 'lucide-react';
+import SoundwaveTimeline, {
+  type TimelineItem,
+} from '@/components/SoundwaveTimeline';
 
 export const metadata: Metadata = {
   title: 'À Propos | ZENITH PRODUCTION',
@@ -36,6 +39,22 @@ export default function AboutPage() {
     }
   ];
 
+  // Icônes réelles (fournies par le graphiste) : next/image les redimensionne
+  // et les optimise automatiquement (elles partent de 1500x1500 en source,
+  // affichées à ~20px — l'optimisation évite d'envoyer l'image brute).
+  const iconEtude = (
+    <Image src="/icons/etude.png" alt="" width={40} height={40} className="h-5 w-5 object-contain" />
+  );
+  const iconSalarie = (
+    <Image src="/icons/salarie.png" alt="" width={40} height={40} className="h-5 w-5 object-contain" />
+  );
+  const iconAsso = (
+    <Image src="/icons/asso.png" alt="" width={40} height={40} className="h-5 w-5 object-contain" />
+  );
+  const iconChefZenith = (
+    <Image src="/icons/chef-zenith.png" alt="" width={40} height={40} className="h-5 w-5 object-contain" />
+  );
+
   // Contenu de la frise : défini côté serveur (texte présent dans le HTML
   // initial pour le SEO), seule l'animation de l'onde est déléguée au
   // composant client SoundwaveTimeline.
@@ -46,7 +65,7 @@ export default function AboutPage() {
       subtitle: 'Lycée Pierre Bayen',
       description:
         "Les spécialités HLP et Arts plastiques m'ont permis de développer mon esprit critique, ma créativité et mon sens de l'esthétique, des compétences essentielles dans mon parcours en audiovisuel et en communication.",
-      icon: <GraduationCap className="w-5 h-5" />,
+      icon: iconEtude,
     },
     {
       year: '2021',
@@ -54,7 +73,7 @@ export default function AboutPage() {
       subtitle: "Institut Supérieur de l'Audiovisuel — Paris",
       description:
         "Cette formation en alternance a été directement mise en pratique au sein de BH Digital, où j'ai occupé le poste d'alternant chargé de communication. J'y ai développé des compétences en développement web, SEO, montage et post-production, ainsi qu'en création graphique avec Photoshop, me permettant d'allier expertise technique et stratégie de communication.",
-      icon: <GraduationCap className="w-5 h-5" />,
+      icon: iconEtude,
     },
     {
       year: '2023 – 2025',
@@ -62,7 +81,7 @@ export default function AboutPage() {
       subtitle: 'Mission Locale de Châlons-en-Champagne',
       description:
         "Développement de la communication digitale de la structure à travers le référencement SEO, la création graphique, la production de contenus audiovisuels et la gestion du site web. Conception et mise en place d'un studio dédié aux captations et aux diffusions en direct, afin de professionnaliser les événements et renforcer la communication auprès des différents publics.",
-      icon: <Briefcase className="w-5 h-5" />,
+      icon: iconSalarie,
     },
     {
       year: '2025 – auj.',
@@ -70,7 +89,7 @@ export default function AboutPage() {
       subtitle: 'Collectif Châlonnais',
       description:
         "Pilotage de la stratégie de communication de l'association en développant son identité de marque et sa visibilité. Encadrement d'une équipe de production vidéo, coordination de la création de contenus audiovisuels et participation à l'organisation des événements. Conception d'un studio audiovisuel de 40 m² en collaboration avec une architecte d'intérieur.",
-      icon: <Users className="w-5 h-5" />,
+      icon: iconAsso,
     },
     {
       year: '2025 – auj.',
@@ -78,7 +97,7 @@ export default function AboutPage() {
       subtitle: 'Micro-entreprise',
       description:
         "Micro-entreprise spécialisée dans la production audiovisuelle et la communication visuelle : montage, post-production, captation vidéo, photographie, retouche photo et création graphique. Développement de l'activité sur ComeUp et couverture de la Foire de Châlons-en-Champagne ainsi que d'autres événements, avec des collaborations en France et à l'international.",
-      icon: <TrendingUp className="w-5 h-5" />,
+      icon: iconChefZenith,
     },
     {
       year: '2026 – auj.',
@@ -86,7 +105,7 @@ export default function AboutPage() {
       subtitle: 'E.Leclerc — Troyes Saint-Parres-aux-Tertres',
       description:
         "Développement de la communication digitale et interne de l'enseigne. Conception de contenus pour les supports numériques et participation à la mise en œuvre de la stratégie de communication afin de renforcer la visibilité et l'engagement des collaborateurs et des clients.",
-      icon: <Briefcase className="w-5 h-5" />,
+      icon: iconSalarie,
     },
   ];
 
