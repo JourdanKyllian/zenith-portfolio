@@ -84,15 +84,15 @@ export default function ContactPage() {
                 </div>
               </div>
 
-              {/* Élément visuel décoratif (Desktop uniquement) : intégration subtile en filigrane (watermark). */}
+              {/* Élément visuel décoratif (Desktop) : Intégration naturelle d'un PNG transparent */}
               <div className="relative w-full h-[250px] xl:h-[320px] hidden lg:block animate-fade-in group overflow-hidden" style={{ animationDelay: '0.2s' }}>
                 <img
                   src="/aigle.png"
                   alt="Emblème Zenith Production"
-                  className="w-full h-full object-cover object-top block opacity-25 filter grayscale contrast-125 group-hover:opacity-60 group-hover:grayscale-0 group-hover:scale-[1.03] origin-top transition-all duration-1000"
+                  /* Retrait des mix-blend et contrastes forcés. Affichage natif avec opacité et filtre monochrome. */
+                  className="w-full h-full object-cover object-top block opacity-25 filter grayscale group-hover:opacity-70 group-hover:grayscale-0 group-hover:scale-[1.03] origin-top transition-all duration-1000"
                   loading="lazy"
                 />
-                {/* Masque de fondu ajusté pour couper plus court et éviter la zone vide sous l'image. */}
                 <div className="absolute inset-x-0 bottom-0 h-2/3 bg-linear-to-t from-z-bg via-z-bg/90 to-transparent pointer-events-none" />
               </div>
             </div>
@@ -100,11 +100,6 @@ export default function ContactPage() {
             <div className="lg:col-span-3 p-8 sm:p-10 rounded-2xl bg-z-card border border-z-border shadow-2xl">
               <form action={handleAction} ref={formRef} className="space-y-6">
                 
-                {/* 
-                  Champ Honeypot masqué aux technologies d'assistance et utilisateurs humains.
-                  Utilise un nommage métier neutre et désactive explicitement l'auto-complétion
-                  pour contourner l'auto-remplissage des gestionnaires de mots de passe.
-                */}
                 <div className="absolute opacity-0 -z-10 h-0 w-0 overflow-hidden pointer-events-none" aria-hidden="true">
                   <label htmlFor="company_tax_id" tabIndex={-1}>Identifiant légal de l'entreprise :</label>
                   <input 
