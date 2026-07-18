@@ -10,8 +10,9 @@ import { getBadgeTheme } from '@/config/colors';
 export const revalidate = 3600;
 
 /**
- * Interface locale pour typer les données enrichies issues de Google Drive.
- * Assure la compatibilité stricte avec le composant d'affichage multimédia sans utiliser le type 'any'.
+ * Interface locale étendant SousProjet.
+ * Garantit un typage strict après la résolution asynchrone des médias Google Drive,
+ * évitant l'utilisation du type 'any' lors du passage des props au composant enfant.
  */
 interface ProcessedSousProjet extends SousProjet {
   finalYoutubeUrl: string | null;
@@ -29,7 +30,7 @@ interface ProcessedSousProjet extends SousProjet {
  * Génère les métadonnées SEO dynamiques pour la page projet.
  * 
  * @param {Promise<{ slug: string }>} params - Paramètres dynamiques de la route.
- * @returns {Promise<{ title: string }>} Les métadonnées formatées.
+ * @returns {Promise<{ title: string }>} Les métadonnées formatées pour le <head>.
  */
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
@@ -44,6 +45,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     return { title: 'Projet — ZENITH PRODUCTION' };
   }
 
+  // Cast nécessaire car Supabase renvoie un type générique sur les jointures (*)
   const project = data as unknown as Projet;
   const categoryName = project.categorie?.name || 'Général';
 
@@ -53,11 +55,8 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 }
 
 /**
- * Extrait l'ID d'un fichier hébergé sur Google Drive.
- * Supporte plusieurs formats d'URL (paramètres id=, chemin /d/ ou drive-viewer).
- * 
- * @param {string | null | undefined} urlOrId - L'URL source.
- * @returns {string | null} L'identifiant Drive extrait.
+ * Extrait l'ID unique d'un fichier hébergé sur Google Drive depuis divers formats d'URL.
+ * Utile pour exploiter l'API de miniature Drive (thumbnail) plutôt que le viewer natif complet.
  */
 function getDriveFileId(urlOrId: string | null | undefined): string | null {
   if (!urlOrId) return null;
@@ -77,13 +76,11 @@ function getDriveFileId(urlOrId: string | null | undefined): string | null {
 
 /**
  * Server Component : Page de détail d'un projet.
- * Affiche la bannière hero, la description textuelle, la grille des sous-projets multimédias et la fiche technique.
- *
- * @param {Promise<{ slug: string }>} params - Promesse contenant le slug de l'URL du projet.
  */
 export default async function ProjectPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
 
+  // Récupération du projet principal et de ses relations (Catégorie pour le badge, Sous-projets pour les médias)
   const { data } = await supabase
     .from('projet')
     .select('*, categorie(*), sousprojet(*)')
@@ -94,17 +91,21 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
 
   const project = data as unknown as Projet;
 
+  // Tri côté client pour pallier l'absence de garantie d'ordre sur la jointure Supabase
   const sousProjets: SousProjet[] = (project.sousprojet || [])
     .sort((a: SousProjet, b: SousProjet) => (a.ordre || 0) - (b.ordre || 0));
 
+  // Résolution parallèle des assets Drive pour chaque sous-projet.
+  // Remplace les liens bruts par des listes d'images, de PDF et d'URL vidéo directes.
   const sousProjetsAvecMedias: ProcessedSousProjet[] = await Promise.all(
     sousProjets.map(async (sp) => {
       const driveAssets: DriveAssets = sp.drive_url 
         ? await getProjectAssetsFromDrive(sp.drive_url)
-        : { images: [], youtubeUrl: null, pdf: null, videoUrl: null };
+        : { images: [], youtubeUrl: null, pdf: null, videoUrl: null }; // Fallback de sécurité si le champ est vide
       
       return {
         ...sp,
+        // La vidéo YouTube détectée dans Drive prend la priorité sur l'URL de la BDD
         finalYoutubeUrl: driveAssets.youtubeUrl || sp.youtube_url,
         driveImages: driveAssets.images,
         pdf: driveAssets.pdf,
@@ -113,28 +114,34 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
     })
   );
 
+  // Détermine s'il faut afficher l'indicateur UI "Vidéos disponibles"
   const hasAnyVideo = sousProjetsAvecMedias.some(sp => sp.finalYoutubeUrl || sp.driveVideoUrl);
 
   const badgeTheme = getBadgeTheme(project.categorie?.color);
 
+  // Logique de résolution de l'image de couverture (Hero)
   const miniatureUrl = project.miniature_url;
   let coverImageUrl = "";
 
   if (miniatureUrl) {
     if (miniatureUrl.startsWith('http') && !miniatureUrl.includes('drive.google.com')) {
+      // 1. URL externe standard (Unsplash, AWS, etc.) -> Utilisée telle quelle
       coverImageUrl = miniatureUrl;
     } else {
+      // 2. URL Google Drive -> Extraction de l'ID pour générer une miniature haute résolution (sz=w2048)
       const driveImageId = getDriveFileId(miniatureUrl);
       coverImageUrl = driveImageId 
         ? `https://drive.google.com/thumbnail?id=${driveImageId}&sz=w2048`
         : miniatureUrl;
     }
   } else {
+    // 3. Fallback -> Image par défaut globale si aucune miniature n'est renseignée
     coverImageUrl = "https://images.unsplash.com/photo-1536440136628-849c177e76a1?q=80&w=1025&auto=format&fit=cover";
   }
 
   return (
     <main className="min-h-screen bg-z-bg text-z-text pb-20">
+      {/* --- SECTION HERO --- */}
       <section className="relative h-[60vh] w-full overflow-hidden">
         <img 
           src={coverImageUrl} 
@@ -147,10 +154,11 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
           <Link href="/projet" className="flex items-center gap-2 text-z-blue text-[13px] font-bold uppercase tracking-widest mb-6 hover:translate-x-2 transition-transform">
             <ArrowLeft size={14} /> Retour à la galerie
           </Link>
-          <h1 className="font-display font-bold text-5xl sm:text-8xl uppercase tracking-tighter leading-none mb-6 text-glow">
+          <h1 className="font-display font-bold text-5xl sm:text-8xl uppercase tracking-tighter leading-none mb-6">
             {project.titre}
           </h1>
           
+          {/* Ligne Méta : S'affiche uniquement si une catégorie ou au moins un réseau social est défini en base */}
           {(project.categorie?.name || project.link_instagram || project.link_youtube || project.link_tiktok || project.link_twitch || project.link_facebook) && (
             <div className="flex flex-wrap items-center gap-4 animate-fade-in" style={{ animationDelay: '0.1s' }}>
               
@@ -160,7 +168,11 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
                 </div>
               )}
 
-              {/* Remplacement par des SVG natifs pour s'affranchir des limitations de marques déposées de lucide-react */}
+              {/* 
+                NOTE TECHNIQUE : Utilisation de SVG natifs pour les réseaux sociaux.
+                La librairie 'lucide-react' a retiré les logos de marques pour des raisons de droits.
+                Les SVG bruts permettent de garder un design homogène sans installer de librairie tierce (ex: react-icons).
+              */}
               {(project.link_instagram || project.link_youtube || project.link_tiktok || project.link_twitch || project.link_facebook) && (
                 <div className="flex items-center gap-2 border-l border-z-border pl-4 md:flex">
                   
@@ -214,12 +226,17 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
         </div>
       </section>
 
+      {/* --- SECTION CONTENU --- */}
       <section className="max-w-7xl mx-auto px-8 py-20 grid grid-cols-1 lg:grid-cols-3 gap-20">
+        
+        {/* Colonne latérale (gauche) : Contexte du projet */}
         <div className="lg:col-span-1 space-y-10">
           <div>
             <h3 className="text-z-muted font-sub text-[10px] font-bold uppercase tracking-widest mb-6">Introduction</h3>
+            {/* whitespace-pre-wrap assure le rendu des sauts de ligne tapés dans le back-office */}
             <p className="font-body text-z-text/80 leading-relaxed whitespace-pre-wrap">{project.description}</p>
           </div>
+          
           {hasAnyVideo && (
             <div className="flex flex-col gap-4">
               <div className="btn-blue p-4 rounded-lg flex items-center justify-center gap-3 text-[10px] font-bold uppercase tracking-widest opacity-80 cursor-default">
@@ -229,6 +246,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
           )}
         </div>
 
+        {/* Colonne principale (droite) : Grille d'affichage des médias (Composant Client) */}
         <ProjectMediaContent 
           sousProjets={sousProjetsAvecMedias} 
           coverImageUrl={coverImageUrl}
