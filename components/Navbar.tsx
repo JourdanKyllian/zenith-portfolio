@@ -12,8 +12,6 @@ interface NavbarProps {
 
 /**
  * Client Component : Navigation principale globale.
- * Gère l'état d'ancrage dynamique au défilement, l'affichage du menu tiroir mobile,
- * et le verrouillage du défilement du document lors de l'ouverture des surcouches (modales/menus).
  */
 export default function Navbar({ cvUrl, previewUrl }: NavbarProps) {
   const [isOpen, setIsOpen] = useState(false);
@@ -21,8 +19,6 @@ export default function Navbar({ cvUrl, previewUrl }: NavbarProps) {
   const [isCvOpen, setIsCvOpen] = useState(false);
 
   useEffect(() => {
-    // Utilisation des classes natives Tailwind pour le verrouillage du scroll
-    // beaucoup plus stable que la manipulation directe du style en JS sur Safari.
     if (isOpen || isCvOpen) {
       document.body.classList.add('overflow-hidden');
     } else {
@@ -61,12 +57,13 @@ export default function Navbar({ cvUrl, previewUrl }: NavbarProps) {
         scrolled ? 'bg-z-bg/95 backdrop-blur-md border-b border-z-blue/20 py-1' : 'py-4'
       }`}>
         <div className="max-w-7xl mx-auto px-6 flex items-center justify-between h-16">
-          <Link href="/" className="group flex flex-col items-start z-[1001] select-none" onClick={() => setIsOpen(false)}>
-            {/* L'espace insécable {'\u00A0'} force Safari à agrandir la bounding box et empêche le rognage (clipping) */}
-            <span className="font-martyric text-3xl text-white group-hover:text-z-blue transition-colors duration-300 drop-shadow-lg leading-none">
-              ZENITH{"\u00A0"}
+          {/* Le -ml-2 compense l'élargissement de la boîte enfant pour garder l'alignement sur le bord gauche */}
+          <Link href="/" className="group flex flex-col items-start z-[1001] select-none -ml-2" onClick={() => setIsOpen(false)}>
+            {/* Le padding px-2 py-1 agrandit la boîte de calcul du drop-shadow pour empêcher Safari de couper la police */}
+            <span className="font-martyric text-3xl text-white group-hover:text-z-blue transition-colors duration-300 drop-shadow-lg leading-none px-2 py-1">
+              ZENITH
             </span>
-            <span className="block font-sub text-[10px] font-semibold tracking-[0.3em] uppercase text-white/80 leading-none mt-1">
+            <span className="block font-sub text-[10px] font-semibold tracking-[0.3em] uppercase text-white/80 leading-none mt-1 ml-2">
               PRODUCTION
             </span>
           </Link>
