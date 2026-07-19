@@ -10,6 +10,24 @@
   .font-martyric {
     font-family: 'Martyric', sans-serif !important;
   }
+
+  /* 
+   * HACK SAFARI ULTIME (Bug CoreText)
+   * Safari coupe les polices cursives/stylisées qui débordent de leur bounding box.
+   * On injecte de vrais caractères (des points) invisibles pour forcer Safari à 
+   * calculer une boîte de rendu plus large, et on annule leur espacement.
+   */
+  .font-martyric::before,
+  .font-martyric::after {
+    content: '.';
+    font-family: sans-serif;
+    color: transparent;
+    opacity: 0;
+    pointer-events: none;
+    user-select: none;
+  }
+  .font-martyric::before { margin-right: -0.2em; }
+  .font-martyric::after { margin-left: -0.2em; }
 }
 
 @theme {
@@ -168,38 +186,34 @@
 
 /* 
  * Effet Néon Défectueux (Faux contact électrique).
- * Séquence organique riche avec des étapes d'opacité intermédiaires (0.7, 0.4) 
- * pour simuler le grésillement d'un démarreur de néon en difficulté,
- * plutôt que des coupures franches et artificielles.
  */
 @keyframes neon-flicker {
   0%, 18% { opacity: 1; }
-  19% { opacity: 0.7; } /* Baisse de tension douce (prémices) */
-  20% { opacity: 0.4; } /* Grésillement */
+  19% { opacity: 0.7; }
+  20% { opacity: 0.4; }
   21% { opacity: 0.9; }
-  22% { opacity: 0.2; } /* Coupure profonde */
-  23% { opacity: 0.6; } /* Peine à se rallumer */
+  22% { opacity: 0.2; }
+  23% { opacity: 0.6; }
   25% { opacity: 1; }
   
   55% { opacity: 1; }
   56% { opacity: 0.8; }
   57% { opacity: 0.3; }
   58% { opacity: 0.9; }
-  59% { opacity: 0.2; } /* Grosse coupure prolongée */
-  61% { opacity: 0.4; } /* Le tube vacille... */
+  59% { opacity: 0.2; }
+  61% { opacity: 0.4; }
   62% { opacity: 0.1; }
   64% { opacity: 0.8; }
   65% { opacity: 0.3; }
   67% { opacity: 1; }
   
   80% { opacity: 1; }
-  81% { opacity: 0.6; } /* Micro-tremblement isolé pour le naturel */
+  81% { opacity: 0.6; }
   82% { opacity: 1; }
   
   100% { opacity: 1; }
 }
 .animate-neon-flicker {
-  /* Cycle allongé à 5 secondes pour rendre l'irrégularité plus crédible */
   animation: neon-flicker 5s linear infinite;
 }
 

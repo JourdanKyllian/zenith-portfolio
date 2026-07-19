@@ -11,11 +11,9 @@ export default function Footer() {
   return (
     <footer className="w-full bg-z-night border-t border-z-silver/10 pt-16 pb-8 px-6 mt-20">
       <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-10">
-        
-        {/* Le md:-ml-3 compense le padding de l'enfant pour préserver l'alignement strict à gauche sur desktop */}
-        <div className="flex flex-col items-center md:items-start gap-1 md:-ml-3">
+        <div className="flex flex-col items-center md:items-start gap-1">
           <Link href="/" className="group">
-            <span className="font-martyric text-6xl text-white group-hover:text-z-blue transition-colors duration-300 drop-shadow-lg px-3 py-2">
+            <span className="font-martyric text-6xl text-white group-hover:text-z-blue transition-colors duration-300 drop-shadow-lg">
               ZENITH
             </span>
           </Link>
