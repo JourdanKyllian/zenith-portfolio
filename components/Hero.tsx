@@ -32,7 +32,7 @@ export default function Hero({ categoriesCount, yearsOfExperience }: HeroProps) 
 
       <div className="relative">
         <h1 className="animate-fade-up font-display tracking-wide mb-4 flex flex-col items-center gap-3 sm:gap-4">
-          <span className="font-martyric text-z-text text-[clamp(3rem,9vw,7rem)] leading-none">
+          <span className="font-martyric text-z-text text-[clamp(3rem,9vw,7rem)] leading-none px-4 -mx-4">
             ZENITH
           </span>
           <span className="font-bold text-glow animate-neon-flicker text-[clamp(1.2rem,4.5vw,2.8rem)] tracking-[0.15em] leading-none">
