@@ -9,25 +9,19 @@
 @layer utilities {
   .font-martyric {
     font-family: 'Martyric', sans-serif !important;
+    /* Élargissement physique agressif de la case pour Safari (Anti-clipping) */
+    padding-left: 0.6em !important;
+    padding-right: 0.6em !important;
+    margin-left: -0.6em !important;
+    margin-right: -0.6em !important;
+    display: inline-block !important;
+    overflow: visible !important;
   }
 
-  /* 
-   * HACK SAFARI ULTIME (Bug CoreText)
-   * Safari coupe les polices cursives/stylisées qui débordent de leur bounding box.
-   * On injecte de vrais caractères (des points) invisibles pour forcer Safari à 
-   * calculer une boîte de rendu plus large, et on annule leur espacement.
-   */
-  .font-martyric::before,
-  .font-martyric::after {
-    content: '.';
-    font-family: sans-serif;
-    color: transparent;
-    opacity: 0;
-    pointer-events: none;
-    user-select: none;
+  /* Ombre portée typographique (Remplace le drop-shadow qui fait bugger Safari) */
+  .text-shadow-safe {
+    text-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
   }
-  .font-martyric::before { margin-right: -0.2em; }
-  .font-martyric::after { margin-left: -0.2em; }
 }
 
 @theme {
@@ -184,9 +178,6 @@
 }
 .af-hunt { animation: af-hunt 3.2s ease-in-out infinite; }
 
-/* 
- * Effet Néon Défectueux (Faux contact électrique).
- */
 @keyframes neon-flicker {
   0%, 18% { opacity: 1; }
   19% { opacity: 0.7; }
