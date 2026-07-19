@@ -168,20 +168,39 @@
 
 /* 
  * Effet Néon Défectueux (Faux contact électrique).
- * Simule des chutes de tension asymétriques pour le typographie.
- * En réduisant l'opacité, cela atténue dynamiquement la propriété text-shadow
- * liée à la classe utilitaire .text-glow.
+ * Séquence organique riche avec des étapes d'opacité intermédiaires (0.7, 0.4) 
+ * pour simuler le grésillement d'un démarreur de néon en difficulté,
+ * plutôt que des coupures franches et artificielles.
  */
 @keyframes neon-flicker {
-  0%, 19.9%, 22%, 62.9%, 64%, 64.9%, 70%, 100% {
-    opacity: 1;
-  }
-  20%, 21.9%, 63%, 63.9%, 65%, 69.9% {
-    opacity: 0.3;
-  }
+  0%, 18% { opacity: 1; }
+  19% { opacity: 0.7; } /* Baisse de tension douce (prémices) */
+  20% { opacity: 0.4; } /* Grésillement */
+  21% { opacity: 0.9; }
+  22% { opacity: 0.2; } /* Coupure profonde */
+  23% { opacity: 0.6; } /* Peine à se rallumer */
+  25% { opacity: 1; }
+  
+  55% { opacity: 1; }
+  56% { opacity: 0.8; }
+  57% { opacity: 0.3; }
+  58% { opacity: 0.9; }
+  59% { opacity: 0.2; } /* Grosse coupure prolongée */
+  61% { opacity: 0.4; } /* Le tube vacille... */
+  62% { opacity: 0.1; }
+  64% { opacity: 0.8; }
+  65% { opacity: 0.3; }
+  67% { opacity: 1; }
+  
+  80% { opacity: 1; }
+  81% { opacity: 0.6; } /* Micro-tremblement isolé pour le naturel */
+  82% { opacity: 1; }
+  
+  100% { opacity: 1; }
 }
 .animate-neon-flicker {
-  animation: neon-flicker 4s linear infinite;
+  /* Cycle allongé à 5 secondes pour rendre l'irrégularité plus crédible */
+  animation: neon-flicker 5s linear infinite;
 }
 
 .glitch { position: relative; }
