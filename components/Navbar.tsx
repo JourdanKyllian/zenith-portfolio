@@ -14,9 +14,6 @@ interface NavbarProps {
  * Client Component : Navigation principale globale.
  * Gère l'état d'ancrage dynamique au défilement, l'affichage du menu tiroir mobile,
  * et le verrouillage du défilement du document lors de l'ouverture des surcouches (modales/menus).
- *
- * @param {string | null} cvUrl - Point de terminaison du fichier PDF pour le téléchargement direct.
- * @param {string | null} previewUrl - Source d'intégration pour le lecteur PDF natif (iframe).
  */
 export default function Navbar({ cvUrl, previewUrl }: NavbarProps) {
   const [isOpen, setIsOpen] = useState(false);
@@ -24,15 +21,13 @@ export default function Navbar({ cvUrl, previewUrl }: NavbarProps) {
   const [isCvOpen, setIsCvOpen] = useState(false);
 
   useEffect(() => {
-    // L'affectation d'une chaîne vide ('') plutôt que 'unset' est requise pour 
-    // forcer le reflow du moteur WebKit (Safari) et prévenir le gel de l'interface.
+    // L'affectation d'une chaîne vide ('') force le reflow WebKit et libère le scroll Safari
     if (isOpen || isCvOpen) {
       document.body.style.overflow = 'hidden';
     } else {
       document.body.style.overflow = '';
     }
 
-    // Fonction de nettoyage (cleanup) garantissant la libération du défilement au démontage
     return () => {
       document.body.style.overflow = '';
     };
@@ -66,7 +61,8 @@ export default function Navbar({ cvUrl, previewUrl }: NavbarProps) {
       }`}>
         <div className="max-w-7xl mx-auto px-6 flex items-center justify-between h-16">
           <Link href="/" className="group flex flex-col items-start z-[1001] select-none" onClick={() => setIsOpen(false)}>
-            <span className="font-martyric text-3xl text-white group-hover:text-z-blue transition-colors duration-300 drop-shadow-lg leading-none px-2 -mx-2">
+            {/* inline-block, overflow-visible et padding proportionnel obligatoires pour empêcher WebKit de rogner la police */}
+            <span className="font-martyric text-3xl text-white group-hover:text-z-blue transition-colors duration-300 drop-shadow-lg leading-none inline-block overflow-visible pr-[0.3em] -mr-[0.3em]">
               ZENITH
             </span>
             <span className="block font-sub text-[10px] font-semibold tracking-[0.3em] uppercase text-white/80 leading-none mt-1">
@@ -103,10 +99,6 @@ export default function Navbar({ cvUrl, previewUrl }: NavbarProps) {
           </div>
         </div>
 
-        {/* 
-          Utilisation de h-dvh (Dynamic Viewport Height) pour s'adapter dynamiquement
-          au masquage/affichage des barres d'outils natives sur les navigateurs mobiles.
-        */}
         <nav 
           id="mobile-menu"
           aria-hidden={!isOpen}
@@ -124,10 +116,6 @@ export default function Navbar({ cvUrl, previewUrl }: NavbarProps) {
               ))}
             </div>
 
-            {/* 
-              Marge compensatoire (safe-area-inset-bottom) évitant la superposition
-              du CTA avec l'indicateur de navigation gestuelle des OS mobiles (iOS/Android).
-            */}
             <div className="mt-auto pb-[calc(2rem+env(safe-area-inset-bottom))]">
               <button 
                 onClick={() => { setIsOpen(false); setIsCvOpen(true); }}
