@@ -167,42 +167,40 @@
 .af-hunt { animation: af-hunt 3.2s ease-in-out infinite; }
 
 /* 
- * Effet Néon (Courant alternatif et grésillement continu).
- * Simule l'instabilité électrique haute fréquence d'un tube néon avec 
- * un bruit de fond constant (micro-variations d'opacité très rapides) 
- * et de légers arcs électriques.
+ * Effet Néon Défectueux (Faux contact électrique).
+ * Séquence organique riche avec des étapes d'opacité intermédiaires (0.7, 0.4) 
+ * pour simuler le grésillement d'un démarreur de néon en difficulté,
+ * plutôt que des coupures franches et artificielles.
  */
 @keyframes neon-flicker {
-  0%, 100% { opacity: 1; }
-  4% { opacity: 0.85; }
-  8% { opacity: 1; }
-  12% { opacity: 0.75; }
-  16% { opacity: 1; }
-  20% { opacity: 0.9; }
-  23% { opacity: 1; }
-  26% { opacity: 0.6; } /* Arc électrique (baisse plus nette) */
-  28% { opacity: 1; }
-  32% { opacity: 0.85; }
-  36% { opacity: 1; }
-  40% { opacity: 0.9; }
-  44% { opacity: 1; }
-  48% { opacity: 0.8; }
-  52% { opacity: 1; }
-  56% { opacity: 0.95; }
-  60% { opacity: 0.7; } /* Arc électrique */
-  64% { opacity: 1; }
-  68% { opacity: 0.85; }
-  72% { opacity: 1; }
-  76% { opacity: 0.9; }
+  0%, 18% { opacity: 1; }
+  19% { opacity: 0.7; } /* Baisse de tension douce (prémices) */
+  20% { opacity: 0.4; } /* Grésillement */
+  21% { opacity: 0.9; }
+  22% { opacity: 0.2; } /* Coupure profonde */
+  23% { opacity: 0.6; } /* Peine à se rallumer */
+  25% { opacity: 1; }
+  
+  55% { opacity: 1; }
+  56% { opacity: 0.8; }
+  57% { opacity: 0.3; }
+  58% { opacity: 0.9; }
+  59% { opacity: 0.2; } /* Grosse coupure prolongée */
+  61% { opacity: 0.4; } /* Le tube vacille... */
+  62% { opacity: 0.1; }
+  64% { opacity: 0.8; }
+  65% { opacity: 0.3; }
+  67% { opacity: 1; }
+  
   80% { opacity: 1; }
-  84% { opacity: 0.65; }
-  88% { opacity: 1; }
-  92% { opacity: 0.85; }
-  96% { opacity: 0.95; }
+  81% { opacity: 0.6; } /* Micro-tremblement isolé pour le naturel */
+  82% { opacity: 1; }
+  
+  100% { opacity: 1; }
 }
 .animate-neon-flicker {
-  /* Boucle très courte (1.5s) pour générer l'effet de grésillement haute fréquence (~16Hz) */
-  animation: neon-flicker 1.5s linear infinite;
+  /* Cycle allongé à 5 secondes pour rendre l'irrégularité plus crédible */
+  animation: neon-flicker 5s linear infinite;
 }
 
 .glitch { position: relative; }
