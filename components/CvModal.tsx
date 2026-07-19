@@ -22,29 +22,28 @@ export default function CvModal({ isOpen, onClose, cvUrl, previewUrl }: CvModalP
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-1002 flex items-center justify-center p-4 animate-fade-in">
+    <div className="fixed inset-0 z-[1002] flex items-center justify-center p-4 animate-fade-in">
       {/* 
-        La méthode stopPropagation prévient la propagation de l'événement vers les nœuds parents.
-        Cela corrige une anomalie du moteur Safari provoquant le gel (freeze) de l'UI 
-        lors de clics répétitifs sur l'overlay pendant l'animation.
+        Couche d'isolation (Backdrop). 
+        - La classe cursor-pointer force Safari iOS à reconnaître la balise <div> comme une zone cliquable valide.
       */}
       <div 
-        className="absolute inset-0 bg-z-bg/80 backdrop-blur-md" 
-        onClick={(e) => {
-          e.stopPropagation();
-          onClose();
-        }} 
+        className="absolute inset-0 bg-z-bg/80 backdrop-blur-md cursor-pointer" 
+        onClick={onClose}
+        aria-hidden="true"
       />
       
-      <div className="relative w-full max-w-2xl bg-z-card border border-z-border p-6 rounded-2xl shadow-2xl flex flex-col h-[85vh] z-10">
+      {/* 
+        Conteneur principal.
+        - z-[1003] explicite : Le composant doit être mathématiquement supérieur au backdrop 
+        pour empêcher le contexte d'empilement du filtre CSS (backdrop-blur) d'intercepter les clics sur WebKit (Safari).
+      */}
+      <div className="relative z-[1003] w-full max-w-2xl bg-z-card border border-z-border p-6 rounded-2xl shadow-2xl flex flex-col h-[85vh]">
         
         <div className="flex items-center justify-between mb-4 border-b border-z-blue/10 pb-3">
           <h3 className="font-display font-bold text-xl uppercase tracking-wide text-z-text">Mon Curriculum Vitae</h3>
           <button 
-            onClick={(e) => {
-              e.stopPropagation();
-              onClose();
-            }} 
+            onClick={onClose}
             className="p-1.5 text-z-muted hover:text-z-blue rounded-lg transition-colors cursor-pointer"
             aria-label="Fermer"
           >
@@ -69,10 +68,7 @@ export default function CvModal({ isOpen, onClose, cvUrl, previewUrl }: CvModalP
 
         <div className="flex gap-4">
           <button 
-            onClick={(e) => {
-              e.stopPropagation();
-              onClose();
-            }}
+            onClick={onClose}
             className="flex-1 bg-z-bg border border-z-border text-z-muted hover:text-white p-3.5 rounded-lg text-xs font-bold uppercase tracking-widest transition-colors cursor-pointer"
           >
             Fermer
