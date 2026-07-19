@@ -21,15 +21,16 @@ export default function Navbar({ cvUrl, previewUrl }: NavbarProps) {
   const [isCvOpen, setIsCvOpen] = useState(false);
 
   useEffect(() => {
-    // L'affectation d'une chaîne vide ('') force le reflow WebKit et libère le scroll Safari
+    // Utilisation des classes natives Tailwind pour le verrouillage du scroll
+    // beaucoup plus stable que la manipulation directe du style en JS sur Safari.
     if (isOpen || isCvOpen) {
-      document.body.style.overflow = 'hidden';
+      document.body.classList.add('overflow-hidden');
     } else {
-      document.body.style.overflow = '';
+      document.body.classList.remove('overflow-hidden');
     }
 
     return () => {
-      document.body.style.overflow = '';
+      document.body.classList.remove('overflow-hidden');
     };
   }, [isOpen, isCvOpen]);
 
@@ -61,9 +62,9 @@ export default function Navbar({ cvUrl, previewUrl }: NavbarProps) {
       }`}>
         <div className="max-w-7xl mx-auto px-6 flex items-center justify-between h-16">
           <Link href="/" className="group flex flex-col items-start z-[1001] select-none" onClick={() => setIsOpen(false)}>
-            {/* inline-block, overflow-visible et padding proportionnel obligatoires pour empêcher WebKit de rogner la police */}
-            <span className="font-martyric text-3xl text-white group-hover:text-z-blue transition-colors duration-300 drop-shadow-lg leading-none inline-block overflow-visible pr-[0.3em] -mr-[0.3em]">
-              ZENITH
+            {/* L'espace insécable {'\u00A0'} force Safari à agrandir la bounding box et empêche le rognage (clipping) */}
+            <span className="font-martyric text-3xl text-white group-hover:text-z-blue transition-colors duration-300 drop-shadow-lg leading-none">
+              ZENITH{"\u00A0"}
             </span>
             <span className="block font-sub text-[10px] font-semibold tracking-[0.3em] uppercase text-white/80 leading-none mt-1">
               PRODUCTION

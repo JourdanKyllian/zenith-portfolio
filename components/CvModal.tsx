@@ -25,25 +25,19 @@ export default function CvModal({ isOpen, onClose, cvUrl, previewUrl }: CvModalP
     <div className="fixed inset-0 z-[9999] animate-fade-in">
       {/* 
         Couche 1 : Arrière-plan (Backdrop).
-        Placé en absolue derrière le reste. Capte le clic de fermeture en dehors de la modale.
+        SUPPRESSION DU BACKDROP-BLUR : Empêche le crash GPU (freeze) sur Safari iOS/macOS 
+        lors du démontage du composant au-dessus d'une iframe. Remplacé par une opacité forte (95%).
       */}
       <div 
-        className="absolute inset-0 bg-z-bg/80 backdrop-blur-md cursor-pointer" 
+        className="absolute inset-0 bg-z-bg/95 cursor-pointer" 
         onClick={onClose}
         aria-hidden="true"
       />
       
-      {/* 
-        Couche 2 : Conteneur de centrage (pointer-events-none).
-        Laisse passer les clics au travers pour atteindre l'arrière-plan, 
-        contournant ainsi le bug de superposition WebKit (Safari).
-      */}
+      {/* Couche 2 : Conteneur de centrage */}
       <div className="absolute inset-0 flex items-center justify-center p-4 pointer-events-none">
         
-        {/* 
-          Couche 3 : La modale réelle (pointer-events-auto).
-          Restaure l'interactivité locale. Impossible pour Safari de la glisser sous le backdrop.
-        */}
+        {/* Couche 3 : La modale réelle */}
         <div className="relative w-full max-w-2xl bg-z-card border border-z-border p-6 rounded-2xl shadow-2xl flex flex-col h-[85vh] pointer-events-auto">
           
           <div className="flex items-center justify-between mb-4 border-b border-z-blue/10 pb-3">

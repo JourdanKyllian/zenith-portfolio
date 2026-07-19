@@ -29,8 +29,8 @@ export default function Hero({ categoriesCount, yearsOfExperience }: HeroProps) 
 
       <div className="relative">
         <h1 className="animate-fade-up font-display tracking-wide mb-4 flex flex-col items-center gap-3 sm:gap-4">
-          <span className="font-martyric text-z-text text-[clamp(3rem,9vw,7rem)] leading-none inline-block overflow-visible pr-[0.3em] -mr-[0.3em]">
-            ZENITH
+          <span className="font-martyric text-z-text text-[clamp(3rem,9vw,7rem)] leading-none">
+            ZENITH{"\u00A0"}
           </span>
           <span className="font-bold text-glow animate-neon-flicker text-[clamp(1.2rem,4.5vw,2.8rem)] tracking-[0.15em] leading-none">
             PRODUCTION

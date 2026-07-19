@@ -13,8 +13,8 @@ export default function Footer() {
       <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-10">
         <div className="flex flex-col items-center md:items-start gap-1">
           <Link href="/" className="group">
-            <span className="font-martyric text-6xl text-white group-hover:text-z-blue transition-colors duration-300 drop-shadow-lg inline-block overflow-visible pr-[0.3em] -mr-[0.3em]">
-              ZENITH
+            <span className="font-martyric text-6xl text-white group-hover:text-z-blue transition-colors duration-300 drop-shadow-lg">
+              ZENITH{"\u00A0"}
             </span>
           </Link>
         </div>
