@@ -10,22 +10,41 @@ interface CvModalProps {
 }
 
 /**
- * Client Component : Fenêtre modale gérant la prévisualisation asynchrone du CV.
- * L'iframe pointe directement sur la source Drive pour un affichage natif.
+ * Client Component : Fenêtre modale gérant la prévisualisation asynchrone du document CV.
+ * L'iframe intègre la visionneuse Google Drive native pour une lecture optimisée du PDF.
+ * 
+ * @param {boolean} isOpen - État de visibilité du composant dans le DOM.
+ * @param {() => void} onClose - Fonction de rappel déclenchant la fermeture de l'interface.
+ * @param {string | null} cvUrl - Lien sécurisé pour le téléchargement direct.
+ * @param {string | null} previewUrl - URL formatée pour l'attribut src de l'iframe.
  */
 export default function CvModal({ isOpen, onClose, cvUrl, previewUrl }: CvModalProps) {
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-1002 flex items-center justify-center p-4 animate-fade-in">
-      <div className="absolute inset-0 bg-z-bg/80 backdrop-blur-md" onClick={onClose} />
+      {/* 
+        La méthode stopPropagation prévient la propagation de l'événement vers les nœuds parents.
+        Cela corrige une anomalie du moteur Safari provoquant le gel (freeze) de l'UI 
+        lors de clics répétitifs sur l'overlay pendant l'animation.
+      */}
+      <div 
+        className="absolute inset-0 bg-z-bg/80 backdrop-blur-md" 
+        onClick={(e) => {
+          e.stopPropagation();
+          onClose();
+        }} 
+      />
       
       <div className="relative w-full max-w-2xl bg-z-card border border-z-border p-6 rounded-2xl shadow-2xl flex flex-col h-[85vh] z-10">
         
         <div className="flex items-center justify-between mb-4 border-b border-z-blue/10 pb-3">
           <h3 className="font-display font-bold text-xl uppercase tracking-wide text-z-text">Mon Curriculum Vitae</h3>
           <button 
-            onClick={onClose} 
+            onClick={(e) => {
+              e.stopPropagation();
+              onClose();
+            }} 
             className="p-1.5 text-z-muted hover:text-z-blue rounded-lg transition-colors cursor-pointer"
             aria-label="Fermer"
           >
@@ -50,7 +69,10 @@ export default function CvModal({ isOpen, onClose, cvUrl, previewUrl }: CvModalP
 
         <div className="flex gap-4">
           <button 
-            onClick={onClose}
+            onClick={(e) => {
+              e.stopPropagation();
+              onClose();
+            }}
             className="flex-1 bg-z-bg border border-z-border text-z-muted hover:text-white p-3.5 rounded-lg text-xs font-bold uppercase tracking-widest transition-colors cursor-pointer"
           >
             Fermer
