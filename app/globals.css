@@ -166,6 +166,24 @@
 }
 .af-hunt { animation: af-hunt 3.2s ease-in-out infinite; }
 
+/* 
+ * Effet Néon Défectueux (Faux contact électrique).
+ * Simule des chutes de tension asymétriques pour le typographie.
+ * En réduisant l'opacité, cela atténue dynamiquement la propriété text-shadow
+ * liée à la classe utilitaire .text-glow.
+ */
+@keyframes neon-flicker {
+  0%, 19.9%, 22%, 62.9%, 64%, 64.9%, 70%, 100% {
+    opacity: 1;
+  }
+  20%, 21.9%, 63%, 63.9%, 65%, 69.9% {
+    opacity: 0.3;
+  }
+}
+.animate-neon-flicker {
+  animation: neon-flicker 4s linear infinite;
+}
+
 .glitch { position: relative; }
 .glitch::before,
 .glitch::after {

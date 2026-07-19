@@ -10,10 +10,10 @@ interface HeroProps {
 
 /**
  * Client Component : En-tête principal de la page d'accueil (Hero Section).
- * Intègre la navigation principale et les appels à l'action.
+ * Intègre le logo animé, les métriques dynamiques globales et les appels à l'action.
  *
- * @param {number} categoriesCount - Nombre total de catégories actives.
- * @param {number} yearsOfExperience - Calcul des années d'expérience généré côté serveur.
+ * @param {number} categoriesCount - Nombre total d'univers/catégories actives récupérées depuis Supabase.
+ * @param {number} yearsOfExperience - Années d'expérience du freelance, calculées dynamiquement côté serveur.
  */
 export default function Hero({ categoriesCount, yearsOfExperience }: HeroProps) {
   return (
@@ -35,7 +35,7 @@ export default function Hero({ categoriesCount, yearsOfExperience }: HeroProps) 
           <span className="font-martyric text-z-text text-[clamp(3rem,9vw,7rem)] leading-none">
             ZENITH
           </span>
-          <span className="font-bold text-glow text-[clamp(1.2rem,4.5vw,2.8rem)] tracking-[0.15em] leading-none">
+          <span className="font-bold text-glow animate-neon-flicker text-[clamp(1.2rem,4.5vw,2.8rem)] tracking-[0.15em] leading-none">
             PRODUCTION
           </span>
         </h1>
