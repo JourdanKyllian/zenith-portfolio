@@ -11,7 +11,8 @@ interface GalleryClientProps {
 
 /**
  * Client Component : Interface interactive de la galerie.
- * Gère l'état de filtrage actif et le rendu conditionnel de la grille de projets.
+ * Gère l'état de filtrage actif, le rendu conditionnel de la grille de projets
+ * et intègre un bloc éditorial optimisé pour le référencement (SEO).
  */
 export default function GalleryClient({ initialProjets, toutesLesCategories }: GalleryClientProps) {
   const [activeFilter, setActiveFilter] = useState<string>('all');
@@ -25,11 +26,15 @@ export default function GalleryClient({ initialProjets, toutesLesCategories }: G
     <main className="min-h-screen bg-z-bg text-z-text pb-24">
       <header className="max-w-7xl mx-auto px-6 pt-40 pb-12">
         <span className="font-sub text-z-blue text-[10px] font-bold uppercase tracking-[0.5em] mb-4 block">Archives</span>
-        <h1 className="font-display font-bold text-5xl sm:text-8xl uppercase tracking-tighter mb-8">
+        <h1 className="font-display font-bold text-5xl sm:text-8xl uppercase tracking-tighter mb-6">
           La <span className="text-glow">Galerie</span>
         </h1>
 
-        <nav className="flex flex-wrap gap-3 mt-12 border-b border-z-blue/10 pb-8" aria-label="Filtrage par univers">
+        <p className="font-body text-z-muted text-sm sm:text-base max-w-2xl leading-relaxed mb-8">
+          Chaque projet est le fruit d&apos;une écoute attentive et d&apos;une analyse rigoureuse de vos objectifs. Chez Zenith Production, nous décortiquons vos besoins pour concevoir des réalisations visuelles et audiovisuelles sur mesure, sans détour et avec une exigence absolue de qualité.
+        </p>
+
+        <nav className="flex flex-wrap gap-3 mt-8 border-b border-z-blue/10 pb-8" aria-label="Filtrage par univers">
           <button
             onClick={() => setActiveFilter('all')}
             className={`px-5 py-2.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all border ${
