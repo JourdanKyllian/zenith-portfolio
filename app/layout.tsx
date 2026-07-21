@@ -29,8 +29,8 @@ const montserrat = Montserrat({
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://zenithproduction.fr'),
-  title: "ZENITH PRODUCTION — Gabin Husson",
-  description: "Gabin Husson — Zenith Production · Graphiste, Cadreur, Monteur Vidéo & Photo",
+  title: "ZENITH PRODUCTION",
+  description: "Portfolio officiel de Zenith Production — Gabin Husson. Services professionnels en graphisme, cadrage, montage vidéo et post-production.",
   applicationName: "ZENITH PRODUCTION",
   appleWebApp: {
     title: "ZENITH PRODUCTION",
