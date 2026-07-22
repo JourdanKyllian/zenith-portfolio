@@ -87,7 +87,7 @@ export default function ContactPage() {
               {/* Élément visuel décoratif (Desktop) : Intégration naturelle d'un PNG transparent */}
               <div className="relative w-full h-62.5 xl:h-80 hidden lg:block animate-fade-in group overflow-hidden" style={{ animationDelay: '0.2s' }}>
                 <img
-                  src="/aigle.png"
+                  src="/aigle.webp"
                   alt="Emblème Zenith Production"
                   className="w-full h-full object-cover object-top block opacity-25 filter grayscale group-hover:opacity-70 group-hover:grayscale-0 group-hover:scale-[1.03] origin-top transition-all duration-1000"
                   loading="lazy"
