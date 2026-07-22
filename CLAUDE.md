@@ -16,7 +16,7 @@
 - **Objectif :** Présentation du profil de Gabin Husson.
 - **Composants internes :**
   - **Hero Section :** En-tête centré avec un halo lumineux diffus en arrière-plan.
-  - **Viseur Ciné :** Section affichant la photo locale `/public/gabin.jpg` sous un filtre d'overlay sombre simulant le viseur d'une caméra ("Live Focus").
+  - **Viseur Ciné :** Section affichant la photo locale `/public/gabin.webp` sous un filtre d'overlay sombre simulant le viseur d'une caméra ("Live Focus").
   - **Grille sémantique d'expertises :** Structure en `ul` / `li` utilisant les icônes de `lucide-react` (Camera, Film, Palette, Target) pour lister les champs d'action.
 - **Règle de maintenance :** Cette page est 100% statique et côté serveur. Toute retouche textuelle de sa biographie se fait directement dans ce fichier.
 

@@ -128,7 +128,7 @@ export default function AboutPage() {
       <section className="max-w-7xl mx-auto px-6 py-12 grid grid-cols-1 lg:grid-cols-12 gap-16 items-center">
         <div className="lg:col-span-5 relative aspect-square rounded-2xl border border-z-blue/10 bg-z-card/50 overflow-hidden flex items-center justify-center group shadow-2xl">
           <img
-            src="/gabin.jpg"
+            src="/gabin.webp"
             alt="Portrait de Gabin Husson"
             className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:opacity-85 group-hover:scale-105 transition-all duration-700 ease-out"
           />

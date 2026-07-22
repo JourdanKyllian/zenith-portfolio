@@ -61,7 +61,7 @@ export default async function RootLayout({
     "@context": "https://schema.org",
     "@type": "ProfessionalService",
     "name": "Zenith Production",
-    "image": "https://zenithproduction.fr/gabin.jpg",
+    "image": "https://zenithproduction.fr/gabin.webp",
     "url": "https://zenithproduction.fr",
     "address": {
       "@type": "PostalAddress",
