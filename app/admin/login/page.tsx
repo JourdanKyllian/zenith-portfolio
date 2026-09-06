@@ -1,31 +1,53 @@
 "use client";
 
 import { useState } from 'react';
-import { Lock, Mail, Key, ArrowRight } from 'lucide-react';
+import { Lock, Mail, Key, ArrowRight, AlertCircle } from 'lucide-react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { supabase } from '@/lib/supabase'; // Import de ton client Supabase
 
 export default function LoginPage() {
-  // On prépare les states pour la future logique d'authentification
+  const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    // TODO: Implémenter la logique Supabase Auth ici plus tard
-    console.log("Tentative de connexion avec :", email);
-    setTimeout(() => setIsLoading(false), 1000); // Simulation de chargement
+    setErrorMessage(null);
+
+    try {
+      // Appel réseau vers Supabase Auth
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) {
+        setErrorMessage("Identifiants incorrects ou accès refusé.");
+        setIsLoading(false);
+        return;
+      }
+
+      // Si connexion réussie, Supabase stocke automatiquement le jeton (token)
+      if (data.session) {
+        router.push('/admin/dashboard');
+      }
+    } catch (err) {
+      console.error("Erreur d'authentification :", err);
+      setErrorMessage("Une erreur critique est survenue.");
+      setIsLoading(false);
+    }
   };
 
   return (
     <main className="min-h-screen bg-z-bg flex flex-col items-center justify-center p-6 relative overflow-hidden">
-      {/* Effets de lumière en arrière-plan */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-z-blue/5 blur-[120px] pointer-events-none" />
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-200 h-200 bg-z-blue/5 blur-[120px] pointer-events-none" />
       <div className="absolute inset-0 bg-radial from-transparent to-z-bg pointer-events-none" />
 
       <div className="relative z-10 w-full max-w-md">
-        {/* En-tête */}
         <div className="text-center mb-10">
           <Link href="/" className="inline-block mb-6 group">
             <div className="w-12 h-12 rounded-xl bg-z-card border border-z-border flex items-center justify-center group-hover:border-z-blue/50 group-hover:shadow-[0_0_20px_rgba(0,123,255,0.2)] transition-all">
@@ -40,7 +62,6 @@ export default function LoginPage() {
           </p>
         </div>
 
-        {/* Formulaire */}
         <div className="bg-z-card border border-z-border p-8 rounded-2xl shadow-2xl backdrop-blur-sm">
           <form onSubmit={handleLogin} className="space-y-6">
             
@@ -83,6 +104,14 @@ export default function LoginPage() {
                 />
               </div>
             </div>
+
+            {/* Zone d'affichage des erreurs */}
+            {errorMessage && (
+              <div className="flex items-start gap-2.5 p-4 rounded-lg border border-red-500/20 bg-red-500/5 text-red-400 text-xs font-body leading-relaxed animate-fade-in">
+                <AlertCircle size={16} className="shrink-0 mt-0.5" />
+                <span>{errorMessage}</span>
+              </div>
+            )}
 
             <button
               type="submit"
