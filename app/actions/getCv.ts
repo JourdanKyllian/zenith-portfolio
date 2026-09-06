@@ -30,6 +30,8 @@ export async function fetchCvData() {
       .from('parametres')
       .select('valeur')
       .eq('cle', 'cv_drive_folder_id')
+      // --- BOUCLIER MULTI-TENANT ---
+      .eq('user_id', process.env.NEXT_PUBLIC_PORTFOLIO_USER_ID)
       .single();
 
     if (error || !data?.valeur) {

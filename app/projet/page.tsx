@@ -19,11 +19,15 @@ export default async function GalleryPage() {
     .from('projet')
     .select('*, categorie(*), sousprojet(*)')
     .eq('en_ligne', true)
+    // --- BOUCLIER MULTI-TENANT ---
+    .eq('user_id', process.env.NEXT_PUBLIC_PORTFOLIO_USER_ID)
     .order('created_at', { ascending: false });
 
   const { data: categories } = await supabase
     .from('categorie')
-    .select('*');
+    .select('*')
+    // --- BOUCLIER MULTI-TENANT ---
+    .eq('user_id', process.env.NEXT_PUBLIC_PORTFOLIO_USER_ID);
     
   return (
     <GalleryClient 
