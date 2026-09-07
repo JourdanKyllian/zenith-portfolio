@@ -4,7 +4,14 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { 
-  LogOut, Plus, FolderKanban, Tags, Settings, Trash2, FolderOpen, Save
+  LogOut, 
+  Plus, 
+  FolderKanban, 
+  Tags, 
+  Settings, 
+  Trash2, 
+  FolderOpen,
+  Save
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -41,6 +48,8 @@ export default function CategoriesPage() {
 
     if (!error && data) {
       setCategories(data as Categorie[]);
+    } else {
+      console.error("Erreur lors de la récupération des catégories :", error);
     }
     setIsLoading(false);
   };
@@ -48,36 +57,39 @@ export default function CategoriesPage() {
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
     setNewName(val);
-    setFormError(null);
+    setFormError(null); // On efface l'erreur quand l'utilisateur tape
     setNewSlug(
       val
         .toLowerCase()
-        .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
-        .replace(/[^a-z0-9\s-]/g, '')
+        .normalize("NFD").replace(/[\u0300-\u036f]/g, "") // Supprime les accents
+        .replace(/[^a-z0-9\s-]/g, '') // Garde uniquement lettres, chiffres, espaces et tirets
         .trim()
-        .replace(/\s+/g, '-')
+        .replace(/\s+/g, '-') // Remplace les espaces par des tirets
     );
   };
 
+  // NOUVELLE FONCTION : Vérification et Sauvegarde
   const handleSaveCategorie = async () => {
     if (!newName || !newSlug) return;
+    
     setIsSubmitting(true);
     setFormError(null);
 
-    // 1. Vérification de l'existence du nom ou du slug dans la table catégorie
+    // 1. Vérification Anti-Doublon
+    const safeName = newName.replace(/"/g, '""');
     const { data: existingData } = await supabase
       .from('categorie')
       .select('id')
       .eq('user_id', process.env.NEXT_PUBLIC_PORTFOLIO_USER_ID)
-      .or(`name.eq."${newName}",slug.eq."${newSlug}"`);
+      .or(`name.eq."${safeName}",slug.eq."${newSlug}"`);
 
     if (existingData && existingData.length > 0) {
-      setFormError("Impossible d'enregistrer : une catégorie avec ce nom ou ce slug existe déjà.");
+      setFormError("Cette catégorie (nom ou slug) existe déjà.");
       setIsSubmitting(false);
-      return; // On coupe la requête
+      return; // On coupe la requête !
     }
 
-    // 2. Si c'est libre, on insère
+    // 2. Insertion si tout est libre
     const { data, error } = await supabase
       .from('categorie')
       .insert([{ 
@@ -93,6 +105,8 @@ export default function CategoriesPage() {
       setNewName('');
       setNewSlug('');
       setShowForm(false);
+    } else {
+      setFormError(error?.message || "Erreur lors de l'insertion");
     }
     setIsSubmitting(false);
   };
@@ -104,30 +118,62 @@ export default function CategoriesPage() {
 
   return (
     <div className="min-h-screen bg-z-bg text-z-text flex flex-col md:flex-row">
+      
+      {/* --- SIDEBAR --- */}
       <aside className="w-full md:w-64 bg-z-card border-b md:border-b-0 md:border-r border-z-border p-6 flex flex-col">
         <div className="mb-10">
           <Link href="/" className="font-martyric text-3xl text-white hover:text-z-blue transition-colors">
             ZENITH
           </Link>
-          <p className="font-sub text-[9px] uppercase tracking-widest text-z-muted mt-1">Administration</p>
+          <p className="font-sub text-[9px] uppercase tracking-widest text-z-muted mt-1">
+            Administration
+          </p>
         </div>
+
         <nav className="flex-1 space-y-2">
-          <Link href="/admin/dashboard" className="w-full flex items-center gap-3 px-4 py-3 text-z-muted hover:text-white hover:bg-white/5 rounded-lg text-xs font-bold uppercase tracking-widest transition-colors"><FolderKanban size={16} />Projets</Link>
-          <button className="w-full flex items-center gap-3 px-4 py-3 bg-z-blue/10 text-z-blue rounded-lg text-xs font-bold uppercase tracking-widest border border-z-blue/20 cursor-default"><Tags size={16} />Catégories</button>
-          <Link href="/admin/configuration" className="w-full flex items-center gap-3 px-4 py-3 text-z-muted hover:text-white hover:bg-white/5 rounded-lg text-xs font-bold uppercase tracking-widest transition-colors"><Settings size={16} />Configuration</Link>
+          <Link href="/admin/dashboard" className="w-full flex items-center gap-3 px-4 py-3 text-z-muted hover:text-white hover:bg-white/5 rounded-lg text-xs font-bold uppercase tracking-widest transition-colors">
+            <FolderKanban size={16} />
+            Projets
+          </Link>
+          <button className="w-full flex items-center gap-3 px-4 py-3 bg-z-blue/10 text-z-blue rounded-lg text-xs font-bold uppercase tracking-widest border border-z-blue/20 cursor-default">
+            <Tags size={16} />
+            Catégories
+          </button>
+          <Link href="/admin/configuration" className="w-full flex items-center gap-3 px-4 py-3 text-z-muted hover:text-white hover:bg-white/5 rounded-lg text-xs font-bold uppercase tracking-widest transition-colors">
+            <Settings size={16} />
+            Configuration
+          </Link>
         </nav>
-        <button onClick={handleLogout} className="mt-auto flex items-center gap-3 px-4 py-3 text-red-400 hover:bg-red-400/10 rounded-lg text-xs font-bold uppercase tracking-widest transition-colors cursor-pointer"><LogOut size={16} />Déconnexion</button>
+
+        <button 
+          onClick={handleLogout}
+          className="mt-auto flex items-center gap-3 px-4 py-3 text-red-400 hover:bg-red-400/10 rounded-lg text-xs font-bold uppercase tracking-widest transition-colors cursor-pointer"
+        >
+          <LogOut size={16} />
+          Déconnexion
+        </button>
       </aside>
 
+      {/* --- CONTENU PRINCIPAL --- */}
       <main className="flex-1 p-6 md:p-10 overflow-y-auto relative">
         <div className="absolute top-0 right-0 w-125 h-125 bg-z-blue/5 blur-[120px] pointer-events-none" />
 
         <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-10 relative z-10">
           <div>
-            <h1 className="font-display font-bold text-3xl uppercase tracking-wider text-white">Catégories</h1>
-            <p className="font-body text-sm text-z-muted mt-1">Organisez vos projets par type de prestation.</p>
+            <h1 className="font-display font-bold text-3xl uppercase tracking-wider text-white">
+              Catégories
+            </h1>
+            <p className="font-body text-sm text-z-muted mt-1">
+              Organisez vos projets par type de prestation.
+            </p>
           </div>
-          <button onClick={() => setShowForm(!showForm)} className="btn-blue px-5 py-2.5 rounded-lg flex items-center justify-center gap-2 text-xs font-bold tracking-widest shadow-lg shadow-z-blue/20 hover:scale-105 transition-all"><Plus size={16} />Nouvelle Catégorie</button>
+          <button 
+            onClick={() => setShowForm(!showForm)}
+            className="btn-blue px-5 py-2.5 rounded-lg flex items-center justify-center gap-2 text-xs font-bold tracking-widest shadow-lg shadow-z-blue/20 hover:scale-105 transition-all"
+          >
+            <Plus size={16} />
+            Nouvelle Catégorie
+          </button>
         </header>
 
         {showForm && (
@@ -143,13 +189,28 @@ export default function CategoriesPage() {
             <div className="flex flex-col md:flex-row gap-4 items-end">
               <div className="flex-1 w-full space-y-2">
                 <label className="text-[10px] uppercase font-bold tracking-widest text-z-muted ml-1">Nom de la catégorie</label>
-                <input type="text" value={newName} onChange={handleNameChange} className="w-full bg-z-bg border border-z-border rounded-lg py-3 px-4 text-sm focus:border-z-blue focus:outline-none transition-colors" placeholder="Ex: Post Production" />
+                <input 
+                  type="text" 
+                  value={newName} 
+                  onChange={handleNameChange}
+                  className="w-full bg-z-bg border border-z-border rounded-lg py-3 px-4 text-sm focus:border-z-blue focus:outline-none transition-colors" 
+                  placeholder="Ex: Post Production"
+                />
               </div>
               <div className="flex-1 w-full space-y-2">
                 <label className="text-[10px] uppercase font-bold tracking-widest text-z-muted ml-1">Slug généré (URL)</label>
-                <input type="text" value={newSlug} onChange={(e) => { setNewSlug(e.target.value); setFormError(null); }} className="w-full bg-z-bg border border-z-border rounded-lg py-3 px-4 text-sm text-z-muted focus:border-z-blue focus:outline-none transition-colors" />
+                <input 
+                  type="text" 
+                  value={newSlug} 
+                  onChange={(e) => { setNewSlug(e.target.value); setFormError(null); }}
+                  className="w-full bg-z-bg border border-z-border rounded-lg py-3 px-4 text-sm text-z-muted focus:border-z-blue focus:outline-none transition-colors" 
+                />
               </div>
-              <button onClick={handleSaveCategorie} disabled={isSubmitting} className="btn-blue h-11.5 px-6 rounded-lg font-bold text-xs tracking-widest flex items-center gap-2 hover:scale-105 transition-transform disabled:opacity-50">
+              <button 
+                onClick={handleSaveCategorie} 
+                disabled={isSubmitting}
+                className="btn-blue h-11.5 px-6 rounded-lg font-bold text-xs tracking-widest flex items-center gap-2 hover:scale-105 transition-transform disabled:opacity-50"
+              >
                 <Save size={16} /> {isSubmitting ? '...' : 'Enregistrer'}
               </button>
             </div>
@@ -174,20 +235,39 @@ export default function CategoriesPage() {
                       <td className="p-4"><div className="h-4 w-32 bg-z-blue/10 rounded"></div></td>
                       <td className="p-4"><div className="h-4 w-24 bg-z-blue/10 rounded"></div></td>
                       <td className="p-4"><div className="h-6 w-10 mx-auto bg-z-blue/10 rounded-full"></div></td>
-                      <td className="p-4 text-right flex justify-end gap-2"><div className="h-8 w-8 bg-z-blue/10 rounded"></div></td>
+                      <td className="p-4 text-right flex justify-end gap-2">
+                        <div className="h-8 w-8 bg-z-blue/10 rounded"></div>
+                      </td>
                     </tr>
                   ))
                 ) : categories.length === 0 ? (
-                  <tr><td colSpan={4} className="p-12 text-center"><FolderOpen size={48} className="mx-auto text-z-muted/30 mb-4" /><p className="font-body text-z-muted">Aucune catégorie existante.</p></td></tr>
+                  <tr>
+                    <td colSpan={4} className="p-12 text-center">
+                      <FolderOpen size={48} className="mx-auto text-z-muted/30 mb-4" />
+                      <p className="font-body text-z-muted">Aucune catégorie existante.</p>
+                    </td>
+                  </tr>
                 ) : (
                   categories.map((cat) => (
                     <tr key={cat.id} className="hover:bg-white/2 transition-colors">
-                      <td className="p-4 font-display font-bold text-sm tracking-wide text-white">{cat.name}</td>
-                      <td className="p-4 font-body text-xs text-z-muted">/{cat.slug}</td>
-                      <td className="p-4 text-center">
-                        <span className="px-3 py-1 bg-z-blue/10 text-z-blue border border-z-blue/20 rounded-full text-[10px] font-bold">{cat.projet?.length || 0}</span>
+                      <td className="p-4 font-display font-bold text-sm tracking-wide text-white">
+                        {cat.name}
                       </td>
-                      <td className="p-4 text-right"><button className="p-2 text-z-muted hover:text-red-400 hover:bg-red-400/10 rounded transition-colors cursor-pointer" title="Supprimer"><Trash2 size={16} /></button></td>
+                      <td className="p-4 font-body text-xs text-z-muted">
+                        /{cat.slug}
+                      </td>
+                      <td className="p-4 text-center">
+                        <span className="px-3 py-1 bg-z-blue/10 text-z-blue border border-z-blue/20 rounded-full text-[10px] font-bold">
+                          {cat.projet?.length || 0}
+                        </span>
+                      </td>
+                      <td className="p-4">
+                        <div className="flex items-center justify-end gap-2">
+                          <button className="p-2 text-z-muted hover:text-red-400 hover:bg-red-400/10 rounded transition-colors cursor-pointer" title="Supprimer">
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
+                      </td>
                     </tr>
                   ))
                 )}
