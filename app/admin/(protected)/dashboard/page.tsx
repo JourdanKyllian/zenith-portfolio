@@ -61,18 +61,23 @@ export default function DashboardPage() {
         </div>
 
         <nav className="flex-1 space-y-2">
+          {/* Bouton actif (Dashboard) */}
           <button className="w-full flex items-center gap-3 px-4 py-3 bg-z-blue/10 text-z-blue rounded-lg text-xs font-bold uppercase tracking-widest border border-z-blue/20 cursor-default">
             <FolderKanban size={16} />
             Projets
           </button>
-          <button className="w-full flex items-center gap-3 px-4 py-3 text-z-muted hover:text-white hover:bg-white/5 rounded-lg text-xs font-bold uppercase tracking-widest transition-colors cursor-not-allowed opacity-50">
+          
+          {/* Lien vers Catégories */}
+          <Link href="/admin/categories" className="w-full flex items-center gap-3 px-4 py-3 text-z-muted hover:text-white hover:bg-white/5 rounded-lg text-xs font-bold uppercase tracking-widest transition-colors">
             <Tags size={16} />
             Catégories
-          </button>
-          <button className="w-full flex items-center gap-3 px-4 py-3 text-z-muted hover:text-white hover:bg-white/5 rounded-lg text-xs font-bold uppercase tracking-widest transition-colors cursor-not-allowed opacity-50">
+          </Link>
+          
+          {/* Lien vers Configuration */}
+          <Link href="/admin/configuration" className="w-full flex items-center gap-3 px-4 py-3 text-z-muted hover:text-white hover:bg-white/5 rounded-lg text-xs font-bold uppercase tracking-widest transition-colors">
             <Settings size={16} />
             Configuration
-          </button>
+          </Link>
         </nav>
 
         <button 
