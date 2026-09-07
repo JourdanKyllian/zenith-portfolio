@@ -11,19 +11,11 @@ interface NavbarProps {
   previewUrl: string | null;
 }
 
-/**
- * Client Component : Navigation principale globale.
- * Gère l'état d'ancrage dynamique au défilement, l'affichage synchrone du menu tiroir mobile,
- * et l'isolation du défilement du document sous-jacent.
- *
- * @param {string | null} cvUrl - Point de terminaison du fichier PDF de téléchargement.
- * @param {string | null} previewUrl - Source d'intégration pour le composant de prévisualisation PDF (iframe).
- */
 export default function Navbar({ cvUrl, previewUrl }: NavbarProps) {
+  const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [isCvOpen, setIsCvOpen] = useState(false);
-  const pathname = usePathname(); // Disponible si besoin pour gérer les liens actifs plus tard
 
   useEffect(() => {
     document.body.style.overflow = (isOpen || isCvOpen) ? 'hidden' : 'unset';
@@ -49,6 +41,9 @@ export default function Navbar({ cvUrl, previewUrl }: NavbarProps) {
     { name: 'À Propos', href: '/about' },
     { name: 'Contact', href: '/contact' },
   ];
+
+  // LE BOUCLIER VISUEL : On cache la Navbar sur toutes les pages d'administration
+  if (pathname?.startsWith('/admin')) return null;
 
   return (
     <>
@@ -94,10 +89,6 @@ export default function Navbar({ cvUrl, previewUrl }: NavbarProps) {
           </div>
         </div>
 
-        {/* 
-          Remplacement de h-screen par h-dvh (Dynamic Viewport Height) pour forcer le conteneur 
-          à se recalculer dynamiquement lors du déploiement ou du masquage des barres d'outils mobiles.
-        */}
         <nav 
           id="mobile-menu"
           aria-hidden={!isOpen}
@@ -115,10 +106,6 @@ export default function Navbar({ cvUrl, previewUrl }: NavbarProps) {
               ))}
             </div>
 
-            {/* 
-              Calcul de marge compensatoire (safe-area-inset-bottom) pour éviter la superposition 
-              de l'appel à l'action avec l'indicateur d'accueil matériel iOS / Android Gestures.
-            */}
             <div className="mt-auto pb-[calc(2rem+env(safe-area-inset-bottom))]">
               <button 
                 onClick={() => { setIsOpen(false); setIsCvOpen(true); }}

@@ -10,7 +10,8 @@ import {
   Settings,
   Save,
   Link as LinkIcon,
-  Mail
+  Mail,
+  ShieldCheck
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -18,9 +19,15 @@ export default function ConfigurationPage() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(true);
   
-  // Variables d'état du formulaire
+  // Variables Configuration
   const [contactEmail, setContactEmail] = useState('');
   const [cvUrl, setCvUrl] = useState('');
+
+  // Variables Mot de passe
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [passMessage, setPassMessage] = useState('');
+  const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
 
   useEffect(() => {
     fetchSettings();
@@ -28,7 +35,6 @@ export default function ConfigurationPage() {
 
   const fetchSettings = async () => {
     setIsLoading(true);
-    // Exemple d'appel Supabase vers une table 'parametres'
     const { data, error } = await supabase
       .from('parametres')
       .select('*')
@@ -40,6 +46,34 @@ export default function ConfigurationPage() {
       setCvUrl(data.cv_url || '');
     }
     setIsLoading(false);
+  };
+
+  const handlePasswordUpdate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setPassMessage('');
+
+    if (newPassword !== confirmPassword) {
+      setPassMessage("Les mots de passe ne correspondent pas.");
+      return;
+    }
+    if (newPassword.length < 6) {
+      setPassMessage("Le mot de passe doit faire au moins 6 caractères.");
+      return;
+    }
+
+    setIsUpdatingPassword(true);
+    const { error } = await supabase.auth.updateUser({
+      password: newPassword
+    });
+
+    if (error) {
+      setPassMessage("Erreur lors de la mise à jour : " + error.message);
+    } else {
+      setPassMessage("Succès : Mot de passe mis à jour !");
+      setNewPassword('');
+      setConfirmPassword('');
+    }
+    setIsUpdatingPassword(false);
   };
 
   const handleLogout = async () => {
@@ -70,7 +104,6 @@ export default function ConfigurationPage() {
             <Tags size={16} />
             Catégories
           </Link>
-          {/* Bouton actif */}
           <button className="w-full flex items-center gap-3 px-4 py-3 bg-z-blue/10 text-z-blue rounded-lg text-xs font-bold uppercase tracking-widest border border-z-blue/20 cursor-default">
             <Settings size={16} />
             Configuration
@@ -107,7 +140,7 @@ export default function ConfigurationPage() {
 
         <div className="relative z-10 max-w-2xl space-y-6">
           
-          {/* Section Informations Globales */}
+          {/* INFORMATIONS GLOBALES */}
           <section className="bg-z-card border border-z-border rounded-xl p-6 shadow-2xl">
             <h2 className="font-sub text-xs uppercase tracking-[0.2em] text-z-blue mb-6">Informations Générales</h2>
             
@@ -127,7 +160,7 @@ export default function ConfigurationPage() {
                       type="email"
                       value={contactEmail}
                       onChange={(e) => setContactEmail(e.target.value)}
-                      className="w-full bg-z-bg border border-z-border rounded-lg py-3 pl-12 pr-4 text-sm text-z-text focus:border-z-blue focus:ring-1 focus:ring-z-blue focus:outline-none transition-all"
+                      className="w-full bg-z-bg border border-z-border rounded-lg py-3 pl-12 pr-4 text-sm text-z-text focus:border-z-blue focus:outline-none transition-all"
                       placeholder="contact@zenithproduction.fr"
                     />
                   </div>
@@ -149,13 +182,60 @@ export default function ConfigurationPage() {
                       type="url"
                       value={cvUrl}
                       onChange={(e) => setCvUrl(e.target.value)}
-                      className="w-full bg-z-bg border border-z-border rounded-lg py-3 pl-12 pr-4 text-sm text-z-text focus:border-z-blue focus:ring-1 focus:ring-z-blue focus:outline-none transition-all"
+                      className="w-full bg-z-bg border border-z-border rounded-lg py-3 pl-12 pr-4 text-sm text-z-text focus:border-z-blue focus:outline-none transition-all"
                       placeholder="https://drive.google.com/file/d/..."
                     />
                   </div>
                 )}
               </div>
             </div>
+          </section>
+
+          {/* SÉCURITÉ */}
+          <section className="bg-z-card border border-z-border rounded-xl p-6 shadow-2xl">
+            <h2 className="font-sub text-xs uppercase tracking-[0.2em] text-z-blue mb-6 flex items-center gap-2">
+              <ShieldCheck size={16} /> Sécurité du compte
+            </h2>
+            
+            <form onSubmit={handlePasswordUpdate} className="space-y-6">
+              <div className="space-y-2">
+                <label className="text-[10px] uppercase font-bold tracking-widest text-z-muted ml-1">Nouveau mot de passe</label>
+                <input
+                  type="password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  className="w-full bg-z-bg border border-z-border rounded-lg py-3 px-4 text-sm text-z-text focus:border-z-blue focus:outline-none"
+                  placeholder="••••••••"
+                  required
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-[10px] uppercase font-bold tracking-widest text-z-muted ml-1">Confirmer le mot de passe</label>
+                <input
+                  type="password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  className="w-full bg-z-bg border border-z-border rounded-lg py-3 px-4 text-sm text-z-text focus:border-z-blue focus:outline-none"
+                  placeholder="••••••••"
+                  required
+                />
+              </div>
+
+              {passMessage && (
+                <p className={`text-xs font-bold font-sub tracking-widest uppercase ${passMessage.includes('Succès') ? 'text-emerald-400' : 'text-red-400'}`}>
+                  {passMessage}
+                </p>
+              )}
+
+              <button 
+                type="submit" 
+                disabled={isUpdatingPassword}
+                className="btn-blue px-5 py-2.5 rounded-lg text-xs font-bold tracking-widest hover:scale-105 transition-all disabled:opacity-50 disabled:hover:scale-100"
+              >
+                {isUpdatingPassword ? 'Mise à jour...' : 'Mettre à jour le mot de passe'}
+              </button>
+            </form>
           </section>
 
         </div>

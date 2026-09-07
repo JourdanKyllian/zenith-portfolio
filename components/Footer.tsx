@@ -1,12 +1,15 @@
+"use client";
+
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { LinkedinIcon, InstagramIcon, FacebookIcon, YoutubeIcon, TiktokIcon } from './SocialIcons';
 
-/**
- * Server Component : Pied de page global du site.
- * Contient les liens de réseaux sociaux et les mentions obligatoires.
- */
 export default function Footer() {
+  const pathname = usePathname();
   const currentYear = new Date().getFullYear();
+
+  // LE BOUCLIER VISUEL : On cache le Footer sur toutes les pages d'administration
+  if (pathname?.startsWith('/admin')) return null;
 
   return (
     <footer className="w-full bg-z-night border-t border-z-silver/10 pt-16 pb-8 px-6 mt-20">
