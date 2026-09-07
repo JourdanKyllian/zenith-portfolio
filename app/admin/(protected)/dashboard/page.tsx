@@ -10,8 +10,7 @@ import {
   Tags, 
   Settings, 
   Edit3, 
-  Trash2,
-  Loader2
+  Trash2
 } from 'lucide-react';
 import Link from 'next/link';
 import { Projet } from '@/types';
@@ -62,7 +61,7 @@ export default function DashboardPage() {
         </div>
 
         <nav className="flex-1 space-y-2">
-          <button className="w-full flex items-center gap-3 px-4 py-3 bg-z-blue/10 text-z-blue rounded-lg text-xs font-bold uppercase tracking-widest border border-z-blue/20">
+          <button className="w-full flex items-center gap-3 px-4 py-3 bg-z-blue/10 text-z-blue rounded-lg text-xs font-bold uppercase tracking-widest border border-z-blue/20 cursor-default">
             <FolderKanban size={16} />
             Projets
           </button>
@@ -87,7 +86,7 @@ export default function DashboardPage() {
 
       {/* --- CONTENU PRINCIPAL --- */}
       <main className="flex-1 p-6 md:p-10 overflow-y-auto relative">
-        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-z-blue/5 blur-[120px] pointer-events-none" />
+        <div className="absolute top-0 right-0 w-125 h-125 bg-z-blue/5 blur-[120px] pointer-events-none" />
 
         <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-10 relative z-10">
           <div>
@@ -106,35 +105,57 @@ export default function DashboardPage() {
 
         {/* --- LISTE DES PROJETS --- */}
         <section className="bg-z-card border border-z-border rounded-xl overflow-hidden relative z-10 shadow-2xl">
-          {isLoading ? (
-            <div className="flex flex-col items-center justify-center py-20 text-z-blue">
-              <Loader2 size={32} className="animate-spin mb-4" />
-              <span className="font-sub text-xs uppercase tracking-widest">Chargement des données...</span>
-            </div>
-          ) : projets.length === 0 ? (
-            <div className="text-center py-20">
-              <FolderKanban size={48} className="mx-auto text-z-muted/30 mb-4" />
-              <p className="font-body text-z-muted">Aucun projet trouvé.</p>
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse">
-                <thead>
-                  <tr className="bg-white/5 border-b border-z-border font-sub text-[10px] uppercase tracking-widest text-z-muted">
-                    <th className="p-4 font-bold">Projet</th>
-                    <th className="p-4 font-bold">Catégorie</th>
-                    <th className="p-4 font-bold">Statut</th>
-                    <th className="p-4 font-bold text-right">Actions</th>
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="bg-white/5 border-b border-z-border font-sub text-[10px] uppercase tracking-widest text-z-muted">
+                  <th className="p-4 font-bold">Projet</th>
+                  <th className="p-4 font-bold">Catégorie</th>
+                  <th className="p-4 font-bold">Statut</th>
+                  <th className="p-4 font-bold text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-z-border">
+                
+                {isLoading ? (
+                  /* --- SKELETON LOADER (Génère 4 fausses lignes de chargement) --- */
+                  Array.from({ length: 4 }).map((_, i) => (
+                    <tr key={i} className="animate-pulse bg-white/1">
+                      <td className="p-4">
+                        <div className="h-4 w-48 bg-z-blue/10 rounded mb-2"></div>
+                        <div className="h-3 w-32 bg-z-blue/5 rounded"></div>
+                      </td>
+                      <td className="p-4">
+                        <div className="h-5 w-20 bg-z-blue/10 rounded"></div>
+                      </td>
+                      <td className="p-4">
+                        <div className="h-4 w-16 bg-z-blue/10 rounded"></div>
+                      </td>
+                      <td className="p-4 text-right flex justify-end gap-2">
+                        <div className="h-8 w-8 bg-z-blue/10 rounded"></div>
+                        <div className="h-8 w-8 bg-z-blue/10 rounded"></div>
+                      </td>
+                    </tr>
+                  ))
+
+                ) : projets.length === 0 ? (
+                  /* --- ÉTAT VIDE --- */
+                  <tr>
+                    <td colSpan={4} className="p-12 text-center">
+                      <FolderKanban size={48} className="mx-auto text-z-muted/30 mb-4" />
+                      <p className="font-body text-z-muted">Aucun projet trouvé.</p>
+                    </td>
                   </tr>
-                </thead>
-                <tbody className="divide-y divide-z-border">
-                  {projets.map((projet) => (
-                    <tr key={projet.id} className="hover:bg-white/[0.02] transition-colors">
+
+                ) : (
+                  /* --- DONNÉES RÉELLES --- */
+                  projets.map((projet) => (
+                    <tr key={projet.id} className="hover:bg-white/2 transition-colors">
                       <td className="p-4">
                         <div className="font-display font-bold text-sm tracking-wide text-white">
                           {projet.titre}
                         </div>
-                        <div className="font-body text-xs text-z-muted mt-0.5 truncate max-w-[250px]">
+                        <div className="font-body text-xs text-z-muted mt-0.5 truncate max-w-62.5">
                           {projet.slug}
                         </div>
                       </td>
@@ -156,22 +177,22 @@ export default function DashboardPage() {
                       </td>
                       <td className="p-4">
                         <div className="flex items-center justify-end gap-2">
-                          <button className="p-2 text-z-muted hover:text-white hover:bg-z-blue/20 rounded transition-colors" title="Modifier">
+                          <button className="p-2 text-z-muted hover:text-white hover:bg-z-blue/20 rounded transition-colors cursor-pointer" title="Modifier">
                             <Edit3 size={16} />
                           </button>
-                          <button className="p-2 text-z-muted hover:text-red-400 hover:bg-red-400/10 rounded transition-colors" title="Supprimer">
+                          <button className="p-2 text-z-muted hover:text-red-400 hover:bg-red-400/10 rounded transition-colors cursor-pointer" title="Supprimer">
                             <Trash2 size={16} />
                           </button>
                         </div>
                       </td>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
+                  ))
+                )}
+                
+              </tbody>
+            </table>
+          </div>
         </section>
-
       </main>
     </div>
   );

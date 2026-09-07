@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Menu, X, FileText } from 'lucide-react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import CvModal from './CvModal';
 
 interface NavbarProps {
@@ -22,6 +23,7 @@ export default function Navbar({ cvUrl, previewUrl }: NavbarProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [isCvOpen, setIsCvOpen] = useState(false);
+  const pathname = usePathname(); // Disponible si besoin pour gérer les liens actifs plus tard
 
   useEffect(() => {
     document.body.style.overflow = (isOpen || isCvOpen) ? 'hidden' : 'unset';
