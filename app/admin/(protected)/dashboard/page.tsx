@@ -41,6 +41,23 @@ export default function DashboardPage() {
     setIsLoading(false);
   };
 
+  const handleDeleteProjet = async (id: number) => {
+    if (!confirm('Voulez-vous vraiment supprimer ce projet et tous ses médias ?')) return;
+    
+    setIsLoading(true);
+    const { error } = await supabase
+      .from('projet')
+      .delete()
+      .eq('id', id);
+
+    if (!error) {
+      setProjets(projets.filter(p => p.id !== id));
+    } else {
+      console.error("Erreur lors de la suppression :", error);
+    }
+    setIsLoading(false);
+  };
+
   const handleLogout = async () => {
     await supabase.auth.signOut();
     router.push('/admin/login');
@@ -102,10 +119,13 @@ export default function DashboardPage() {
               Gérez les réalisations visibles sur le portfolio public.
             </p>
           </div>
-          <button className="btn-blue px-5 py-2.5 rounded-lg flex items-center justify-center gap-2 text-xs font-bold tracking-widest shadow-lg shadow-z-blue/20 hover:scale-105 transition-all">
+          <Link 
+            href="/admin/dashboard/projet/nouveau"
+            className="btn-blue px-5 py-2.5 rounded-lg flex items-center justify-center gap-2 text-xs font-bold tracking-widest shadow-lg shadow-z-blue/20 hover:scale-105 transition-all"
+            >
             <Plus size={16} />
             Nouveau Projet
-          </button>
+          </Link>
         </header>
 
         {/* --- LISTE DES PROJETS --- */}
@@ -182,12 +202,23 @@ export default function DashboardPage() {
                       </td>
                       <td className="p-4">
                         <div className="flex items-center justify-end gap-2">
-                          <button className="p-2 text-z-muted hover:text-white hover:bg-z-blue/20 rounded transition-colors cursor-pointer" title="Modifier">
-                            <Edit3 size={16} />
-                          </button>
-                          <button className="p-2 text-z-muted hover:text-red-400 hover:bg-red-400/10 rounded transition-colors cursor-pointer" title="Supprimer">
-                            <Trash2 size={16} />
-                          </button>
+                          <div className="flex items-center justify-end gap-2">
+                            <Link 
+                                href={`/admin/dashboard/projet/${projet.id}`}
+                                className="p-2 text-z-muted hover:text-white hover:bg-z-blue/20 rounded transition-colors cursor-pointer" 
+                                title="Modifier"
+                            >
+                                <Edit3 size={16} />
+                            </Link>
+                            
+                            <button 
+                                onClick={() => handleDeleteProjet(projet.id)}
+                                className="p-2 text-z-muted hover:text-red-400 hover:bg-red-400/10 rounded transition-colors cursor-pointer" 
+                                title="Supprimer"
+                            >
+                                <Trash2 size={16} />
+                            </button>
+                            </div>
                         </div>
                       </td>
                     </tr>
