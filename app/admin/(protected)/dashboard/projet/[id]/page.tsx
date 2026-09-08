@@ -5,10 +5,11 @@ import { useRouter, useParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { 
   ArrowLeft, Save, Image as ImageIcon, Link2, FileText, ToggleLeft, ToggleRight, 
-  Plus, Trash2, Video, HardDrive, ListOrdered
+  Plus, Trash2, Video, HardDrive, ListOrdered, Edit3
 } from 'lucide-react';
 import Link from 'next/link';
 import { Categorie, Projet, SousProjet } from '@/types';
+import ConfirmModal from '@/components/ui/ConfirmModal';
 
 export default function EditProjetPage() {
   const router = useRouter();
@@ -35,12 +36,16 @@ export default function EditProjetPage() {
   const [sousProjets, setSousProjets] = useState<SousProjet[]>([]);
 
   const [showSpForm, setShowSpForm] = useState(false);
+  const [editingSpId, setEditingSpId] = useState<number | null>(null); 
   const [spTitre, setSpTitre] = useState('');
   const [spDescription, setSpDescription] = useState('');
   const [spYoutube, setSpYoutube] = useState('');
   const [spDrive, setSpDrive] = useState('');
   const [spOrdre, setSpOrdre] = useState(1);
   const [spError, setSpError] = useState<string | null>(null);
+
+  // --- NOUVEAUX ÉTATS POUR LA MODALE ---
+  const [deleteSpTarget, setDeleteSpTarget] = useState<{ id: number, titre: string } | null>(null);
 
   useEffect(() => {
     fetchData();
@@ -135,12 +140,34 @@ export default function EditProjetPage() {
     }
     setIsSubmitting(false);
   };
+  
+  const resetSpForm = () => {
+    setSpTitre('');
+    setSpDescription('');
+    setSpYoutube('');
+    setSpDrive('');
+    setSpOrdre(sousProjets.length + 1);
+    setEditingSpId(null);
+    setShowSpForm(false);
+    setSpError(null);
+  };
 
-  const handleCreateSousProjet = async () => {
+  const handleEditClick = (sp: SousProjet) => {
+    setSpTitre(sp.titre);
+    setSpDescription(sp.description || '');
+    setSpYoutube(sp.youtube_url || '');
+    setSpDrive(sp.drive_url || '');
+    setSpOrdre(sp.ordre);
+    setEditingSpId(sp.id); 
+    setShowSpForm(true); 
+    window.scrollTo({ top: 0, behavior: 'smooth' }); 
+  };
+
+  const handleSaveSousProjet = async () => {
     if (!spTitre) return;
     setSpError(null);
     
-    const newSp = {
+    const spData = {
       titre: spTitre,
       description: spDescription || null,
       youtube_url: spYoutube || null,
@@ -149,29 +176,48 @@ export default function EditProjetPage() {
       projet_id: parseInt(projetId)
     };
 
-    const { data, error } = await supabase
-      .from('sousprojet')
-      .insert([newSp])
-      .select()
-      .single();
+    if (editingSpId) {
+      const { error } = await supabase
+        .from('sousprojet')
+        .update(spData)
+        .eq('id', editingSpId);
 
-    if (!error && data) {
-      setSousProjets([...sousProjets, data as SousProjet]);
-      setSpTitre('');
-      setSpDescription('');
-      setSpYoutube('');
-      setSpDrive('');
-      setSpOrdre(spOrdre + 1);
-      setShowSpForm(false);
+      if (!error) {
+        setSousProjets(sousProjets.map(sp => 
+          sp.id === editingSpId ? { ...sp, ...spData, id: editingSpId } : sp
+        ).sort((a, b) => a.ordre - b.ordre));
+        resetSpForm();
+      } else {
+        setSpError(error.message);
+      }
     } else {
-      console.error("Erreur insertion sous-projet:", error);
-      setSpError(error?.message || "Erreur inconnue lors de l'insertion");
+      const { data, error } = await supabase
+        .from('sousprojet')
+        .insert([spData])
+        .select()
+        .single();
+
+      if (!error && data) {
+        setSousProjets([...sousProjets, data as SousProjet].sort((a, b) => a.ordre - b.ordre));
+        resetSpForm();
+      } else {
+        setSpError(error?.message || "Erreur d'insertion");
+      }
     }
   };
 
-  const handleDeleteSousProjet = async (id: number) => {
-    if (!confirm('Voulez-vous vraiment supprimer ce sous-projet ?')) return;
-    
+  // --- LOGIQUE DE SUPPRESSION ---
+  const requestDeleteSp = (id: number, titre: string) => {
+    const skipUntil = localStorage.getItem('skipDeleteConfirmUntil');
+    if (skipUntil && parseInt(skipUntil) > Date.now()) {
+      executeDeleteSp(id);
+    } else {
+      setDeleteSpTarget({ id, titre });
+    }
+  };
+
+  const executeDeleteSp = async (id: number) => {
+    setDeleteSpTarget(null);
     const { error } = await supabase
       .from('sousprojet')
       .delete()
@@ -187,192 +233,217 @@ export default function EditProjetPage() {
   }
 
   return (
-    <div className="max-w-6xl mx-auto grid grid-cols-1 xl:grid-cols-3 gap-8">
-      
-      {/* --- COLONNE GAUCHE : ÉDITION DU PROJET --- */}
-      <div className="xl:col-span-2 space-y-6">
-        <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-          <div className="flex items-center gap-4">
-            <Link href="/admin/dashboard" className="w-10 h-10 rounded-lg bg-z-card border border-z-border flex items-center justify-center text-z-muted hover:text-white hover:border-z-blue transition-all">
-              <ArrowLeft size={18} />
-            </Link>
-            <div>
-              <h1 className="font-display font-bold text-3xl uppercase tracking-wider text-white truncate max-w-sm">
-                {titre}
-              </h1>
-              <p className="font-body text-sm text-z-muted mt-1">Édition du projet</p>
-            </div>
-          </div>
-          <button 
-            type="button"
-            onClick={handleUpdateProjet}
-            disabled={isSubmitting}
-            className="btn-blue px-6 py-3 rounded-lg flex items-center justify-center gap-2 text-xs font-bold tracking-widest shadow-lg hover:scale-105 transition-all disabled:opacity-50"
-          >
-            <Save size={16} /> {isSubmitting ? 'Sauvegarde...' : 'Enregistrer'}
-          </button>
-        </header>
-
-        {message && (
-          <div className={`p-4 rounded-lg text-sm font-bold ${message.type === 'success' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-red-500/10 text-red-400 border border-red-500/20'}`}>
-            {message.text}
-          </div>
-        )}
-
-        <form onSubmit={handleUpdateProjet} className="space-y-6">
-          <section className="bg-z-card border border-z-border rounded-xl p-6 shadow-xl">
-            <h2 className="font-sub text-xs uppercase tracking-[0.2em] text-z-blue mb-6 flex items-center gap-2">
-              <FileText size={16} /> Informations
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-              <div className="space-y-2">
-                <label className="text-[10px] uppercase font-bold tracking-widest text-z-muted ml-1">Titre</label>
-                <input required type="text" value={titre} onChange={(e) => {setTitre(e.target.value); setMessage(null);}} className="w-full bg-z-bg border border-z-border rounded-lg p-3 text-sm focus:border-z-blue focus:outline-none" />
-              </div>
-              <div className="space-y-2">
-                <label className="text-[10px] uppercase font-bold tracking-widest text-z-muted ml-1">Slug (URL)</label>
-                <input required type="text" value={slug} onChange={(e) => {setSlug(e.target.value); setMessage(null);}} className="w-full bg-z-bg border border-z-border rounded-lg p-3 text-sm text-z-muted focus:border-z-blue focus:outline-none" />
+    <>
+      <div className="max-w-6xl mx-auto grid grid-cols-1 xl:grid-cols-3 gap-8">
+        
+        {/* --- COLONNE GAUCHE : ÉDITION DU PROJET --- */}
+        <div className="xl:col-span-2 space-y-6">
+          <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+            <div className="flex items-center gap-4">
+              <Link href="/admin/dashboard" className="w-10 h-10 rounded-lg bg-z-card border border-z-border flex items-center justify-center text-z-muted hover:text-white hover:border-z-blue transition-all">
+                <ArrowLeft size={18} />
+              </Link>
+              <div>
+                <h1 className="font-display font-bold text-3xl uppercase tracking-wider text-white truncate max-w-sm">
+                  {titre}
+                </h1>
+                <p className="font-body text-sm text-z-muted mt-1">Édition du projet</p>
               </div>
             </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-              <div className="space-y-2">
-                <label className="text-[10px] uppercase font-bold tracking-widest text-z-muted ml-1">Catégorie</label>
-                <select value={categorieId} onChange={(e) => setCategorieId(e.target.value)} className="w-full bg-z-bg border border-z-border rounded-lg p-3 text-sm text-white focus:border-z-blue focus:outline-none appearance-none">
-                  <option value="">-- Sans catégorie --</option>
-                  {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-                </select>
-              </div>
-              <div className="space-y-2 flex flex-col justify-center">
-                <label className="text-[10px] uppercase font-bold tracking-widest text-z-muted ml-1 mb-2">Visibilité</label>
-                <button type="button" onClick={() => setEnLigne(!enLigne)} className={`flex items-center gap-3 w-fit px-4 py-2 rounded-lg font-bold text-xs uppercase tracking-widest transition-colors ${enLigne ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-z-bg border border-z-border text-z-muted'}`}>
-                  {enLigne ? <ToggleRight size={20} /> : <ToggleLeft size={20} />}
-                  {enLigne ? 'Public' : 'Brouillon'}
-                </button>
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-[10px] uppercase font-bold tracking-widest text-z-muted ml-1">Description courte</label>
-              <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={3} className="w-full bg-z-bg border border-z-border rounded-lg p-3 text-sm focus:border-z-blue focus:outline-none resize-none" />
-            </div>
-          </section>
-
-          <section className="bg-z-card border border-z-border rounded-xl p-6 shadow-xl">
-            <h2 className="font-sub text-xs uppercase tracking-[0.2em] text-z-blue mb-6 flex items-center gap-2">
-              <ImageIcon size={16} /> Média Principal
-            </h2>
-            <div className="space-y-2">
-              <label className="text-[10px] uppercase font-bold tracking-widest text-z-muted ml-1">URL de la miniature</label>
-              <input type="url" value={miniatureUrl} onChange={(e) => setMiniatureUrl(e.target.value)} className="w-full bg-z-bg border border-z-border rounded-lg p-3 text-sm focus:border-z-blue focus:outline-none" />
-            </div>
-          </section>
-
-          <section className="bg-z-card border border-z-border rounded-xl p-6 shadow-xl">
-            <h2 className="font-sub text-xs uppercase tracking-[0.2em] text-z-blue mb-6 flex items-center gap-2">
-              <Link2 size={16} /> Réseaux liés
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <input type="url" value={linkYoutube} onChange={(e) => setLinkYoutube(e.target.value)} className="bg-z-bg border border-z-border rounded-lg p-3 text-sm" placeholder="YouTube" />
-              <input type="url" value={linkInstagram} onChange={(e) => setLinkInstagram(e.target.value)} className="bg-z-bg border border-z-border rounded-lg p-3 text-sm" placeholder="Instagram" />
-              <input type="url" value={linkTiktok} onChange={(e) => setLinkTiktok(e.target.value)} className="bg-z-bg border border-z-border rounded-lg p-3 text-sm" placeholder="TikTok" />
-              <input type="url" value={linkTwitch} onChange={(e) => setLinkTwitch(e.target.value)} className="bg-z-bg border border-z-border rounded-lg p-3 text-sm" placeholder="Twitch" />
-              <input type="url" value={linkFacebook} onChange={(e) => setLinkFacebook(e.target.value)} className="bg-z-bg border border-z-border rounded-lg p-3 text-sm md:col-span-2" placeholder="Facebook" />
-            </div>
-          </section>
-        </form>
-      </div>
-
-      {/* --- COLONNE DROITE : GESTION DES SOUS-PROJETS --- */}
-      <div className="xl:col-span-1 space-y-6">
-        <div className="bg-z-card border border-z-border rounded-xl p-6 shadow-xl sticky top-6">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="font-sub text-xs uppercase tracking-[0.2em] text-white flex items-center gap-2">
-              <Video size={16} className="text-z-blue" /> Détails (Sous-projets)
-            </h2>
-            <span className="px-2 py-1 bg-z-blue/10 text-z-blue rounded-full text-[10px] font-bold">
-              {sousProjets.length}
-            </span>
-          </div>
-
-          {/* LISTE DES SOUS-PROJETS */}
-          <div className="space-y-3 mb-6 max-h-100 overflow-y-auto pr-2">
-            {sousProjets.length === 0 ? (
-              <p className="text-sm text-z-muted italic text-center py-4">Aucun sous-projet lié.</p>
-            ) : (
-              sousProjets.map(sp => (
-                <div key={sp.id} className="bg-z-bg border border-z-border rounded-lg p-4 group">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <h4 className="text-sm font-bold text-white mb-1">{sp.titre}</h4>
-                      <div className="flex items-center gap-3 text-z-muted">
-                          <span className="flex items-center gap-1 text-[10px] font-bold uppercase">
-                              <ListOrdered size={12}/> {sp.ordre}
-                          </span>
-                          {sp.youtube_url && (
-                              <span title="A une vidéo YouTube" className="flex items-center">
-                              <Video size={12} />
-                              </span>
-                          )}
-                          {sp.drive_url && (
-                              <span title="A un lien Drive" className="flex items-center">
-                              <HardDrive size={12} />
-                              </span>
-                          )}
-                      </div>
-                    </div>
-                    <button type="button" onClick={() => handleDeleteSousProjet(sp.id)} className="text-z-muted hover:text-red-400 p-1 transition-colors">
-                      <Trash2 size={14} />
-                    </button>
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
-
-          {/* BOUTON / FORMULAIRE D'AJOUT */}
-          {!showSpForm ? (
             <button 
               type="button"
-              onClick={() => setShowSpForm(true)}
-              className="w-full py-3 border border-dashed border-z-blue/50 text-z-blue rounded-lg text-xs font-bold uppercase tracking-widest hover:bg-z-blue/5 transition-colors flex items-center justify-center gap-2"
+              onClick={handleUpdateProjet}
+              disabled={isSubmitting}
+              className="btn-blue px-6 py-3 rounded-lg flex items-center justify-center gap-2 text-xs font-bold tracking-widest shadow-lg hover:scale-105 transition-all disabled:opacity-50"
             >
-              <Plus size={16} /> Ajouter un détail
+              <Save size={16} /> {isSubmitting ? 'Sauvegarde...' : 'Enregistrer'}
             </button>
-          ) : (
-            <div className="bg-z-bg border border-z-blue/30 rounded-lg p-4 space-y-4">
-              <h4 className="text-xs font-bold text-white uppercase tracking-widest">Nouveau Sous-Projet</h4>
-              
-              {spError && (
-                <div className="p-2 bg-red-500/10 border border-red-500/20 text-red-400 text-[10px] font-bold rounded">
-                  {spError}
-                </div>
-              )}
+          </header>
 
-              <div className="space-y-2">
-                <input type="text" placeholder="Titre (ex: Teaser, Making-of)*" value={spTitre} onChange={e => setSpTitre(e.target.value)} className="w-full bg-z-card border border-z-border rounded p-2 text-xs" />
-              </div>
-              <div className="space-y-2">
-                <textarea placeholder="Description optionnelle..." value={spDescription} onChange={e => setSpDescription(e.target.value)} className="w-full bg-z-card border border-z-border rounded p-2 text-xs resize-none" rows={2} />
-              </div>
-              <div className="space-y-2">
-                <input type="url" placeholder="URL iframe YouTube (optionnel)" value={spYoutube} onChange={e => setSpYoutube(e.target.value)} className="w-full bg-z-card border border-z-border rounded p-2 text-xs" />
-              </div>
-              <div className="space-y-2">
-                <input type="url" placeholder="URL Google Drive PDF (optionnel)" value={spDrive} onChange={e => setSpDrive(e.target.value)} className="w-full bg-z-card border border-z-border rounded p-2 text-xs" />
-              </div>
-              <div className="space-y-2">
-                <label className="text-[10px] uppercase text-z-muted">Ordre d'affichage</label>
-                <input type="number" min="1" value={spOrdre} onChange={e => setSpOrdre(parseInt(e.target.value))} className="w-full bg-z-card border border-z-border rounded p-2 text-xs" />
-              </div>
-              <div className="flex gap-2 pt-2">
-                <button type="button" onClick={handleCreateSousProjet} disabled={!spTitre} className="flex-1 btn-blue py-2 rounded text-xs font-bold disabled:opacity-50">Ajouter</button>
-                <button type="button" onClick={() => setShowSpForm(false)} className="flex-1 bg-z-card border border-z-border text-white py-2 rounded text-xs font-bold hover:bg-white/5">Annuler</button>
-              </div>
+          {message && (
+            <div className={`p-4 rounded-lg text-sm font-bold ${message.type === 'success' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-red-500/10 text-red-400 border border-red-500/20'}`}>
+              {message.text}
             </div>
           )}
+
+          <form onSubmit={handleUpdateProjet} className="space-y-6">
+            <section className="bg-z-card border border-z-border rounded-xl p-6 shadow-xl">
+              <h2 className="font-sub text-xs uppercase tracking-[0.2em] text-z-blue mb-6 flex items-center gap-2">
+                <FileText size={16} /> Informations
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <div className="space-y-2">
+                  <label className="text-[10px] uppercase font-bold tracking-widest text-z-muted ml-1">Titre</label>
+                  <input required type="text" value={titre} onChange={(e) => {setTitre(e.target.value); setMessage(null);}} className="w-full bg-z-bg border border-z-border rounded-lg p-3 text-sm focus:border-z-blue focus:outline-none" />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] uppercase font-bold tracking-widest text-z-muted ml-1">Slug (URL)</label>
+                  <input required type="text" value={slug} onChange={(e) => {setSlug(e.target.value); setMessage(null);}} className="w-full bg-z-bg border border-z-border rounded-lg p-3 text-sm text-z-muted focus:border-z-blue focus:outline-none" />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <div className="space-y-2">
+                  <label className="text-[10px] uppercase font-bold tracking-widest text-z-muted ml-1">Catégorie</label>
+                  <select value={categorieId} onChange={(e) => setCategorieId(e.target.value)} className="w-full bg-z-bg border border-z-border rounded-lg p-3 text-sm text-white focus:border-z-blue focus:outline-none appearance-none">
+                    <option value="">-- Sans catégorie --</option>
+                    {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                  </select>
+                </div>
+                <div className="space-y-2 flex flex-col justify-center">
+                  <label className="text-[10px] uppercase font-bold tracking-widest text-z-muted ml-1 mb-2">Visibilité</label>
+                  <button type="button" onClick={() => setEnLigne(!enLigne)} className={`flex items-center gap-3 w-fit px-4 py-2 rounded-lg font-bold text-xs uppercase tracking-widest transition-colors ${enLigne ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-z-bg border border-z-border text-z-muted'}`}>
+                    {enLigne ? <ToggleRight size={20} /> : <ToggleLeft size={20} />}
+                    {enLigne ? 'Public' : 'Brouillon'}
+                  </button>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-[10px] uppercase font-bold tracking-widest text-z-muted ml-1">Description courte</label>
+                <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={3} className="w-full bg-z-bg border border-z-border rounded-lg p-3 text-sm focus:border-z-blue focus:outline-none resize-none" />
+              </div>
+            </section>
+
+            <section className="bg-z-card border border-z-border rounded-xl p-6 shadow-xl">
+              <h2 className="font-sub text-xs uppercase tracking-[0.2em] text-z-blue mb-6 flex items-center gap-2">
+                <ImageIcon size={16} /> Média Principal
+              </h2>
+              <div className="space-y-2">
+                <label className="text-[10px] uppercase font-bold tracking-widest text-z-muted ml-1">URL de la miniature</label>
+                <input type="url" value={miniatureUrl} onChange={(e) => setMiniatureUrl(e.target.value)} className="w-full bg-z-bg border border-z-border rounded-lg p-3 text-sm focus:border-z-blue focus:outline-none" />
+              </div>
+            </section>
+
+            <section className="bg-z-card border border-z-border rounded-xl p-6 shadow-xl">
+              <h2 className="font-sub text-xs uppercase tracking-[0.2em] text-z-blue mb-6 flex items-center gap-2">
+                <Link2 size={16} /> Réseaux liés
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <input type="url" value={linkYoutube} onChange={(e) => setLinkYoutube(e.target.value)} className="bg-z-bg border border-z-border rounded-lg p-3 text-sm" placeholder="YouTube" />
+                <input type="url" value={linkInstagram} onChange={(e) => setLinkInstagram(e.target.value)} className="bg-z-bg border border-z-border rounded-lg p-3 text-sm" placeholder="Instagram" />
+                <input type="url" value={linkTiktok} onChange={(e) => setLinkTiktok(e.target.value)} className="bg-z-bg border border-z-border rounded-lg p-3 text-sm" placeholder="TikTok" />
+                <input type="url" value={linkTwitch} onChange={(e) => setLinkTwitch(e.target.value)} className="bg-z-bg border border-z-border rounded-lg p-3 text-sm" placeholder="Twitch" />
+                <input type="url" value={linkFacebook} onChange={(e) => setLinkFacebook(e.target.value)} className="bg-z-bg border border-z-border rounded-lg p-3 text-sm md:col-span-2" placeholder="Facebook" />
+              </div>
+            </section>
+          </form>
+        </div>
+
+        {/* --- COLONNE DROITE : GESTION DES SOUS-PROJETS --- */}
+        <div className="xl:col-span-1 space-y-6">
+          <div className="bg-z-card border border-z-border rounded-xl p-6 shadow-xl sticky top-6">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="font-sub text-xs uppercase tracking-[0.2em] text-white flex items-center gap-2">
+                <Video size={16} className="text-z-blue" /> Détails
+              </h2>
+              <span className="px-2 py-1 bg-z-blue/10 text-z-blue rounded-full text-[10px] font-bold">
+                {sousProjets.length}
+              </span>
+            </div>
+
+            {/* LISTE DES SOUS-PROJETS */}
+            <div className="space-y-3 mb-6 max-h-100 overflow-y-auto pr-2">
+              {sousProjets.length === 0 ? (
+                <p className="text-sm text-z-muted italic text-center py-4">Aucun sous-projet lié.</p>
+              ) : (
+                sousProjets.map(sp => (
+                  <div key={sp.id} className={`bg-z-bg border rounded-lg p-4 group transition-colors ${editingSpId === sp.id ? 'border-z-blue' : 'border-z-border'}`}>
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <h4 className="text-sm font-bold text-white mb-1">{sp.titre}</h4>
+                        <div className="flex items-center gap-3 text-z-muted">
+                            <span className="flex items-center gap-1 text-[10px] font-bold uppercase">
+                                <ListOrdered size={12}/> {sp.ordre}
+                            </span>
+                            {sp.youtube_url && (
+                                <span title="A une vidéo YouTube" className="flex items-center">
+                                <Video size={12} />
+                                </span>
+                            )}
+                            {sp.drive_url && (
+                                <span title="A un lien Drive" className="flex items-center">
+                                <HardDrive size={12} />
+                                </span>
+                            )}
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <button type="button" onClick={() => handleEditClick(sp)} className="text-z-muted hover:text-white p-1 transition-colors">
+                          <Edit3 size={14} />
+                        </button>
+                        <button 
+                          type="button" 
+                          onClick={() => requestDeleteSp(sp.id, sp.titre)} // <-- MODIFICATION ICI
+                          className="text-z-muted hover:text-red-400 p-1 transition-colors"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+
+            {/* BOUTON / FORMULAIRE D'AJOUT OU MODIFICATION */}
+            {!showSpForm ? (
+              <button 
+                type="button"
+                onClick={() => { resetSpForm(); setShowSpForm(true); }}
+                className="w-full py-3 border border-dashed border-z-blue/50 text-z-blue rounded-lg text-xs font-bold uppercase tracking-widest hover:bg-z-blue/5 transition-colors flex items-center justify-center gap-2"
+              >
+                <Plus size={16} /> Ajouter un détail
+              </button>
+            ) : (
+              <div className="bg-z-bg border border-z-blue/30 rounded-lg p-4 space-y-4">
+                <h4 className="text-xs font-bold text-white uppercase tracking-widest">
+                  {editingSpId ? 'Modifier Sous-Projet' : 'Nouveau Sous-Projet'}
+                </h4>
+                
+                {spError && (
+                  <div className="p-2 bg-red-500/10 border border-red-500/20 text-red-400 text-[10px] font-bold rounded">
+                    {spError}
+                  </div>
+                )}
+
+                <div className="space-y-2">
+                  <input type="text" placeholder="Titre (ex: Teaser, Making-of)*" value={spTitre} onChange={e => setSpTitre(e.target.value)} className="w-full bg-z-card border border-z-border rounded p-2 text-xs" />
+                </div>
+                <div className="space-y-2">
+                  <textarea placeholder="Description optionnelle..." value={spDescription} onChange={e => setSpDescription(e.target.value)} className="w-full bg-z-card border border-z-border rounded p-2 text-xs resize-none" rows={2} />
+                </div>
+                <div className="space-y-2">
+                  <input type="url" placeholder="URL iframe YouTube (optionnel)" value={spYoutube} onChange={e => setSpYoutube(e.target.value)} className="w-full bg-z-card border border-z-border rounded p-2 text-xs" />
+                </div>
+                <div className="space-y-2">
+                  <input type="url" placeholder="URL Google Drive PDF (optionnel)" value={spDrive} onChange={e => setSpDrive(e.target.value)} className="w-full bg-z-card border border-z-border rounded p-2 text-xs" />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] uppercase text-z-muted">Ordre d'affichage</label>
+                  <input type="number" min="1" value={spOrdre} onChange={e => setSpOrdre(parseInt(e.target.value))} className="w-full bg-z-card border border-z-border rounded p-2 text-xs" />
+                </div>
+                <div className="flex gap-2 pt-2">
+                  <button type="button" onClick={handleSaveSousProjet} disabled={!spTitre} className="flex-1 btn-blue py-2 rounded text-xs font-bold disabled:opacity-50">
+                    {editingSpId ? 'Mettre à jour' : 'Ajouter'}
+                  </button>
+                  <button type="button" onClick={resetSpForm} className="flex-1 bg-z-card border border-z-border text-white py-2 rounded text-xs font-bold hover:bg-white/5">
+                    Annuler
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </div>
-    </div>
+
+      {/* --- INJECTION DE LA MODALE --- */}
+      <ConfirmModal 
+        isOpen={deleteSpTarget !== null}
+        title={deleteSpTarget?.titre || ''}
+        onConfirm={() => deleteSpTarget && executeDeleteSp(deleteSpTarget.id)}
+        onCancel={() => setDeleteSpTarget(null)}
+      />
+    </>
   );
 }

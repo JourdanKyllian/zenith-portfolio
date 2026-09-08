@@ -10,10 +10,14 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { Projet } from '@/types';
+import ConfirmModal from '@/components/ui/ConfirmModal';
 
 export default function DashboardPage() {
   const [projets, setProjets] = useState<Projet[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+
+  // --- NOUVEAUX ÉTATS POUR LA MODALE ---
+  const [deleteTarget, setDeleteTarget] = useState<{ id: number, titre: string } | null>(null);
 
   useEffect(() => {
     fetchProjets();
@@ -35,9 +39,19 @@ export default function DashboardPage() {
     setIsLoading(false);
   };
 
-  const handleDeleteProjet = async (id: number) => {
-    if (!confirm('Voulez-vous vraiment supprimer ce projet et tous ses médias ?')) return;
-    
+  // --- LOGIQUE DE SUPPRESSION ---
+  const requestDelete = (id: number, titre: string) => {
+    // On vérifie le chronomètre de 15 minutes dans le localStorage
+    const skipUntil = localStorage.getItem('skipDeleteConfirmUntil');
+    if (skipUntil && parseInt(skipUntil) > Date.now()) {
+      executeDelete(id); // On supprime direct
+    } else {
+      setDeleteTarget({ id, titre }); // On ouvre la modale
+    }
+  };
+
+  const executeDelete = async (id: number) => {
+    setDeleteTarget(null); // On ferme la modale
     setIsLoading(true);
     const { error } = await supabase
       .from('projet')
@@ -154,7 +168,7 @@ export default function DashboardPage() {
                           </Link>
                           
                           <button 
-                              onClick={() => handleDeleteProjet(projet.id)}
+                              onClick={() => requestDelete(projet.id, projet.titre)} // <-- MODIFICATION ICI
                               className="p-2 text-z-muted hover:text-red-400 hover:bg-red-400/10 rounded transition-colors cursor-pointer" 
                               title="Supprimer"
                           >
@@ -170,6 +184,14 @@ export default function DashboardPage() {
           </table>
         </div>
       </section>
+
+      {/* --- INJECTION DE LA MODALE --- */}
+      <ConfirmModal 
+        isOpen={deleteTarget !== null}
+        title={deleteTarget?.titre || ''}
+        onConfirm={() => deleteTarget && executeDelete(deleteTarget.id)}
+        onCancel={() => setDeleteTarget(null)}
+      />
     </>
   );
 }

@@ -8,6 +8,7 @@ import {
   FolderOpen,
   Save
 } from 'lucide-react';
+import ConfirmModal from '@/components/ui/ConfirmModal';
 
 interface Categorie {
   id: string;
@@ -20,12 +21,14 @@ export default function CategoriesPage() {
   const [categories, setCategories] = useState<Categorie[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   
-  // États pour le formulaire d'ajout
   const [showForm, setShowForm] = useState(false);
   const [newName, setNewName] = useState('');
   const [newSlug, setNewSlug] = useState('');
   const [formError, setFormError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // --- NOUVEAUX ÉTATS POUR LA MODALE ---
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string, name: string } | null>(null);
 
   useEffect(() => {
     fetchCategories();
@@ -99,6 +102,24 @@ export default function CategoriesPage() {
       setFormError(error?.message || "Erreur lors de l'insertion");
     }
     setIsSubmitting(false);
+  };
+
+  // --- LOGIQUE DE SUPPRESSION ---
+  const requestDelete = (id: string, name: string) => {
+    const skipUntil = localStorage.getItem('skipDeleteConfirmUntil');
+    if (skipUntil && parseInt(skipUntil) > Date.now()) {
+      executeDelete(id);
+    } else {
+      setDeleteTarget({ id, name });
+    }
+  };
+
+  const executeDelete = async (id: string) => {
+    setDeleteTarget(null);
+    const { error } = await supabase.from('categorie').delete().eq('id', id);
+    if (!error) {
+      setCategories(categories.filter(c => c.id !== id));
+    }
   };
 
   return (
@@ -208,7 +229,11 @@ export default function CategoriesPage() {
                     </td>
                     <td className="p-4">
                       <div className="flex items-center justify-end gap-2">
-                        <button className="p-2 text-z-muted hover:text-red-400 hover:bg-red-400/10 rounded transition-colors cursor-pointer" title="Supprimer">
+                        <button 
+                          onClick={() => requestDelete(cat.id, cat.name)} // <-- MODIFICATION ICI
+                          className="p-2 text-z-muted hover:text-red-400 hover:bg-red-400/10 rounded transition-colors cursor-pointer" 
+                          title="Supprimer"
+                        >
                           <Trash2 size={16} />
                         </button>
                       </div>
@@ -220,6 +245,14 @@ export default function CategoriesPage() {
           </table>
         </div>
       </section>
+
+      {/* --- INJECTION DE LA MODALE --- */}
+      <ConfirmModal 
+        isOpen={deleteTarget !== null}
+        title={deleteTarget?.name || ''}
+        onConfirm={() => deleteTarget && executeDelete(deleteTarget.id)}
+        onCancel={() => setDeleteTarget(null)}
+      />
     </>
   );
 }
