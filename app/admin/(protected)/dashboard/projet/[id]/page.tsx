@@ -10,6 +10,7 @@ import {
 import Link from 'next/link';
 import { Categorie, Projet, SousProjet } from '@/types';
 import ConfirmModal from '@/components/ui/ConfirmModal';
+import Alert from '@/components/ui/Alert';
 
 export default function EditProjetPage() {
   const router = useRouter();
@@ -44,7 +45,6 @@ export default function EditProjetPage() {
   const [spOrdre, setSpOrdre] = useState(1);
   const [spError, setSpError] = useState<string | null>(null);
 
-  // --- NOUVEAUX ÉTATS POUR LA MODALE ---
   const [deleteSpTarget, setDeleteSpTarget] = useState<{ id: number, titre: string } | null>(null);
 
   useEffect(() => {
@@ -206,7 +206,6 @@ export default function EditProjetPage() {
     }
   };
 
-  // --- LOGIQUE DE SUPPRESSION ---
   const requestDeleteSp = (id: number, titre: string) => {
     const skipUntil = localStorage.getItem('skipDeleteConfirmUntil');
     if (skipUntil && parseInt(skipUntil) > Date.now()) {
@@ -261,8 +260,8 @@ export default function EditProjetPage() {
           </header>
 
           {message && (
-            <div className={`p-4 rounded-lg text-sm font-bold ${message.type === 'success' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-red-500/10 text-red-400 border border-red-500/20'}`}>
-              {message.text}
+            <div className="mb-6">
+              <Alert type={message.type}>{message.text}</Alert>
             </div>
           )}
 
@@ -309,10 +308,25 @@ export default function EditProjetPage() {
               <h2 className="font-sub text-xs uppercase tracking-[0.2em] text-z-blue mb-6 flex items-center gap-2">
                 <ImageIcon size={16} /> Média Principal
               </h2>
+              
+              {/* --- MODIFICATION UX DRIVE ICI --- */}
               <div className="space-y-2">
-                <label className="text-[10px] uppercase font-bold tracking-widest text-z-muted ml-1">URL de la miniature</label>
-                <input type="url" value={miniatureUrl} onChange={(e) => setMiniatureUrl(e.target.value)} className="w-full bg-z-bg border border-z-border rounded-lg p-3 text-sm focus:border-z-blue focus:outline-none" />
+                <div className="flex items-center justify-between">
+                  <label className="text-[10px] uppercase font-bold tracking-widest text-z-muted ml-1">URL de la miniature</label>
+                  <span className="text-[9px] text-z-blue/70 italic px-2 py-0.5 bg-z-blue/5 rounded border border-z-blue/10">Drive direct</span>
+                </div>
+                <input 
+                  type="url" 
+                  value={miniatureUrl} 
+                  onChange={(e) => setMiniatureUrl(e.target.value)} 
+                  className="w-full bg-z-bg border border-z-border rounded-lg p-3 text-sm focus:border-z-blue focus:outline-none placeholder:text-z-muted/30" 
+                  placeholder="https://drive.google.com/uc?id=1A2b3C4d..." 
+                />
+                <p className="text-[9px] text-z-muted ml-1 leading-relaxed">
+                  Pour que l'image s'affiche, le lien doit utiliser <code className="text-emerald-400 bg-emerald-400/10 px-1 rounded mx-0.5">/uc?id=</code> au lieu de <code className="text-red-400 bg-red-400/10 px-1 rounded mx-0.5">/view</code>.
+                </p>
               </div>
+
             </section>
 
             <section className="bg-z-card border border-z-border rounded-xl p-6 shadow-xl">
@@ -374,7 +388,7 @@ export default function EditProjetPage() {
                         </button>
                         <button 
                           type="button" 
-                          onClick={() => requestDeleteSp(sp.id, sp.titre)} // <-- MODIFICATION ICI
+                          onClick={() => requestDeleteSp(sp.id, sp.titre)}
                           className="text-z-muted hover:text-red-400 p-1 transition-colors"
                         >
                           <Trash2 size={14} />
@@ -402,8 +416,8 @@ export default function EditProjetPage() {
                 </h4>
                 
                 {spError && (
-                  <div className="p-2 bg-red-500/10 border border-red-500/20 text-red-400 text-[10px] font-bold rounded">
-                    {spError}
+                  <div className="mb-2">
+                    <Alert type="error">{spError}</Alert>
                   </div>
                 )}
 
@@ -416,15 +430,31 @@ export default function EditProjetPage() {
                 <div className="space-y-2">
                   <input type="url" placeholder="URL iframe YouTube (optionnel)" value={spYoutube} onChange={e => setSpYoutube(e.target.value)} className="w-full bg-z-card border border-z-border rounded p-2 text-xs" />
                 </div>
+                
+                {/* --- MODIFICATION UX DRIVE SOUS-PROJET ICI --- */}
                 <div className="space-y-2">
-                  <input type="url" placeholder="URL Google Drive PDF (optionnel)" value={spDrive} onChange={e => setSpDrive(e.target.value)} className="w-full bg-z-card border border-z-border rounded p-2 text-xs" />
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="text-[10px] uppercase font-bold tracking-widest text-z-muted ml-1">Fichier Drive (Optionnel)</label>
+                    <span className="text-[9px] text-z-blue/70 italic px-2 py-0.5 bg-z-blue/5 rounded border border-z-blue/10">Drive direct</span>
+                  </div>
+                  <input 
+                    type="url" 
+                    placeholder="https://drive.google.com/uc?id=..." 
+                    value={spDrive} 
+                    onChange={e => setSpDrive(e.target.value)} 
+                    className="w-full bg-z-card border border-z-border rounded p-2 text-xs placeholder:text-z-muted/30 focus:border-z-blue focus:outline-none" 
+                  />
+                  <p className="text-[9px] text-z-muted ml-1 leading-relaxed">
+                    Utilisez <code className="text-emerald-400 bg-emerald-400/10 px-1 rounded mx-0.5">/uc?id=</code> au lieu de <code className="text-red-400 bg-red-400/10 px-1 rounded mx-0.5">/view</code>.
+                  </p>
                 </div>
+
                 <div className="space-y-2">
-                  <label className="text-[10px] uppercase text-z-muted">Ordre d'affichage</label>
-                  <input type="number" min="1" value={spOrdre} onChange={e => setSpOrdre(parseInt(e.target.value))} className="w-full bg-z-card border border-z-border rounded p-2 text-xs" />
+                  <label className="text-[10px] uppercase font-bold tracking-widest text-z-muted ml-1">Ordre d'affichage</label>
+                  <input type="number" min="1" value={spOrdre} onChange={e => setSpOrdre(parseInt(e.target.value))} className="w-full bg-z-card border border-z-border rounded p-2 text-xs focus:border-z-blue focus:outline-none" />
                 </div>
                 <div className="flex gap-2 pt-2">
-                  <button type="button" onClick={handleSaveSousProjet} disabled={!spTitre} className="flex-1 btn-blue py-2 rounded text-xs font-bold disabled:opacity-50">
+                  <button type="button" onClick={handleSaveSousProjet} disabled={!spTitre} className="flex-1 btn-blue py-2 rounded text-xs font-bold tracking-widest disabled:opacity-50">
                     {editingSpId ? 'Mettre à jour' : 'Ajouter'}
                   </button>
                   <button type="button" onClick={resetSpForm} className="flex-1 bg-z-card border border-z-border text-white py-2 rounded text-xs font-bold hover:bg-white/5">
@@ -437,7 +467,6 @@ export default function EditProjetPage() {
         </div>
       </div>
 
-      {/* --- INJECTION DE LA MODALE --- */}
       <ConfirmModal 
         isOpen={deleteSpTarget !== null}
         title={deleteSpTarget?.titre || ''}

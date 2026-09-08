@@ -124,7 +124,6 @@ export default function NouveauProjetPage() {
         </button>
       </header>
 
-      {/* Remplacement par le composant Alert, avec une marge pour respecter le design existant */}
       {errorMessage && (
         <div className="mb-8">
           <Alert type="error">{errorMessage}</Alert>
@@ -192,10 +191,25 @@ export default function NouveauProjetPage() {
           <h2 className="font-sub text-xs uppercase tracking-[0.2em] text-z-blue mb-6 flex items-center gap-2">
             <ImageIcon size={16} /> Visuel
           </h2>
+          
+          {/* --- MODIFICATION UX DRIVE ICI --- */}
           <div className="space-y-2">
-            <label className="text-[10px] uppercase font-bold tracking-widest text-z-muted ml-1">URL de la miniature</label>
-            <input type="url" value={miniatureUrl} onChange={(e) => setMiniatureUrl(e.target.value)} className="w-full bg-z-bg border border-z-border rounded-lg p-3 text-sm focus:border-z-blue focus:outline-none" placeholder="https://..." />
+            <div className="flex items-center justify-between">
+              <label className="text-[10px] uppercase font-bold tracking-widest text-z-muted ml-1">URL de la miniature</label>
+              <span className="text-[9px] text-z-blue/70 italic px-2 py-0.5 bg-z-blue/5 rounded border border-z-blue/10">Drive direct</span>
+            </div>
+            <input 
+              type="url" 
+              value={miniatureUrl} 
+              onChange={(e) => setMiniatureUrl(e.target.value)} 
+              className="w-full bg-z-bg border border-z-border rounded-lg p-3 text-sm focus:border-z-blue focus:outline-none placeholder:text-z-muted/30" 
+              placeholder="https://drive.google.com/uc?id=1A2b3C4d..." 
+            />
+            <p className="text-[9px] text-z-muted ml-1 leading-relaxed">
+              Pour que l'image s'affiche, le lien doit utiliser <code className="text-emerald-400 bg-emerald-400/10 px-1 rounded mx-0.5">/uc?id=</code> au lieu de <code className="text-red-400 bg-red-400/10 px-1 rounded mx-0.5">/view</code>.
+            </p>
           </div>
+
         </section>
 
         <section className="bg-z-card border border-z-border rounded-xl p-6 shadow-xl">
