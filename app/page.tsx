@@ -16,12 +16,16 @@ export default async function Home() {
     .from('projet') 
     .select('*, categorie(*), sousprojet(*)')
     .eq('en_ligne', true)
+    // --- BOUCLIER MULTI-TENANT (DÉJÀ OK) ---
+    .eq('user_id', process.env.NEXT_PUBLIC_PORTFOLIO_USER_ID)
     .order('created_at', { ascending: false })
     .limit(3);
 
   const { count: categoriesCount } = await supabase
     .from('categorie')
-    .select('*', { count: 'exact', head: true });
+    .select('*', { count: 'exact', head: true })
+    // --- BOUCLIER MULTI-TENANT AJOUTÉ ---
+    .eq('user_id', process.env.NEXT_PUBLIC_PORTFOLIO_USER_ID);
 
   const startDate = new Date("2017-09-01");
   const today = new Date();

@@ -28,13 +28,13 @@ function generateTicketId(): string {
  * @returns {Promise<{ success: boolean; error?: string }>} Bilan de la transaction d'envoi.
  */
 export async function sendEmail(formData: FormData) {
-  // 1. Validation du mécanisme Honeypot anti-bot
+  // Mécanisme Honeypot anti-bot
   const honeyPot = formData.get("company_tax_id") as string;
   if (honeyPot && honeyPot.trim() !== '') {
     return { success: true }; 
   }
 
-  // 2. Vérification de la cohérence temporelle (Analyse de vélocité de saisie)
+  // Vérification de la cohérence temporelle
   const formTimestamp = formData.get("form_timestamp") as string;
   if (formTimestamp) {
     const loadTime = parseInt(formTimestamp, 10);
@@ -53,7 +53,7 @@ export async function sendEmail(formData: FormData) {
   const type = formData.get("type") as string; 
   const message = (formData.get("message") as string || '').trim();
 
-  // 3. Validation de surface des types de données
+  // Validation des types de données
   if (!name || !email || !message) {
     return { success: false, error: "Tous les champs obligatoires doivent être renseignés." };
   }
@@ -66,7 +66,7 @@ export async function sendEmail(formData: FormData) {
     return { success: false, error: "Le format de l'adresse e-mail est invalide." };
   }
 
-  // 4. Évaluation des quotas de requêtes par adresse IP (Rate Limiting glissant sur 7 jours)
+  // Évaluation des requêtes par adresse IP (Rate Limiting sur 7 jours)
   const headerList = await headers();
   const ip = headerList.get('x-forwarded-for')?.split(',')[0].trim() || '127.0.0.1';
   const oneWeekAgo = new Date();

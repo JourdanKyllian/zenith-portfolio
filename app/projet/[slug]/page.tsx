@@ -40,6 +40,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     .from('projet')
     .select('*, categorie(*)')
     .eq('slug', slug)
+    .eq('user_id', process.env.NEXT_PUBLIC_PORTFOLIO_USER_ID)
     .single();
 
   if (!data) {
@@ -86,6 +87,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
     .from('projet')
     .select('*, categorie(*), sousprojet(*)')
     .eq('slug', slug)
+    .eq('user_id', process.env.NEXT_PUBLIC_PORTFOLIO_USER_ID)
     .single();
 
   if (!data) return notFound();

@@ -14,7 +14,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const { data: projets } = await supabase
     .from('projet')
     .select('slug')
-    .eq('en_ligne', true);
+    .eq('en_ligne', true)
+    // --- BOUCLIER MULTI-TENANT ---
+    .eq('user_id', process.env.NEXT_PUBLIC_PORTFOLIO_USER_ID);
 
   const projetUrls = (projets as { slug: string }[] || [])
     .filter((p) => p.slug && p.slug.trim() !== '')

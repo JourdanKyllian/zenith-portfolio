@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Menu, X, FileText } from 'lucide-react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import CvModal from './CvModal';
 
 interface NavbarProps {
@@ -10,12 +11,8 @@ interface NavbarProps {
   previewUrl: string | null;
 }
 
-/**
- * Client Component : Navigation principale globale.
- * Gère l'état d'ancrage dynamique au défilement, l'affichage du menu tiroir mobile,
- * et le verrouillage du défilement du document lors de l'ouverture des surcouches (modales/menus).
- */
 export default function Navbar({ cvUrl, previewUrl }: NavbarProps) {
+  const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [isCvOpen, setIsCvOpen] = useState(false);
@@ -54,6 +51,9 @@ export default function Navbar({ cvUrl, previewUrl }: NavbarProps) {
     { name: 'À Propos', href: '/about' },
     { name: 'Contact', href: '/contact' },
   ];
+
+  // LE BOUCLIER VISUEL : On cache la Navbar sur toutes les pages d'administration
+  if (pathname?.startsWith('/admin')) return null;
 
   return (
     <>
