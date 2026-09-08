@@ -6,9 +6,12 @@ import {
   Plus, 
   Trash2, 
   FolderOpen,
-  Save
+  Save,
+  Edit3,
+  X
 } from 'lucide-react';
 import ConfirmModal from '@/components/ui/ConfirmModal';
+import Alert from '@/components/ui/Alert';
 
 interface Categorie {
   id: string;
@@ -21,10 +24,13 @@ export default function CategoriesPage() {
   const [categories, setCategories] = useState<Categorie[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   
+  // --- ÉTATS DU FORMULAIRE ---
   const [showForm, setShowForm] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [newName, setNewName] = useState('');
   const [newSlug, setNewSlug] = useState('');
-  const [formError, setFormError] = useState<string | null>(null);
+  
+  const [formMessage, setFormMessage] = useState<{ text: string, type: 'success' | 'error' } | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // --- NOUVEAUX ÉTATS POUR LA MODALE ---
@@ -50,10 +56,26 @@ export default function CategoriesPage() {
     setIsLoading(false);
   };
 
+  const resetForm = () => {
+    setNewName('');
+    setNewSlug('');
+    setEditingId(null);
+    setShowForm(false);
+    setFormMessage(null);
+  };
+
+  const handleEditClick = (cat: Categorie) => {
+    setNewName(cat.name);
+    setNewSlug(cat.slug);
+    setEditingId(cat.id);
+    setShowForm(true);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
     setNewName(val);
-    setFormError(null);
+    setFormMessage(null);
     setNewSlug(
       val
         .toLowerCase()
@@ -68,43 +90,69 @@ export default function CategoriesPage() {
     if (!newName || !newSlug) return;
     
     setIsSubmitting(true);
-    setFormError(null);
+    setFormMessage(null);
 
     const safeName = newName.replace(/"/g, '""');
-    const { data: existingData } = await supabase
+    
+    // Vérification des doublons (en excluant la catégorie courante si on modifie)
+    let query = supabase
       .from('categorie')
       .select('id')
       .eq('user_id', process.env.NEXT_PUBLIC_PORTFOLIO_USER_ID)
       .or(`name.eq."${safeName}",slug.eq."${newSlug}"`);
+      
+    if (editingId) {
+      query = query.neq('id', editingId);
+    }
+
+    const { data: existingData } = await query;
 
     if (existingData && existingData.length > 0) {
-      setFormError("Cette catégorie (nom ou slug) existe déjà.");
+      setFormMessage({ text: "Cette catégorie (nom ou slug) existe déjà.", type: 'error' });
       setIsSubmitting(false);
       return; 
     }
 
-    const { data, error } = await supabase
-      .from('categorie')
-      .insert([{ 
-        name: newName, 
-        slug: newSlug, 
-        user_id: process.env.NEXT_PUBLIC_PORTFOLIO_USER_ID 
-      }])
-      .select('*, projet(id)')
-      .single();
+    const catData = { 
+      name: newName, 
+      slug: newSlug, 
+      user_id: process.env.NEXT_PUBLIC_PORTFOLIO_USER_ID 
+    };
 
-    if (!error && data) {
-      setCategories([...categories, data as Categorie].sort((a, b) => a.name.localeCompare(b.name)));
-      setNewName('');
-      setNewSlug('');
-      setShowForm(false);
+    if (editingId) {
+      // LOGIQUE DE MODIFICATION
+      const { error } = await supabase
+        .from('categorie')
+        .update(catData)
+        .eq('id', editingId);
+
+      if (!error) {
+        setCategories(categories.map(c => c.id === editingId ? { ...c, ...catData } : c).sort((a, b) => a.name.localeCompare(b.name)));
+        setFormMessage({ text: "Catégorie mise à jour avec succès !", type: 'success' });
+        setTimeout(() => resetForm(), 1500);
+      } else {
+        setFormMessage({ text: error.message, type: 'error' });
+      }
     } else {
-      setFormError(error?.message || "Erreur lors de l'insertion");
+      // LOGIQUE DE CRÉATION
+      const { data, error } = await supabase
+        .from('categorie')
+        .insert([catData])
+        .select('*, projet(id)')
+        .single();
+
+      if (!error && data) {
+        setCategories([...categories, data as Categorie].sort((a, b) => a.name.localeCompare(b.name)));
+        setFormMessage({ text: "Catégorie créée avec succès !", type: 'success' });
+        setTimeout(() => resetForm(), 1500);
+      } else {
+        setFormMessage({ text: error?.message || "Erreur d'insertion", type: 'error' });
+      }
     }
+    
     setIsSubmitting(false);
   };
 
-  // --- LOGIQUE DE SUPPRESSION ---
   const requestDelete = (id: string, name: string) => {
     const skipUntil = localStorage.getItem('skipDeleteConfirmUntil');
     if (skipUntil && parseInt(skipUntil) > Date.now()) {
@@ -133,22 +181,31 @@ export default function CategoriesPage() {
             Organisez vos projets par type de prestation.
           </p>
         </div>
-        <button 
-          onClick={() => setShowForm(!showForm)}
-          className="btn-blue px-5 py-2.5 rounded-lg flex items-center justify-center gap-2 text-xs font-bold tracking-widest shadow-lg shadow-z-blue/20 hover:scale-105 transition-all"
-        >
-          <Plus size={16} />
-          Nouvelle Catégorie
-        </button>
+        {!showForm && (
+          <button 
+            onClick={() => { resetForm(); setShowForm(true); }}
+            className="btn-blue px-5 py-2.5 rounded-lg flex items-center justify-center gap-2 text-xs font-bold tracking-widest shadow-lg shadow-z-blue/20 hover:scale-105 transition-all"
+          >
+            <Plus size={16} />
+            Nouvelle Catégorie
+          </button>
+        )}
       </header>
 
       {showForm && (
-        <div className="bg-z-card border border-z-blue/30 rounded-xl p-6 mb-8 shadow-[0_0_20px_rgba(0,123,255,0.1)] relative z-10">
-          <h3 className="font-sub text-xs uppercase tracking-widest text-z-blue mb-4">Créer une catégorie</h3>
+        <div className="bg-z-card border border-z-blue/30 rounded-xl p-6 mb-8 shadow-[0_0_20px_rgba(0,123,255,0.1)] relative z-10 animate-in fade-in slide-in-from-top-4 duration-300">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="font-sub text-xs uppercase tracking-widest text-z-blue">
+              {editingId ? 'Modifier la catégorie' : 'Créer une catégorie'}
+            </h3>
+            <button onClick={resetForm} className="text-z-muted hover:text-white transition-colors">
+              <X size={18} />
+            </button>
+          </div>
           
-          {formError && (
-            <div className="mb-4 p-3 bg-red-500/10 border border-red-500/20 text-red-400 text-xs font-bold rounded-lg">
-              {formError}
+          {formMessage && (
+            <div className="mb-4">
+              <Alert type={formMessage.type}>{formMessage.text}</Alert>
             </div>
           )}
 
@@ -168,16 +225,16 @@ export default function CategoriesPage() {
               <input 
                 type="text" 
                 value={newSlug} 
-                onChange={(e) => { setNewSlug(e.target.value); setFormError(null); }}
+                onChange={(e) => { setNewSlug(e.target.value); setFormMessage(null); }}
                 className="w-full bg-z-bg border border-z-border rounded-lg py-3 px-4 text-sm text-z-muted focus:border-z-blue focus:outline-none transition-colors" 
               />
             </div>
             <button 
               onClick={handleSaveCategorie} 
-              disabled={isSubmitting}
-              className="btn-blue h-11.5 px-6 rounded-lg font-bold text-xs tracking-widest flex items-center gap-2 hover:scale-105 transition-transform disabled:opacity-50"
+              disabled={isSubmitting || !newName}
+              className="btn-blue h-11.5 px-6 rounded-lg font-bold text-xs tracking-widest flex items-center gap-2 hover:scale-105 transition-transform disabled:opacity-50 disabled:hover:scale-100"
             >
-              <Save size={16} /> {isSubmitting ? '...' : 'Enregistrer'}
+              <Save size={16} /> {isSubmitting ? '...' : (editingId ? 'Mettre à jour' : 'Enregistrer')}
             </button>
           </div>
         </div>
@@ -230,7 +287,14 @@ export default function CategoriesPage() {
                     <td className="p-4">
                       <div className="flex items-center justify-end gap-2">
                         <button 
-                          onClick={() => requestDelete(cat.id, cat.name)} // <-- MODIFICATION ICI
+                          onClick={() => handleEditClick(cat)}
+                          className="p-2 text-z-muted hover:text-white hover:bg-white/5 rounded transition-colors cursor-pointer" 
+                          title="Modifier"
+                        >
+                          <Edit3 size={16} />
+                        </button>
+                        <button 
+                          onClick={() => requestDelete(cat.id, cat.name)}
                           className="p-2 text-z-muted hover:text-red-400 hover:bg-red-400/10 rounded transition-colors cursor-pointer" 
                           title="Supprimer"
                         >
@@ -246,7 +310,6 @@ export default function CategoriesPage() {
         </div>
       </section>
 
-      {/* --- INJECTION DE LA MODALE --- */}
       <ConfirmModal 
         isOpen={deleteTarget !== null}
         title={deleteTarget?.name || ''}
