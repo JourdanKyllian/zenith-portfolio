@@ -1,25 +1,31 @@
 "use client";
 
 import { useState } from 'react';
-import { Lock, Mail, Key, ArrowRight, AlertCircle } from 'lucide-react';
+import { Lock, Mail, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { supabase } from '@/lib/supabase'; // Import de ton client Supabase
+import { supabase } from '@/lib/supabase';
+import PasswordInput from '@/components/ui/PasswordInput';
+import Alert from '@/components/ui/Alert';
 
 export default function LoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  
   const [isLoading, setIsLoading] = useState(false);
+  const [isResetting, setIsResetting] = useState(false);
+  
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setErrorMessage(null);
+    setSuccessMessage(null);
 
     try {
-      // Appel réseau vers Supabase Auth
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
@@ -31,7 +37,6 @@ export default function LoginPage() {
         return;
       }
 
-      // Si connexion réussie, Supabase stocke automatiquement le jeton (token)
       if (data.session) {
         router.push('/admin/dashboard');
       }
@@ -40,6 +45,29 @@ export default function LoginPage() {
       setErrorMessage("Une erreur critique est survenue.");
       setIsLoading(false);
     }
+  };
+
+  const handleResetPassword = async () => {
+    if (!email) {
+      setErrorMessage("Veuillez saisir votre adresse email ci-dessus pour la réinitialisation.");
+      return;
+    }
+    
+    setIsResetting(true);
+    setErrorMessage(null);
+    setSuccessMessage(null);
+
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/admin/configuration`,
+    });
+
+    if (error) {
+      setErrorMessage("Erreur lors de l'envoi : " + error.message);
+    } else {
+      setSuccessMessage("Un email de réinitialisation vous a été envoyé.");
+    }
+    
+    setIsResetting(false);
   };
 
   return (
@@ -79,44 +107,39 @@ export default function LoginPage() {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full bg-z-bg border border-z-border rounded-lg py-4 pl-12 pr-4 text-sm text-z-text focus:border-z-blue focus:ring-1 focus:ring-z-blue focus:outline-none transition-all"
+                  className="w-full bg-z-bg border border-z-border rounded-lg py-3 pl-12 pr-4 text-sm text-z-text focus:border-z-blue focus:outline-none transition-all"
                   placeholder="admin@zenithproduction.fr"
                 />
               </div>
             </div>
 
             <div className="space-y-2">
-              <label htmlFor="password" className="text-[10px] uppercase font-bold tracking-widest text-z-muted ml-1">
-                Mot de passe
-              </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-z-muted">
-                  <Key size={16} />
-                </div>
-                <input
-                  id="password"
-                  type="password"
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full bg-z-bg border border-z-border rounded-lg py-4 pl-12 pr-4 text-sm text-z-text focus:border-z-blue focus:ring-1 focus:ring-z-blue focus:outline-none transition-all"
-                  placeholder="••••••••••••"
-                />
+              <PasswordInput 
+                label="Mot de passe"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+              <div className="flex justify-end mt-1">
+                <button
+                  type="button"
+                  onClick={handleResetPassword}
+                  disabled={isResetting}
+                  className="text-[10px] text-z-muted hover:text-z-blue transition-colors uppercase tracking-widest font-bold disabled:opacity-50"
+                >
+                  {isResetting ? 'Envoi...' : 'Mot de passe oublié ?'}
+                </button>
               </div>
             </div>
 
-            {/* Zone d'affichage des erreurs */}
-            {errorMessage && (
-              <div className="flex items-start gap-2.5 p-4 rounded-lg border border-red-500/20 bg-red-500/5 text-red-400 text-xs font-body leading-relaxed animate-fade-in">
-                <AlertCircle size={16} className="shrink-0 mt-0.5" />
-                <span>{errorMessage}</span>
-              </div>
-            )}
+            {/* Zone d'affichage des alertes avec le composant DRY */}
+            {errorMessage && <Alert type="error">{errorMessage}</Alert>}
+            {successMessage && <Alert type="success">{successMessage}</Alert>}
 
             <button
               type="submit"
               disabled={isLoading}
-              className={`w-full btn-blue py-4 rounded-lg flex items-center justify-center gap-3 text-xs font-bold tracking-widest transition-all ${
+              className={`w-full btn-blue py-3.5 rounded-lg flex items-center justify-center gap-3 text-xs font-bold tracking-widest transition-all ${
                 isLoading ? 'opacity-70 cursor-wait' : 'hover:scale-[1.02] hover:shadow-[0_0_20px_rgba(0,123,255,0.3)]'
               }`}
             >

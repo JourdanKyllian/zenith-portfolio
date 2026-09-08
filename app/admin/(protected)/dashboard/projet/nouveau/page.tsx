@@ -6,6 +6,7 @@ import { supabase } from '@/lib/supabase';
 import { ArrowLeft, Save, Image as ImageIcon, Link2, FileText, ToggleLeft, ToggleRight } from 'lucide-react';
 import Link from 'next/link';
 import { Categorie } from '@/types';
+import Alert from '@/components/ui/Alert';
 
 export default function NouveauProjetPage() {
   const router = useRouter();
@@ -123,9 +124,10 @@ export default function NouveauProjetPage() {
         </button>
       </header>
 
+      {/* Remplacement par le composant Alert, avec une marge pour respecter le design existant */}
       {errorMessage && (
-        <div className="mb-8 p-4 bg-red-500/10 border border-red-500/20 text-red-400 text-sm font-bold rounded-lg">
-          {errorMessage}
+        <div className="mb-8">
+          <Alert type="error">{errorMessage}</Alert>
         </div>
       )}
 
