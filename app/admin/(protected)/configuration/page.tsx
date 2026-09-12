@@ -3,7 +3,8 @@
 
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
-import { Link as LinkIcon, Mail, ShieldCheck, User, Share2 } from 'lucide-react';
+import { Link as LinkIcon, Mail, ShieldCheck, User, Share2, Edit3, X, ExternalLink } from 'lucide-react';
+import { LinkedinIcon, InstagramIcon, FacebookIcon, YoutubeIcon, TiktokIcon } from '@/components/SocialIcons';
 import PasswordInput from '@/components/ui/PasswordInput';
 import Alert from '@/components/ui/Alert';
 
@@ -26,6 +27,9 @@ export default function ConfigurationPage() {
     tiktok_url: '',
     youtube_url: ''
   });
+  
+  // Nouvel état pour suivre individuellement quel réseau est en cours d'édition
+  const [editingSocials, setEditingSocials] = useState<Record<string, boolean>>({});
   const [isSavingSocials, setIsSavingSocials] = useState(false);
   const [socialMessage, setSocialMessage] = useState<{ text: string, type: 'success' | 'error' } | null>(null);
 
@@ -96,6 +100,10 @@ export default function ConfigurationPage() {
     }
   };
 
+  const toggleSocialEdit = (key: string) => {
+    setEditingSocials(prev => ({ ...prev, [key]: !prev[key] }));
+  };
+
   const handleSaveSocials = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSavingSocials(true);
@@ -116,6 +124,10 @@ export default function ConfigurationPage() {
       if (error) throw new Error(error.message);
       
       setSocialMessage({ text: "Réseaux sociaux mis à jour avec succès !", type: 'success' });
+      
+      // On referme tous les champs en mode édition après sauvegarde
+      setEditingSocials({});
+      
       setTimeout(() => setSocialMessage(null), 3000);
     } catch (error) {
       const message = error instanceof Error ? error.message : "Une erreur est survenue";
@@ -123,6 +135,15 @@ export default function ConfigurationPage() {
     }
     setIsSavingSocials(false);
   };
+
+  // Tableau de configuration pour générer l'UI dynamiquement (DRY)
+  const socialFields: { id: keyof typeof socials; label: string; icon: React.ElementType; placeholder: string }[] = [
+    { id: 'linkedin_url', label: 'LinkedIn', icon: LinkedinIcon, placeholder: 'https://linkedin.com/in/...' },
+    { id: 'instagram_url', label: 'Instagram', icon: InstagramIcon, placeholder: 'https://instagram.com/...' },
+    { id: 'facebook_url', label: 'Facebook', icon: FacebookIcon, placeholder: 'https://facebook.com/...' },
+    { id: 'tiktok_url', label: 'TikTok', icon: TiktokIcon, placeholder: 'https://tiktok.com/...' },
+    { id: 'youtube_url', label: 'YouTube', icon: YoutubeIcon, placeholder: 'https://youtube.com/...' },
+  ];
 
   return (
     <>
@@ -133,7 +154,7 @@ export default function ConfigurationPage() {
 
       <div className="relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
         
-        {/* CARTE 1 */}
+        {/* CARTE 1 : CONNEXION & CV */}
         <section className="bg-z-card border border-z-border rounded-xl p-6 shadow-2xl">
           <div className="mb-6">
             <h2 className="font-sub text-xs uppercase tracking-[0.2em] text-z-blue mb-1 flex items-center gap-2">
@@ -173,7 +194,7 @@ export default function ConfigurationPage() {
           </form>
         </section>
 
-        {/* CARTE 2 */}
+        {/* CARTE 2 : SÉCURITÉ */}
         <section className="bg-z-card border border-z-border rounded-xl p-6 shadow-2xl">
           <div className="mb-6">
             <h2 className="font-sub text-xs uppercase tracking-[0.2em] text-z-blue mb-1 flex items-center gap-2">
@@ -200,9 +221,9 @@ export default function ConfigurationPage() {
           </form>
         </section>
 
-        {/* CARTE 3 : RÉSEAUX SOCIAUX */}
+        {/* CARTE 3 : RÉSEAUX SOCIAUX (MODE INLINE EDIT) */}
         <section className="bg-z-card border border-z-border rounded-xl p-6 shadow-2xl lg:col-span-2">
-          <div className="mb-6">
+          <div className="mb-8">
             <h2 className="font-sub text-xs uppercase tracking-[0.2em] text-z-blue mb-1 flex items-center gap-2">
               <Share2 size={16} /> Réseaux Sociaux
             </h2>
@@ -210,32 +231,70 @@ export default function ConfigurationPage() {
           </div>
 
           <form onSubmit={handleSaveSocials} className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
               
-              <div className="space-y-2">
-                <label className="text-[10px] uppercase font-bold tracking-widest text-z-muted ml-1">LinkedIn</label>
-                <input type="url" value={socials.linkedin_url} onChange={(e) => setSocials({...socials, linkedin_url: e.target.value})} className="w-full bg-z-bg border border-z-border rounded-lg p-3 text-sm text-z-text focus:border-z-blue focus:outline-none" placeholder="https://linkedin.com/in/..." />
-              </div>
-              
-              <div className="space-y-2">
-                <label className="text-[10px] uppercase font-bold tracking-widest text-z-muted ml-1">Instagram</label>
-                <input type="url" value={socials.instagram_url} onChange={(e) => setSocials({...socials, instagram_url: e.target.value})} className="w-full bg-z-bg border border-z-border rounded-lg p-3 text-sm text-z-text focus:border-z-blue focus:outline-none" placeholder="https://instagram.com/..." />
-              </div>
-              
-              <div className="space-y-2">
-                <label className="text-[10px] uppercase font-bold tracking-widest text-z-muted ml-1">Facebook</label>
-                <input type="url" value={socials.facebook_url} onChange={(e) => setSocials({...socials, facebook_url: e.target.value})} className="w-full bg-z-bg border border-z-border rounded-lg p-3 text-sm text-z-text focus:border-z-blue focus:outline-none" placeholder="https://facebook.com/..." />
-              </div>
-              
-              <div className="space-y-2">
-                <label className="text-[10px] uppercase font-bold tracking-widest text-z-muted ml-1">TikTok</label>
-                <input type="url" value={socials.tiktok_url} onChange={(e) => setSocials({...socials, tiktok_url: e.target.value})} className="w-full bg-z-bg border border-z-border rounded-lg p-3 text-sm text-z-text focus:border-z-blue focus:outline-none" placeholder="https://tiktok.com/..." />
-              </div>
-              
-              <div className="space-y-2">
-                <label className="text-[10px] uppercase font-bold tracking-widest text-z-muted ml-1">YouTube</label>
-                <input type="url" value={socials.youtube_url} onChange={(e) => setSocials({...socials, youtube_url: e.target.value})} className="w-full bg-z-bg border border-z-border rounded-lg p-3 text-sm text-z-text focus:border-z-blue focus:outline-none" placeholder="https://youtube.com/..." />
-              </div>
+              {socialFields.map((field) => {
+                const isEditing = editingSocials[field.id];
+                const value = socials[field.id];
+                const Icon = field.icon;
+
+                return (
+                  <div key={field.id} className="space-y-2">
+                    <label className="text-[10px] uppercase font-bold tracking-widest text-z-muted ml-1 flex items-center gap-2">
+                      <Icon size={12} className="opacity-70" /> {field.label}
+                    </label>
+
+                    {!isEditing ? (
+                      // MODE AFFICHAGE LECTURE SEULE
+                      <div className="flex items-center justify-between p-3 bg-white/5 border border-z-border rounded-lg group h-11.5 transition-colors hover:bg-white/10">
+                        <div className="flex items-center gap-3 overflow-hidden pr-2">
+                          {value ? (
+                            <a 
+                              href={value} 
+                              target="_blank" 
+                              rel="noopener noreferrer" 
+                              className="text-sm text-z-text hover:text-z-blue truncate transition-colors flex items-center gap-2"
+                              title={value}
+                            >
+                              {value} <ExternalLink size={12} className="opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
+                            </a>
+                          ) : (
+                            <span className="text-sm text-z-muted italic">Non renseigné</span>
+                          )}
+                        </div>
+                        <button 
+                          type="button" 
+                          onClick={() => toggleSocialEdit(field.id)}
+                          className="text-z-muted hover:text-white p-1.5 bg-z-bg rounded border border-transparent hover:border-z-border transition-all shrink-0 cursor-pointer"
+                          title="Modifier le lien"
+                        >
+                          <Edit3 size={14} />
+                        </button>
+                      </div>
+                    ) : (
+                      // MODE ÉDITION (INPUT)
+                      <div className="flex items-center gap-2 h-11.5 animate-in fade-in slide-in-from-right-2 duration-200">
+                        <input 
+                          type="url" 
+                          autoFocus
+                          value={value} 
+                          onChange={(e) => setSocials({ ...socials, [field.id]: e.target.value })} 
+                          className="w-full bg-z-bg border border-z-blue shadow-[0_0_10px_rgba(0,123,255,0.1)] rounded-lg px-3 h-full text-sm text-z-text focus:outline-none" 
+                          placeholder={field.placeholder} 
+                        />
+                        <button 
+                          type="button" 
+                          onClick={() => toggleSocialEdit(field.id)}
+                          className="h-full px-3.5 bg-z-card border border-z-border rounded-lg text-z-muted hover:text-white hover:bg-white/5 transition-colors shrink-0 flex items-center justify-center cursor-pointer"
+                          title="Fermer l'édition"
+                        >
+                          <X size={16} />
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
 
             </div>
 
@@ -245,8 +304,12 @@ export default function ConfigurationPage() {
               </div>
             )}
 
-            <div className="pt-2">
-              <button type="submit" disabled={isSavingSocials} className="btn-blue px-6 py-3 rounded-lg text-xs font-bold tracking-widest hover:scale-105 transition-all disabled:opacity-50">
+            <div className="pt-4 border-t border-z-border">
+              <button 
+                type="submit" 
+                disabled={isSavingSocials} 
+                className="btn-blue px-6 py-3 rounded-lg text-xs font-bold tracking-widest hover:scale-105 transition-all disabled:opacity-50"
+              >
                 {isSavingSocials ? 'Enregistrement...' : 'Mettre à jour les réseaux'}
               </button>
             </div>

@@ -63,12 +63,15 @@ export default function AdminProtectedLayout({
     );
   }
 
-  // Si autorisé, on affiche l'architecture globale (Sidebar + Contenu)
   return (
     <div className="min-h-screen bg-z-bg text-z-text flex flex-col md:flex-row">
       
-      {/* SIDEBAR UNIQUE POUR TOUTE L'ADMINISTRATION */}
-      <aside className="w-full md:w-64 bg-z-card border-b md:border-b-0 md:border-r border-z-border p-6 flex flex-col z-20">
+      {/* 
+        --- SIDEBAR DESKTOP ---
+        La sidebar est désormais cachée sur mobile (hidden md:flex).
+        On ajoute h-screen et sticky top-0 pour la figer à l'écran. 
+      */}
+      <aside className="hidden md:flex w-64 h-screen sticky top-0 bg-z-card border-r border-z-border p-6 flex-col z-20 shadow-2xl">
         <div className="mb-10">
           <Link href="/" className="font-martyric text-3xl text-white hover:text-z-blue transition-colors">
             ZENITH
@@ -100,6 +103,7 @@ export default function AdminProtectedLayout({
           })}
         </nav>
 
+        {/* mt-auto pousse le bouton tout en bas de la hauteur h-screen, donc toujours visible ! */}
         <button 
           onClick={handleLogout}
           className="mt-auto flex items-center gap-3 px-4 py-3 text-red-400 hover:bg-red-400/10 rounded-lg text-xs font-bold uppercase tracking-widest transition-colors cursor-pointer"
@@ -109,14 +113,73 @@ export default function AdminProtectedLayout({
         </button>
       </aside>
 
-      {/* CONTENEUR PRINCIPAL DYNAMIQUE */}
-      <main className="flex-1 p-6 md:p-10 overflow-y-auto relative">
+      {/* --- HEADER MOBILE SEULEMENT --- */}
+      <header className="md:hidden flex items-center justify-between px-6 py-4 bg-z-card/90 backdrop-blur-md border-b border-z-border sticky top-0 z-40">
+        <Link href="/" className="font-martyric text-2xl text-white">
+          ZENITH
+        </Link>
+        <span className="font-sub text-[9px] uppercase tracking-widest text-z-blue bg-z-blue/10 px-2 py-1 rounded">
+          Admin
+        </span>
+      </header>
+
+      {/* 
+        --- CONTENEUR PRINCIPAL --- 
+        On ajoute pb-28 sur mobile pour que le contenu ne soit pas caché sous la Bottom Nav
+      */}
+      <main className="flex-1 p-4 sm:p-6 md:p-10 pb-28 md:pb-10 relative">
         <div className="absolute top-0 right-0 w-125 h-125 bg-z-blue/5 blur-[120px] pointer-events-none" />
         
         {/* L'intérieur des pages s'injectera directement ici */}
         {children} 
 
       </main>
+
+      {/* 
+        --- BOTTOM NAV MOBILE ---
+        Visible uniquement sur petit écran.
+        Utilisation de env(safe-area-inset-bottom) pour les iPhones sans bouton Home.
+      */}
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-z-card/90 backdrop-blur-xl border-t border-z-border z-50">
+        <div className="flex items-center justify-around px-2 pt-2 pb-[calc(env(safe-area-inset-bottom)+0.5rem)]">
+          
+          {navLinks.map((link) => {
+            const isActive = pathname === link.href || pathname?.startsWith(`${link.href}/`);
+            const Icon = link.icon;
+
+            return (
+              <Link 
+                key={link.href} 
+                href={link.href} 
+                className={`flex flex-col items-center justify-center w-full gap-1 p-2 transition-colors ${
+                  isActive ? 'text-z-blue' : 'text-z-muted hover:text-white'
+                }`}
+              >
+                <div className={`relative p-1.5 rounded-xl transition-all ${isActive ? 'bg-z-blue/15' : ''}`}>
+                  <Icon size={20} className={isActive ? 'drop-shadow-[0_0_8px_rgba(0,123,255,0.5)]' : ''} />
+                </div>
+                <span className="text-[9px] font-bold uppercase tracking-widest">
+                  {link.label}
+                </span>
+              </Link>
+            );
+          })}
+
+          <button 
+            onClick={handleLogout}
+            className="flex flex-col items-center justify-center w-full gap-1 p-2 text-z-muted hover:text-red-400 transition-colors"
+          >
+            <div className="relative p-1.5 rounded-xl transition-all hover:bg-red-400/10">
+              <LogOut size={20} />
+            </div>
+            <span className="text-[9px] font-bold uppercase tracking-widest">
+              Sortir
+            </span>
+          </button>
+
+        </div>
+      </nav>
+
     </div>
   );
 }
