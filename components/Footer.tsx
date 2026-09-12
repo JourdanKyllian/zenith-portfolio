@@ -2,13 +2,22 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LinkedinIcon, InstagramIcon, FacebookIcon, YoutubeIcon, TiktokIcon } from './SocialIcons';
+import SocialLinks from './SocialLinks';
 
-export default function Footer() {
+interface FooterProps {
+  socials: {
+    linkedin: string;
+    instagram: string;
+    facebook: string;
+    tiktok: string;
+    youtube: string;
+  }
+}
+
+export default function Footer({ socials }: FooterProps) {
   const pathname = usePathname();
   const currentYear = new Date().getFullYear();
 
-  // LE BOUCLIER VISUEL : On cache le Footer sur toutes les pages d'administration
   if (pathname?.startsWith('/admin')) return null;
 
   return (
@@ -22,27 +31,8 @@ export default function Footer() {
           </Link>
         </div>
 
-        <div className="flex items-center gap-3">
-          <SocialBubble href="https://www.linkedin.com/in/gabin-husson-08244521b/" ariaLabel="LinkedIn">
-            <LinkedinIcon size={18} />
-          </SocialBubble>
-
-          <SocialBubble href="https://www.instagram.com/zenithproduction.off/" ariaLabel="Instagram">
-            <InstagramIcon size={18} />
-          </SocialBubble>
-
-          <SocialBubble href="https://www.facebook.com/profile.php?id=61579746212800" ariaLabel="Facebook">
-            <FacebookIcon size={18} />
-          </SocialBubble>
-
-          <SocialBubble href="https://www.tiktok.com/@gabzerguigzer/video/7383765160030244129" ariaLabel="TikTok">
-            <TiktokIcon size={18} />
-          </SocialBubble>
-
-          <SocialBubble href="https://www.youtube.com/@GabzerEtGuigzer" ariaLabel="YouTube">
-            <YoutubeIcon size={18} />
-          </SocialBubble>
-        </div>
+        {/* --- INJECTION DU NOUVEAU COMPOSANT --- */}
+        <SocialLinks variant="footer" links={socials} />
       </div>
 
       <div className="max-w-7xl mx-auto mt-16 pt-6 border-t border-z-silver/10 flex flex-col md:flex-row items-center justify-between gap-4 font-sub text-[10px] font-bold uppercase tracking-widest text-z-muted">
@@ -62,19 +52,5 @@ export default function Footer() {
         </div>
       </div>
     </footer>
-  );
-}
-
-function SocialBubble({ href, children, ariaLabel }: { href: string, children: React.ReactNode, ariaLabel: string }) {
-  return (
-    <a 
-      href={href} 
-      target="_blank" 
-      rel="noopener noreferrer"
-      aria-label={ariaLabel}
-      className="w-11 h-11 rounded-full border border-z-silver/20 bg-z-card flex items-center justify-center text-z-text hover:bg-z-blue hover:text-white hover:border-z-blue transition-all duration-300 hover:scale-110 shadow-lg shadow-black/20"
-    >
-      {children}
-    </a>
   );
 }

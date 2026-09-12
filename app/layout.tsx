@@ -6,6 +6,7 @@ import { SpeedInsights } from "@vercel/speed-insights/react";
 import Footer from "@/components/Footer";
 import Navbar from "@/components/Navbar";
 import { fetchCvData } from "@/app/actions/getCv";
+import { supabase } from "@/lib/supabase";
 
 export const revalidate = 3600; 
 
@@ -45,17 +46,31 @@ export const metadata: Metadata = {
   },
 };
 
-/**
- * Root Layout : Structure globale de l'application.
- * Intègre les polices Google Fonts, la navigation, le footer, les outils d'analyse Vercel
- * et la structure sémantique JSON-LD pour le référencement local.
- */
 export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   const cvData = await fetchCvData();
+
+  // 1. Récupération des réseaux sociaux depuis Supabase
+  const { data: paramData } = await supabase
+    .from('parametres')
+    .select('linkedin_url, instagram_url, facebook_url, tiktok_url, youtube_url')
+    .eq('user_id', process.env.NEXT_PUBLIC_PORTFOLIO_USER_ID)
+    .single();
+
+  // 2. Logique identique aux projets : on prend la valeur en BDD, si null -> chaîne vide (aucun affichage)
+  const socials = {
+    linkedin: paramData?.linkedin_url || "",
+    instagram: paramData?.instagram_url || "",
+    facebook: paramData?.facebook_url || "",
+    tiktok: paramData?.tiktok_url || "",
+    youtube: paramData?.youtube_url || ""
+  };
+
+  // 3. Extraction dynamique pour le JSON-LD (référencement Google)
+  const validSocials = Object.values(socials).filter(url => url && url.trim() !== "");
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -75,11 +90,7 @@ export default async function RootLayout({
       "name": "Gabin Husson",
       "jobTitle": "Graphiste, Cadreur, Monteur Vidéo & Photo"
     },
-    "sameAs": [
-      "https://www.linkedin.com/in/gabin-husson-08244521b/",
-      "https://www.instagram.com/zenithproduction.off/",
-      "https://www.facebook.com/profile.php?id=61579746212800"
-    ]
+    "sameAs": validSocials
   };
 
   return (
@@ -95,7 +106,8 @@ export default async function RootLayout({
         <main className="grow">
           {children}
         </main>
-        <Footer />
+        {/* On passe les liens dynamiques au Footer */}
+        <Footer socials={socials} />
         <Analytics />
         <SpeedInsights />
       </body>

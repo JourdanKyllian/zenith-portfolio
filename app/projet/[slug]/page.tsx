@@ -6,15 +6,10 @@ import { getProjectAssetsFromDrive, DriveAssets } from '@/lib/googleDrive';
 import { SousProjet, Projet } from '@/types';
 import ProjectMediaContent from '@/components/ProjectMediaContent';
 import { getBadgeTheme } from '@/config/colors';
-import { InstagramIcon, YoutubeIcon, TiktokIcon, FacebookIcon, TwitchIcon } from '@/components/SocialIcons';
+import SocialLinks from '@/components/SocialLinks'; // Import du composant mutualisé
 
 export const revalidate = 3600;
 
-/**
- * Interface locale étendant SousProjet.
- * Garantit un typage strict après la résolution asynchrone des médias Google Drive,
- * évitant l'utilisation du type 'any' lors du passage des props au composant enfant.
- */
 interface ProcessedSousProjet extends SousProjet {
   finalYoutubeUrl: string | null;
   driveImages: string[];
@@ -27,12 +22,6 @@ interface ProcessedSousProjet extends SousProjet {
   driveVideoUrl: string | null;
 }
 
-/**
- * Génère les métadonnées SEO dynamiques pour la page projet.
- * 
- * @param {Promise<{ slug: string }>} params - Paramètres dynamiques de la route.
- * @returns {Promise<{ title: string }>} Les métadonnées formatées pour le <head>.
- */
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
 
@@ -47,7 +36,6 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     return { title: 'Projet — ZENITH PRODUCTION' };
   }
 
-  // Cast nécessaire car Supabase renvoie un type générique sur les jointures (*)
   const project = data as unknown as Projet;
   const categoryName = project.categorie?.name || 'Général';
 
@@ -56,10 +44,6 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   };
 }
 
-/**
- * Extrait l'ID unique d'un fichier hébergé sur Google Drive depuis divers formats d'URL.
- * Utile pour exploiter l'API de miniature Drive (thumbnail) plutôt que le viewer natif complet.
- */
 function getDriveFileId(urlOrId: string | null | undefined): string | null {
   if (!urlOrId) return null;
   if (!urlOrId.includes('/')) return urlOrId;
@@ -76,13 +60,9 @@ function getDriveFileId(urlOrId: string | null | undefined): string | null {
   return null;
 }
 
-/**
- * Server Component : Page de détail d'un projet.
- */
 export default async function ProjectPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
 
-  // Récupération du projet principal et de ses relations (Catégorie pour le badge, Sous-projets pour les médias)
   const { data } = await supabase
     .from('projet')
     .select('*, categorie(*), sousprojet(*)')
@@ -94,21 +74,17 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
 
   const project = data as unknown as Projet;
 
-  // Tri côté client pour pallier l'absence de garantie d'ordre sur la jointure Supabase
   const sousProjets: SousProjet[] = (project.sousprojet || [])
     .sort((a: SousProjet, b: SousProjet) => (a.ordre || 0) - (b.ordre || 0));
 
-  // Résolution parallèle des assets Drive pour chaque sous-projet.
-  // Remplace les liens bruts par des listes d'images, de PDF et d'URL vidéo directes.
   const sousProjetsAvecMedias: ProcessedSousProjet[] = await Promise.all(
     sousProjets.map(async (sp) => {
       const driveAssets: DriveAssets = sp.drive_url 
         ? await getProjectAssetsFromDrive(sp.drive_url)
-        : { images: [], youtubeUrl: null, pdf: null, videoUrl: null }; // Fallback de sécurité si le champ est vide
+        : { images: [], youtubeUrl: null, pdf: null, videoUrl: null }; 
       
       return {
         ...sp,
-        // La vidéo YouTube détectée dans Drive prend la priorité sur l'URL de la BDD
         finalYoutubeUrl: driveAssets.youtubeUrl || sp.youtube_url,
         driveImages: driveAssets.images,
         pdf: driveAssets.pdf,
@@ -117,34 +93,28 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
     })
   );
 
-  // Détermine s'il faut afficher l'indicateur UI "Vidéos disponibles"
   const hasAnyVideo = sousProjetsAvecMedias.some(sp => sp.finalYoutubeUrl || sp.driveVideoUrl);
 
   const badgeTheme = getBadgeTheme(project.categorie?.color);
 
-  // Logique de résolution de l'image de couverture (Hero)
   const miniatureUrl = project.miniature_url;
   let coverImageUrl = "";
 
   if (miniatureUrl) {
     if (miniatureUrl.startsWith('http') && !miniatureUrl.includes('drive.google.com')) {
-      // 1. URL externe standard (Unsplash, AWS, etc.) -> Utilisée telle quelle
       coverImageUrl = miniatureUrl;
     } else {
-      // 2. URL Google Drive -> Extraction de l'ID pour générer une miniature haute résolution (sz=w2048)
       const driveImageId = getDriveFileId(miniatureUrl);
       coverImageUrl = driveImageId 
         ? `https://drive.google.com/thumbnail?id=${driveImageId}&sz=w2048`
         : miniatureUrl;
     }
   } else {
-    // 3. Fallback -> Image par défaut globale si aucune miniature n'est renseignée
     coverImageUrl = "https://images.unsplash.com/photo-1536440136628-849c177e76a1?q=80&w=1025&auto=format&fit=cover";
   }
 
   return (
     <main className="min-h-screen bg-z-bg text-z-text pb-20">
-      {/* --- SECTION HERO --- */}
       <section className="relative h-[60vh] w-full overflow-hidden">
         <img 
           src={coverImageUrl} 
@@ -161,7 +131,6 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
             {project.titre}
           </h1>
           
-          {/* Ligne Méta : S'affiche uniquement si une catégorie ou au moins un réseau social est défini en base */}
           {(project.categorie?.name || project.link_instagram || project.link_youtube || project.link_tiktok || project.link_twitch || project.link_facebook) && (
             <div className="flex flex-wrap items-center gap-4 animate-fade-in" style={{ animationDelay: '0.1s' }}>
               
@@ -171,55 +140,28 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
                 </div>
               )}
 
-              {/* Utilisation des composants centralisés SocialIcons */}
+              {/* Injection du composant mutualisé en variante 'project' */}
               {(project.link_instagram || project.link_youtube || project.link_tiktok || project.link_twitch || project.link_facebook) && (
-                <div className="flex items-center gap-2 border-l border-z-border pl-4 md:flex">
-                  
-                  {project.link_instagram && (
-                    <a href={project.link_instagram} target="_blank" rel="noopener noreferrer" className="group p-1.5 rounded-lg border border-z-border bg-z-card/50 hover:bg-pink-500/10 hover:border-pink-500/20 transition-all" title="Suivre sur Instagram">
-                      <InstagramIcon size={16} className="text-z-muted group-hover:text-pink-500 transition-colors" />
-                    </a>
-                  )}
-
-                  {project.link_youtube && (
-                    <a href={project.link_youtube} target="_blank" rel="noopener noreferrer" className="group p-1.5 rounded-lg border border-z-border bg-z-card/50 hover:bg-red-500/10 hover:border-red-500/20 transition-all" title="Suivre sur Youtube">
-                      <YoutubeIcon size={16} className="text-z-muted group-hover:text-red-500 transition-colors" />
-                    </a>
-                  )}
-
-                  {project.link_tiktok && (
-                    <a href={project.link_tiktok} target="_blank" rel="noopener noreferrer" className="group p-1.5 rounded-lg border border-z-border bg-z-card/50 hover:bg-cyan-400/10 hover:border-cyan-400/20 transition-all" title="Suivre sur TikTok">
-                      <TiktokIcon size={16} className="text-z-muted group-hover:text-cyan-400 transition-colors" />
-                    </a>
-                  )}
-
-                  {project.link_twitch && (
-                    <a href={project.link_twitch} target="_blank" rel="noopener noreferrer" className="group p-1.5 rounded-lg border border-z-border bg-z-card/50 hover:bg-purple-500/10 hover:border-purple-500/20 transition-all" title="Suivre sur Twitch">
-                      <TwitchIcon size={16} className="text-z-muted group-hover:text-purple-500 transition-colors" />
-                    </a>
-                  )}
-
-                  {project.link_facebook && (
-                    <a href={project.link_facebook} target="_blank" rel="noopener noreferrer" className="group p-1.5 rounded-lg border border-z-border bg-z-card/50 hover:bg-blue-500/10 hover:border-blue-500/20 transition-all" title="Suivre sur Facebook">
-                      <FacebookIcon size={16} className="text-z-muted group-hover:text-blue-500 transition-colors" />
-                    </a>
-                  )}
-
-                </div>
+                <SocialLinks 
+                  variant="project" 
+                  links={{
+                    instagram: project.link_instagram,
+                    youtube: project.link_youtube,
+                    tiktok: project.link_tiktok,
+                    twitch: project.link_twitch,
+                    facebook: project.link_facebook
+                  }} 
+                />
               )}
             </div>
           )}
         </div>
       </section>
 
-      {/* --- SECTION CONTENU --- */}
       <section className="max-w-7xl mx-auto px-8 py-20 grid grid-cols-1 lg:grid-cols-3 gap-20">
-        
-        {/* Colonne latérale (gauche) : Contexte du projet */}
         <div className="lg:col-span-1 space-y-10">
           <div>
             <h3 className="text-z-muted font-sub text-[10px] font-bold uppercase tracking-widest mb-6">Introduction</h3>
-            {/* whitespace-pre-wrap assure le rendu des sauts de ligne tapés dans le back-office */}
             <p className="font-body text-z-text/80 leading-relaxed whitespace-pre-wrap">{project.description}</p>
           </div>
           
@@ -232,7 +174,6 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
           )}
         </div>
 
-        {/* Colonne principale (droite) : Grille d'affichage des médias (Composant Client) */}
         <ProjectMediaContent 
           sousProjets={sousProjetsAvecMedias} 
           coverImageUrl={coverImageUrl}

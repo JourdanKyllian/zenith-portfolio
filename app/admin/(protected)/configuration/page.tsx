@@ -3,7 +3,7 @@
 
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
-import { Link as LinkIcon, Mail, ShieldCheck, User } from 'lucide-react';
+import { Link as LinkIcon, Mail, ShieldCheck, User, Share2 } from 'lucide-react';
 import PasswordInput from '@/components/ui/PasswordInput';
 import Alert from '@/components/ui/Alert';
 
@@ -18,12 +18,32 @@ export default function ConfigurationPage() {
   const [passMessage, setPassMessage] = useState<{ text: string, type: 'success' | 'error' } | null>(null);
   const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
 
+  // --- ÉTATS RÉSEAUX SOCIAUX ---
+  const [socials, setSocials] = useState({
+    linkedin_url: '',
+    instagram_url: '',
+    facebook_url: '',
+    tiktok_url: '',
+    youtube_url: ''
+  });
+  const [isSavingSocials, setIsSavingSocials] = useState(false);
+  const [socialMessage, setSocialMessage] = useState<{ text: string, type: 'success' | 'error' } | null>(null);
+
   const fetchSettings = async () => {
     const { data: authData } = await supabase.auth.getUser();
     if (authData.user) setAuthEmail(authData.user.email || '');
 
-    const { data: dbData } = await supabase.from('parametres').select('cv_url').eq('user_id', process.env.NEXT_PUBLIC_PORTFOLIO_USER_ID).single();
-    if (dbData) setCvUrl(dbData.cv_url || '');
+    const { data: dbData } = await supabase.from('parametres').select('*').eq('user_id', process.env.NEXT_PUBLIC_PORTFOLIO_USER_ID).single();
+    if (dbData) {
+      setCvUrl(dbData.cv_url || '');
+      setSocials({
+        linkedin_url: dbData.linkedin_url || '',
+        instagram_url: dbData.instagram_url || '',
+        facebook_url: dbData.facebook_url || '',
+        tiktok_url: dbData.tiktok_url || '',
+        youtube_url: dbData.youtube_url || ''
+      });
+    }
   };
 
   useEffect(() => {
@@ -76,6 +96,34 @@ export default function ConfigurationPage() {
     }
   };
 
+  const handleSaveSocials = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSavingSocials(true);
+    setSocialMessage(null);
+
+    try {
+      const { error } = await supabase
+        .from('parametres')
+        .update({
+          linkedin_url: socials.linkedin_url,
+          instagram_url: socials.instagram_url,
+          facebook_url: socials.facebook_url,
+          tiktok_url: socials.tiktok_url,
+          youtube_url: socials.youtube_url,
+        })
+        .eq('user_id', process.env.NEXT_PUBLIC_PORTFOLIO_USER_ID);
+
+      if (error) throw new Error(error.message);
+      
+      setSocialMessage({ text: "Réseaux sociaux mis à jour avec succès !", type: 'success' });
+      setTimeout(() => setSocialMessage(null), 3000);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Une erreur est survenue";
+      setSocialMessage({ text: message, type: 'error' });
+    }
+    setIsSavingSocials(false);
+  };
+
   return (
     <>
       <header className="mb-10 relative z-10">
@@ -85,6 +133,7 @@ export default function ConfigurationPage() {
 
       <div className="relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
         
+        {/* CARTE 1 */}
         <section className="bg-z-card border border-z-border rounded-xl p-6 shadow-2xl">
           <div className="mb-6">
             <h2 className="font-sub text-xs uppercase tracking-[0.2em] text-z-blue mb-1 flex items-center gap-2">
@@ -124,6 +173,7 @@ export default function ConfigurationPage() {
           </form>
         </section>
 
+        {/* CARTE 2 */}
         <section className="bg-z-card border border-z-border rounded-xl p-6 shadow-2xl">
           <div className="mb-6">
             <h2 className="font-sub text-xs uppercase tracking-[0.2em] text-z-blue mb-1 flex items-center gap-2">
@@ -145,6 +195,59 @@ export default function ConfigurationPage() {
             <div className="pt-2">
               <button type="submit" disabled={isUpdatingPassword} className="bg-z-bg border border-z-border text-white px-6 py-3 rounded-lg text-xs font-bold tracking-widest hover:bg-white/5 transition-colors disabled:opacity-50">
                 {isUpdatingPassword ? 'Mise à jour...' : 'Modifier le mot de passe'}
+              </button>
+            </div>
+          </form>
+        </section>
+
+        {/* CARTE 3 : RÉSEAUX SOCIAUX */}
+        <section className="bg-z-card border border-z-border rounded-xl p-6 shadow-2xl lg:col-span-2">
+          <div className="mb-6">
+            <h2 className="font-sub text-xs uppercase tracking-[0.2em] text-z-blue mb-1 flex items-center gap-2">
+              <Share2 size={16} /> Réseaux Sociaux
+            </h2>
+            <p className="text-xs text-z-muted">Gérez les liens de vos réseaux sociaux affichés dans le pied de page du site public.</p>
+          </div>
+
+          <form onSubmit={handleSaveSocials} className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              
+              <div className="space-y-2">
+                <label className="text-[10px] uppercase font-bold tracking-widest text-z-muted ml-1">LinkedIn</label>
+                <input type="url" value={socials.linkedin_url} onChange={(e) => setSocials({...socials, linkedin_url: e.target.value})} className="w-full bg-z-bg border border-z-border rounded-lg p-3 text-sm text-z-text focus:border-z-blue focus:outline-none" placeholder="https://linkedin.com/in/..." />
+              </div>
+              
+              <div className="space-y-2">
+                <label className="text-[10px] uppercase font-bold tracking-widest text-z-muted ml-1">Instagram</label>
+                <input type="url" value={socials.instagram_url} onChange={(e) => setSocials({...socials, instagram_url: e.target.value})} className="w-full bg-z-bg border border-z-border rounded-lg p-3 text-sm text-z-text focus:border-z-blue focus:outline-none" placeholder="https://instagram.com/..." />
+              </div>
+              
+              <div className="space-y-2">
+                <label className="text-[10px] uppercase font-bold tracking-widest text-z-muted ml-1">Facebook</label>
+                <input type="url" value={socials.facebook_url} onChange={(e) => setSocials({...socials, facebook_url: e.target.value})} className="w-full bg-z-bg border border-z-border rounded-lg p-3 text-sm text-z-text focus:border-z-blue focus:outline-none" placeholder="https://facebook.com/..." />
+              </div>
+              
+              <div className="space-y-2">
+                <label className="text-[10px] uppercase font-bold tracking-widest text-z-muted ml-1">TikTok</label>
+                <input type="url" value={socials.tiktok_url} onChange={(e) => setSocials({...socials, tiktok_url: e.target.value})} className="w-full bg-z-bg border border-z-border rounded-lg p-3 text-sm text-z-text focus:border-z-blue focus:outline-none" placeholder="https://tiktok.com/..." />
+              </div>
+              
+              <div className="space-y-2">
+                <label className="text-[10px] uppercase font-bold tracking-widest text-z-muted ml-1">YouTube</label>
+                <input type="url" value={socials.youtube_url} onChange={(e) => setSocials({...socials, youtube_url: e.target.value})} className="w-full bg-z-bg border border-z-border rounded-lg p-3 text-sm text-z-text focus:border-z-blue focus:outline-none" placeholder="https://youtube.com/..." />
+              </div>
+
+            </div>
+
+            {socialMessage && (
+              <div className="pt-2">
+                <Alert type={socialMessage.type}>{socialMessage.text}</Alert>
+              </div>
+            )}
+
+            <div className="pt-2">
+              <button type="submit" disabled={isSavingSocials} className="btn-blue px-6 py-3 rounded-lg text-xs font-bold tracking-widest hover:scale-105 transition-all disabled:opacity-50">
+                {isSavingSocials ? 'Enregistrement...' : 'Mettre à jour les réseaux'}
               </button>
             </div>
           </form>
