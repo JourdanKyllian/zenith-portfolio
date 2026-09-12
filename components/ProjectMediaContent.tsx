@@ -33,12 +33,18 @@ interface ProjectMediaContentProps {
 }
 
 /**
+ * Extrait l'ID d'une vidéo YouTube à partir de n'importe quelle URL.
+ */
+function getYoutubeId(url: string | null | undefined): string | null {
+  if (!url) return null;
+  const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+  const match = url.match(regExp);
+  return match && match[2].length === 11 ? match[2] : null;
+}
+
+/**
  * Client Component : Gère l'affichage asynchrone des médias (Drive, YouTube, PDF) 
  * et implémente une Lightbox interactive (navigation clavier/souris).
- * 
- * @param {ExtendedSousProjet[]} sousProjets - Tableau des médias résolus par l'API Drive
- * @param {string} coverImageUrl - Miniature de repli si aucun média n'est trouvé
- * @param {string} projectTitle - Titre principal pour le contexte et l'accessibilité
  */
 export default function ProjectMediaContent({ sousProjets, coverImageUrl, projectTitle }: ProjectMediaContentProps) {
   const [isOpen, setIsOpen] = useState(false);
@@ -94,7 +100,15 @@ export default function ProjectMediaContent({ sousProjets, coverImageUrl, projec
     <>
       <div className="lg:col-span-2 space-y-16">
         {sousProjets.map((sp, idx) => {
-          const hasMedia = sp.finalYoutubeUrl || sp.driveVideoUrl || sp.driveImages.length > 0 || sp.pdf;
+          
+          // Nettoyage et construction de l'URL d'intégration Youtube parfaite
+          let embedYoutubeUrl = null;
+          if (sp.finalYoutubeUrl) {
+            const ytId = getYoutubeId(sp.finalYoutubeUrl);
+            if (ytId) embedYoutubeUrl = `https://www.youtube.com/embed/${ytId}?rel=0`;
+          }
+
+          const hasMedia = embedYoutubeUrl || sp.driveVideoUrl || sp.driveImages.length > 0 || sp.pdf;
           const seoDescription = `${sp.titre || 'Rendu visuel'} — Projet ${projectTitle} par Zenith Production`;
 
           return (
@@ -111,11 +125,11 @@ export default function ProjectMediaContent({ sousProjets, coverImageUrl, projec
                 </div>
               )}
 
-              {sp.finalYoutubeUrl && (
+              {embedYoutubeUrl && (
                 <div className="aspect-video bg-z-card rounded-2xl overflow-hidden border border-z-blue/10 shadow-2xl">
                   <iframe 
                     width="100%" height="100%" 
-                    src={sp.finalYoutubeUrl.replace("watch?v=", "embed/").replace("youtu.be/", "youtube.com/embed/")} 
+                    src={embedYoutubeUrl} 
                     allowFullScreen 
                     className="border-none"
                     title={`Vidéo YouTube — ${sp.titre || projectTitle}`}
@@ -123,7 +137,7 @@ export default function ProjectMediaContent({ sousProjets, coverImageUrl, projec
                 </div>
               )}
 
-              {sp.driveVideoUrl && !sp.finalYoutubeUrl && (
+              {sp.driveVideoUrl && !embedYoutubeUrl && (
                 <div className="aspect-video bg-z-card rounded-2xl overflow-hidden border border-z-blue/10 shadow-2xl">
                   <iframe 
                     width="100%" height="100%" 
@@ -173,7 +187,7 @@ export default function ProjectMediaContent({ sousProjets, coverImageUrl, projec
       </div>
 
       {isOpen && allImages.length > 0 && (
-        <div className="fixed inset-0 z-2000 flex items-center justify-center bg-z-bg/95 backdrop-blur-md select-none animate-fade-in">
+        <div className="fixed inset-0 z-[2000] flex items-center justify-center bg-z-bg/95 backdrop-blur-md select-none animate-fade-in">
           <div className="hidden" aria-hidden="true">
             <img src={getHdUrl(allImages[nextIndex])} alt="" />
             <img src={getHdUrl(allImages[prevIndex])} alt="" />
@@ -181,7 +195,7 @@ export default function ProjectMediaContent({ sousProjets, coverImageUrl, projec
 
           <button 
             onClick={() => setIsOpen(false)}
-            className="absolute top-6 right-6 z-2001 p-3 text-z-muted hover:text-white bg-z-card border border-z-border rounded-full transition-colors cursor-pointer focus:outline-none"
+            className="absolute top-6 right-6 z-[2001] p-3 text-z-muted hover:text-white bg-z-card border border-z-border rounded-full transition-colors cursor-pointer focus:outline-none"
           >
             <X size={24} />
           </button>
@@ -189,7 +203,7 @@ export default function ProjectMediaContent({ sousProjets, coverImageUrl, projec
           {allImages.length > 1 && (
             <button 
               onClick={handlePrev}
-              className="absolute left-4 md:left-8 z-2001 p-4 text-white hover:text-z-blue bg-z-card/50 hover:bg-z-card border border-z-border/40 rounded-full transition-all cursor-pointer group focus:outline-none"
+              className="absolute left-4 md:left-8 z-[2001] p-4 text-white hover:text-z-blue bg-z-card/50 hover:bg-z-card border border-z-border/40 rounded-full transition-all cursor-pointer group focus:outline-none"
             >
               <ChevronLeft size={28} className="group-hover:-translate-x-0.5 transition-transform" />
             </button>
@@ -219,7 +233,7 @@ export default function ProjectMediaContent({ sousProjets, coverImageUrl, projec
           {allImages.length > 1 && (
             <button 
               onClick={handleNext}
-              className="absolute right-4 md:right-8 z-2001 p-4 text-white hover:text-z-blue bg-z-card/50 hover:bg-z-card border border-z-border/40 rounded-full transition-all cursor-pointer group focus:outline-none"
+              className="absolute right-4 md:right-8 z-[2001] p-4 text-white hover:text-z-blue bg-z-card/50 hover:bg-z-card border border-z-border/40 rounded-full transition-all cursor-pointer group focus:outline-none"
             >
               <ChevronRight size={28} className="group-hover:translate-x-0.5 transition-transform" />
             </button>
