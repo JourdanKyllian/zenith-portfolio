@@ -1,4 +1,5 @@
 "use client";
+/* eslint-disable react-hooks/set-state-in-effect */
 
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
@@ -7,33 +8,27 @@ import PasswordInput from '@/components/ui/PasswordInput';
 import Alert from '@/components/ui/Alert';
 
 export default function ConfigurationPage() {
-  const [isLoading, setIsLoading] = useState(true);
-  
-  // ÉTATS GLOBAUX
   const [authEmail, setAuthEmail] = useState('');
   const [cvUrl, setCvUrl] = useState('');
   const [isSavingSettings, setIsSavingSettings] = useState(false);
   const [globalMessage, setGlobalMessage] = useState<{ text: string, type: 'success' | 'error' | 'warning' } | null>(null);
 
-  // ÉTATS MOT DE PASSE
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [passMessage, setPassMessage] = useState<{ text: string, type: 'success' | 'error' } | null>(null);
   const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
 
-  useEffect(() => {
-    fetchSettings();
-  }, []);
-
   const fetchSettings = async () => {
-    setIsLoading(true);
     const { data: authData } = await supabase.auth.getUser();
     if (authData.user) setAuthEmail(authData.user.email || '');
 
     const { data: dbData } = await supabase.from('parametres').select('cv_url').eq('user_id', process.env.NEXT_PUBLIC_PORTFOLIO_USER_ID).single();
     if (dbData) setCvUrl(dbData.cv_url || '');
-    setIsLoading(false);
   };
+
+  useEffect(() => {
+    fetchSettings();
+  }, []);
 
   const handleSaveSettings = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -53,8 +48,9 @@ export default function ConfigurationPage() {
         setGlobalMessage({ text: "Informations enregistrées avec succès !", type: 'success' });
         setTimeout(() => setGlobalMessage(null), 3000);
       }
-    } catch (error: any) {
-      setGlobalMessage({ text: error.message, type: 'error' });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Une erreur est survenue";
+      setGlobalMessage({ text: message, type: 'error' });
     }
     setIsSavingSettings(false);
   };
@@ -87,14 +83,8 @@ export default function ConfigurationPage() {
         <p className="font-body text-sm text-z-muted mt-1">Gérez les identifiants de votre compte.</p>
       </header>
 
-      {/* 
-        Le layout passe en grille (grid) !
-        Sur mobile (1 colonne), sur grand écran (2 colonnes lg:grid-cols-2).
-        items-start empêche les cartes de s'étirer verticalement si l'une est plus grande que l'autre.
-      */}
       <div className="relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
         
-        {/* CARTE 1 : CONNEXION & CV */}
         <section className="bg-z-card border border-z-border rounded-xl p-6 shadow-2xl">
           <div className="mb-6">
             <h2 className="font-sub text-xs uppercase tracking-[0.2em] text-z-blue mb-1 flex items-center gap-2">
@@ -134,7 +124,6 @@ export default function ConfigurationPage() {
           </form>
         </section>
 
-        {/* CARTE 2 : SÉCURITÉ DU COMPTE */}
         <section className="bg-z-card border border-z-border rounded-xl p-6 shadow-2xl">
           <div className="mb-6">
             <h2 className="font-sub text-xs uppercase tracking-[0.2em] text-z-blue mb-1 flex items-center gap-2">

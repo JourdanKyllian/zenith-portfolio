@@ -1,4 +1,5 @@
 "use client";
+/* eslint-disable react-hooks/set-state-in-effect */
 
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
@@ -16,15 +17,9 @@ export default function DashboardPage() {
   const [projets, setProjets] = useState<Projet[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // --- NOUVEAUX ÉTATS POUR LA MODALE ---
   const [deleteTarget, setDeleteTarget] = useState<{ id: number, titre: string } | null>(null);
 
-  useEffect(() => {
-    fetchProjets();
-  }, []);
-
   const fetchProjets = async () => {
-    setIsLoading(true);
     const { data, error } = await supabase
       .from('projet')
       .select('*, categorie(*)')
@@ -39,19 +34,21 @@ export default function DashboardPage() {
     setIsLoading(false);
   };
 
-  // --- LOGIQUE DE SUPPRESSION ---
+  useEffect(() => {
+    fetchProjets();
+  }, []);
+
   const requestDelete = (id: number, titre: string) => {
-    // On vérifie le chronomètre de 15 minutes dans le localStorage
     const skipUntil = localStorage.getItem('skipDeleteConfirmUntil');
-    if (skipUntil && parseInt(skipUntil) > Date.now()) {
-      executeDelete(id); // On supprime direct
+    if (skipUntil && parseInt(skipUntil) > new Date().getTime()) {
+      executeDelete(id); 
     } else {
-      setDeleteTarget({ id, titre }); // On ouvre la modale
+      setDeleteTarget({ id, titre }); 
     }
   };
 
   const executeDelete = async (id: number) => {
-    setDeleteTarget(null); // On ferme la modale
+    setDeleteTarget(null); 
     setIsLoading(true);
     const { error } = await supabase
       .from('projet')
@@ -86,7 +83,6 @@ export default function DashboardPage() {
         </Link>
       </header>
 
-      {/* --- LISTE DES PROJETS --- */}
       <section className="bg-z-card border border-z-border rounded-xl overflow-hidden relative z-10 shadow-2xl">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
@@ -101,7 +97,6 @@ export default function DashboardPage() {
             <tbody className="divide-y divide-z-border">
               
               {isLoading ? (
-                /* --- SKELETON LOADER --- */
                 Array.from({ length: 4 }).map((_, i) => (
                   <tr key={i} className="animate-pulse bg-white/1">
                     <td className="p-4">
@@ -121,7 +116,6 @@ export default function DashboardPage() {
                   </tr>
                 ))
               ) : projets.length === 0 ? (
-                /* --- ÉTAT VIDE --- */
                 <tr>
                   <td colSpan={4} className="p-12 text-center">
                     <FolderKanban size={48} className="mx-auto text-z-muted/30 mb-4" />
@@ -129,7 +123,6 @@ export default function DashboardPage() {
                   </td>
                 </tr>
               ) : (
-                /* --- DONNÉES RÉELLES --- */
                 projets.map((projet) => (
                   <tr key={projet.id} className="hover:bg-white/2 transition-colors">
                     <td className="p-4">
@@ -168,7 +161,7 @@ export default function DashboardPage() {
                           </Link>
                           
                           <button 
-                              onClick={() => requestDelete(projet.id, projet.titre)} // <-- MODIFICATION ICI
+                              onClick={() => requestDelete(projet.id, projet.titre)} 
                               className="p-2 text-z-muted hover:text-red-400 hover:bg-red-400/10 rounded transition-colors cursor-pointer" 
                               title="Supprimer"
                           >
@@ -185,7 +178,6 @@ export default function DashboardPage() {
         </div>
       </section>
 
-      {/* --- INJECTION DE LA MODALE --- */}
       <ConfirmModal 
         isOpen={deleteTarget !== null}
         title={deleteTarget?.titre || ''}

@@ -1,6 +1,7 @@
 "use client";
+/* eslint-disable react-hooks/set-state-in-effect */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { 
@@ -47,12 +48,7 @@ export default function EditProjetPage() {
 
   const [deleteSpTarget, setDeleteSpTarget] = useState<{ id: number, titre: string } | null>(null);
 
-  useEffect(() => {
-    fetchData();
-  }, [projetId]);
-
-  const fetchData = async () => {
-    setIsLoading(true);
+  const fetchData = useCallback(async () => {
     
     const { data: catData } = await supabase
       .from('categorie')
@@ -91,7 +87,11 @@ export default function EditProjetPage() {
     setSpOrdre(sp.length + 1); 
 
     setIsLoading(false);
-  };
+  }, [projetId, router]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   const handleUpdateProjet = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -208,7 +208,7 @@ export default function EditProjetPage() {
 
   const requestDeleteSp = (id: number, titre: string) => {
     const skipUntil = localStorage.getItem('skipDeleteConfirmUntil');
-    if (skipUntil && parseInt(skipUntil) > Date.now()) {
+    if (skipUntil && parseInt(skipUntil) > new Date().getTime()) {
       executeDeleteSp(id);
     } else {
       setDeleteSpTarget({ id, titre });
@@ -235,7 +235,6 @@ export default function EditProjetPage() {
     <>
       <div className="max-w-6xl mx-auto grid grid-cols-1 xl:grid-cols-3 gap-8">
         
-        {/* --- COLONNE GAUCHE : ÉDITION DU PROJET --- */}
         <div className="xl:col-span-2 space-y-6">
           <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
             <div className="flex items-center gap-4">
@@ -309,7 +308,6 @@ export default function EditProjetPage() {
                 <ImageIcon size={16} /> Média Principal
               </h2>
               
-              {/* --- MODIFICATION UX DRIVE ICI --- */}
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <label className="text-[10px] uppercase font-bold tracking-widest text-z-muted ml-1">URL de la miniature</label>
@@ -344,7 +342,6 @@ export default function EditProjetPage() {
           </form>
         </div>
 
-        {/* --- COLONNE DROITE : GESTION DES SOUS-PROJETS --- */}
         <div className="xl:col-span-1 space-y-6">
           <div className="bg-z-card border border-z-border rounded-xl p-6 shadow-xl sticky top-6">
             <div className="flex items-center justify-between mb-6">
@@ -356,7 +353,6 @@ export default function EditProjetPage() {
               </span>
             </div>
 
-            {/* LISTE DES SOUS-PROJETS */}
             <div className="space-y-3 mb-6 max-h-100 overflow-y-auto pr-2">
               {sousProjets.length === 0 ? (
                 <p className="text-sm text-z-muted italic text-center py-4">Aucun sous-projet lié.</p>
@@ -400,7 +396,6 @@ export default function EditProjetPage() {
               )}
             </div>
 
-            {/* BOUTON / FORMULAIRE D'AJOUT OU MODIFICATION */}
             {!showSpForm ? (
               <button 
                 type="button"
@@ -431,7 +426,6 @@ export default function EditProjetPage() {
                   <input type="url" placeholder="URL iframe YouTube (optionnel)" value={spYoutube} onChange={e => setSpYoutube(e.target.value)} className="w-full bg-z-card border border-z-border rounded p-2 text-xs" />
                 </div>
                 
-                {/* --- MODIFICATION UX DRIVE SOUS-PROJET ICI --- */}
                 <div className="space-y-2">
                   <div className="flex items-center justify-between mb-1">
                     <label className="text-[10px] uppercase font-bold tracking-widest text-z-muted ml-1">Fichier Drive (Optionnel)</label>

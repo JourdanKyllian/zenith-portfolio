@@ -16,12 +16,10 @@ export default function ConfirmModal({ isOpen, title, onConfirm, onCancel }: Con
   if (!isOpen) return null;
 
   const handleConfirm = () => {
-    // Si la case est cochée, on enregistre un timestamp (+15 minutes) dans le navigateur
     if (dontAskAgain) {
       const expiry = Date.now() + 15 * 60 * 1000;
       localStorage.setItem('skipDeleteConfirmUntil', expiry.toString());
     }
-    // On réinitialise l'état local au cas où pour la prochaine fois
     setDontAskAgain(false);
     onConfirm();
   };
@@ -35,7 +33,6 @@ export default function ConfirmModal({ isOpen, title, onConfirm, onCancel }: Con
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
       <div className="bg-z-card border border-z-border rounded-xl shadow-2xl max-w-md w-full overflow-hidden animate-in fade-in zoom-in duration-200">
         
-        {/* En-tête de la modale */}
         <div className="flex items-center justify-between p-4 border-b border-z-border bg-white/5">
           <div className="flex items-center gap-2 text-red-400">
             <AlertTriangle size={18} />
@@ -46,10 +43,9 @@ export default function ConfirmModal({ isOpen, title, onConfirm, onCancel }: Con
           </button>
         </div>
 
-        {/* Corps de la modale */}
         <div className="p-6 space-y-4">
           <p className="text-sm font-body text-z-text">
-            Êtes-vous sûr de vouloir supprimer <strong className="text-white">"{title}"</strong> ?
+            Êtes-vous sûr de vouloir supprimer <strong className="text-white">&quot;{title}&quot;</strong> ?
           </p>
           <p className="text-xs text-z-muted italic">
             Cette action est irréversible et supprimera également toutes les données qui y sont liées.
@@ -68,7 +64,6 @@ export default function ConfirmModal({ isOpen, title, onConfirm, onCancel }: Con
           </label>
         </div>
 
-        {/* Pied de la modale (Boutons) */}
         <div className="flex gap-2 p-4 bg-white/5 border-t border-z-border">
           <button 
             onClick={handleCancel} 

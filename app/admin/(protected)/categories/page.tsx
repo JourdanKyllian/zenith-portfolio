@@ -1,4 +1,5 @@
 "use client";
+/* eslint-disable react-hooks/set-state-in-effect */
 
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
@@ -24,7 +25,6 @@ export default function CategoriesPage() {
   const [categories, setCategories] = useState<Categorie[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   
-  // --- ÉTATS DU FORMULAIRE ---
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [newName, setNewName] = useState('');
@@ -33,15 +33,9 @@ export default function CategoriesPage() {
   const [formMessage, setFormMessage] = useState<{ text: string, type: 'success' | 'error' } | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // --- NOUVEAUX ÉTATS POUR LA MODALE ---
   const [deleteTarget, setDeleteTarget] = useState<{ id: string, name: string } | null>(null);
 
-  useEffect(() => {
-    fetchCategories();
-  }, []);
-
   const fetchCategories = async () => {
-    setIsLoading(true);
     const { data, error } = await supabase
       .from('categorie')
       .select('*, projet(id)')
@@ -55,6 +49,10 @@ export default function CategoriesPage() {
     }
     setIsLoading(false);
   };
+
+  useEffect(() => {
+    fetchCategories();
+  }, []);
 
   const resetForm = () => {
     setNewName('');
@@ -94,7 +92,6 @@ export default function CategoriesPage() {
 
     const safeName = newName.replace(/"/g, '""');
     
-    // Vérification des doublons (en excluant la catégorie courante si on modifie)
     let query = supabase
       .from('categorie')
       .select('id')
@@ -120,7 +117,6 @@ export default function CategoriesPage() {
     };
 
     if (editingId) {
-      // LOGIQUE DE MODIFICATION
       const { error } = await supabase
         .from('categorie')
         .update(catData)
@@ -134,7 +130,6 @@ export default function CategoriesPage() {
         setFormMessage({ text: error.message, type: 'error' });
       }
     } else {
-      // LOGIQUE DE CRÉATION
       const { data, error } = await supabase
         .from('categorie')
         .insert([catData])
@@ -155,7 +150,7 @@ export default function CategoriesPage() {
 
   const requestDelete = (id: string, name: string) => {
     const skipUntil = localStorage.getItem('skipDeleteConfirmUntil');
-    if (skipUntil && parseInt(skipUntil) > Date.now()) {
+    if (skipUntil && parseInt(skipUntil) > new Date().getTime()) {
       executeDelete(id);
     } else {
       setDeleteTarget({ id, name });

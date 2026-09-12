@@ -5,38 +5,29 @@ import Image from 'next/image';
 import { Mail, MessageSquare, Send, CheckCircle2, AlertCircle } from 'lucide-react';
 import { sendEmail } from '../actions/sendEmail';
 
-/**
- * Client Component : Gère l'affichage, les états d'envoi synchrones, 
- * et l'injection des charges utiles techniques requises par les processus de sécurité.
- */
 export default function ContactPage() {
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [feedbackMessage, setFeedbackMessage] = useState<string | null>(null);
-  const [mountedAt, setMountedAt] = useState<number>(0);
+  
+  const mountedAt = useRef<number>(0);
   const formRef = useRef<HTMLFormElement>(null);
 
   useEffect(() => {
-    setMountedAt(Date.now());
+    mountedAt.current = Date.now();
   }, []);
 
-  /**
-   * Intercepte l'événement de soumission, injecte les métadonnées temporelles
-   * et transmet la charge utile au traitement asynchrone côté serveur.
-   * 
-   * @param {FormData} formData - Instance de données du formulaire natif HTML.
-   */
   async function handleAction(formData: FormData) {
     setStatus('loading');
     setFeedbackMessage(null);
 
-    formData.append('form_timestamp', mountedAt.toString());
+    formData.append('form_timestamp', mountedAt.current.toString());
 
     const result = await sendEmail(formData);
 
     if (result.success) {
       setStatus('success');
       formRef.current?.reset();
-      setMountedAt(Date.now());
+      mountedAt.current = Date.now(); 
       setTimeout(() => setStatus('idle'), 5000);
     } else {
       setStatus('error');

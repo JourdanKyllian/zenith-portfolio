@@ -13,13 +13,15 @@ export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   
+  // Ici, le chargement est à FALSE par défaut (contrairement au dashboard)
   const [isLoading, setIsLoading] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
   
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
-  const handleLogin = async (e: React.FormEvent) => {
+  // Utilisation de SyntheticEvent pour satisfaire le typage React 19
+  const handleLogin = async (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsLoading(true);
     setErrorMessage(null);
@@ -33,7 +35,7 @@ export default function LoginPage() {
 
       if (error) {
         setErrorMessage("Identifiants incorrects ou accès refusé.");
-        setIsLoading(false);
+        setIsLoading(false); // On retire le chargement si ça échoue
         return;
       }
 
@@ -132,7 +134,6 @@ export default function LoginPage() {
               </div>
             </div>
 
-            {/* Zone d'affichage des alertes avec le composant DRY */}
             {errorMessage && <Alert type="error">{errorMessage}</Alert>}
             {successMessage && <Alert type="success">{successMessage}</Alert>}
 

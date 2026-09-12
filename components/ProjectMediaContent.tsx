@@ -187,7 +187,7 @@ export default function ProjectMediaContent({ sousProjets, coverImageUrl, projec
       </div>
 
       {isOpen && allImages.length > 0 && (
-        <div className="fixed inset-0 z-[2000] flex items-center justify-center bg-z-bg/95 backdrop-blur-md select-none animate-fade-in">
+        <div className="fixed inset-0 z-2000 flex items-center justify-center bg-z-bg/95 backdrop-blur-md select-none animate-fade-in">
           <div className="hidden" aria-hidden="true">
             <img src={getHdUrl(allImages[nextIndex])} alt="" />
             <img src={getHdUrl(allImages[prevIndex])} alt="" />
@@ -195,7 +195,7 @@ export default function ProjectMediaContent({ sousProjets, coverImageUrl, projec
 
           <button 
             onClick={() => setIsOpen(false)}
-            className="absolute top-6 right-6 z-[2001] p-3 text-z-muted hover:text-white bg-z-card border border-z-border rounded-full transition-colors cursor-pointer focus:outline-none"
+            className="absolute top-6 right-6 z-2001 p-3 text-z-muted hover:text-white bg-z-card border border-z-border rounded-full transition-colors cursor-pointer focus:outline-none"
           >
             <X size={24} />
           </button>
@@ -203,7 +203,7 @@ export default function ProjectMediaContent({ sousProjets, coverImageUrl, projec
           {allImages.length > 1 && (
             <button 
               onClick={handlePrev}
-              className="absolute left-4 md:left-8 z-[2001] p-4 text-white hover:text-z-blue bg-z-card/50 hover:bg-z-card border border-z-border/40 rounded-full transition-all cursor-pointer group focus:outline-none"
+              className="absolute left-4 md:left-8 z-2001 p-4 text-white hover:text-z-blue bg-z-card/50 hover:bg-z-card border border-z-border/40 rounded-full transition-all cursor-pointer group focus:outline-none"
             >
               <ChevronLeft size={28} className="group-hover:-translate-x-0.5 transition-transform" />
             </button>
@@ -233,7 +233,7 @@ export default function ProjectMediaContent({ sousProjets, coverImageUrl, projec
           {allImages.length > 1 && (
             <button 
               onClick={handleNext}
-              className="absolute right-4 md:right-8 z-[2001] p-4 text-white hover:text-z-blue bg-z-card/50 hover:bg-z-card border border-z-border/40 rounded-full transition-all cursor-pointer group focus:outline-none"
+              className="absolute right-4 md:right-8 z-2001 p-4 text-white hover:text-z-blue bg-z-card/50 hover:bg-z-card border border-z-border/40 rounded-full transition-all cursor-pointer group focus:outline-none"
             >
               <ChevronRight size={28} className="group-hover:translate-x-0.5 transition-transform" />
             </button>
