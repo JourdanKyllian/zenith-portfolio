@@ -14,25 +14,54 @@ interface SocialLinksProps {
 }
 
 export default function SocialLinks({ variant, links }: SocialLinksProps) {
+  // Vérifie s'il y a au moins un lien valide (non vide et non nul)
+  const hasLinks = Object.values(links).some(url => url && url.trim() !== '');
+
+  // Si aucun réseau n'est renseigné, on désintègre le composant (aucun espace mort)
+  if (!hasLinks) return null;
+
   // --- VARIANT FOOTER ---
   if (variant === 'footer') {
     return (
-      <div className="flex items-center gap-3">
-        {links.linkedin && (
-          <SocialBubble href={links.linkedin} ariaLabel="LinkedIn"><LinkedinIcon size={18} /></SocialBubble>
-        )}
-        {links.instagram && (
-          <SocialBubble href={links.instagram} ariaLabel="Instagram"><InstagramIcon size={18} /></SocialBubble>
-        )}
-        {links.facebook && (
-          <SocialBubble href={links.facebook} ariaLabel="Facebook"><FacebookIcon size={18} /></SocialBubble>
-        )}
-        {links.tiktok && (
-          <SocialBubble href={links.tiktok} ariaLabel="TikTok"><TiktokIcon size={18} /></SocialBubble>
-        )}
-        {links.youtube && (
-          <SocialBubble href={links.youtube} ariaLabel="YouTube"><YoutubeIcon size={18} /></SocialBubble>
-        )}
+      <div className="flex flex-col items-center md:items-start gap-4 animate-fade-in w-full md:w-auto mt-8 md:mt-0">
+        
+        {/* En-tête : Titre + Trait de séparation vers la droite */}
+        <div className="flex items-center justify-center md:justify-start gap-4 w-full">
+          <span className="font-sub text-xs sm:text-sm font-bold uppercase tracking-[0.25em] text-z-muted">
+            Mes réseaux
+          </span>
+          {/* Le trait prend le reste de l'espace disponible vers la droite (uniquement sur ordinateur) */}
+          <span className="hidden md:block flex-1 h-px bg-z-border min-w-15 max-w-37.5"></span>
+        </div>
+        
+        {/* Bulles des réseaux : Alignées à gauche sous le 'M' sur ordinateur, centrées sur mobile */}
+        <div className="flex items-center justify-center md:justify-start gap-3 w-full">
+          {links.linkedin && (
+            <SocialBubble href={links.linkedin} ariaLabel="LinkedIn">
+              <LinkedinIcon size={18} />
+            </SocialBubble>
+          )}
+          {links.instagram && (
+            <SocialBubble href={links.instagram} ariaLabel="Instagram">
+              <InstagramIcon size={18} />
+            </SocialBubble>
+          )}
+          {links.facebook && (
+            <SocialBubble href={links.facebook} ariaLabel="Facebook">
+              <FacebookIcon size={18} />
+            </SocialBubble>
+          )}
+          {links.tiktok && (
+            <SocialBubble href={links.tiktok} ariaLabel="TikTok">
+              <TiktokIcon size={18} />
+            </SocialBubble>
+          )}
+          {links.youtube && (
+            <SocialBubble href={links.youtube} ariaLabel="YouTube">
+              <YoutubeIcon size={18} />
+            </SocialBubble>
+          )}
+        </div>
       </div>
     );
   }
