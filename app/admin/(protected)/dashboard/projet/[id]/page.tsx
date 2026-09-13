@@ -12,6 +12,7 @@ import Link from 'next/link';
 import { Categorie, Projet, SousProjet } from '@/types';
 import ConfirmModal from '@/components/ui/ConfirmModal';
 import Alert from '@/components/ui/Alert';
+import { purgeCache } from '@/app/actions/revalidate';
 
 export default function EditProjetPage() {
   const router = useRouter();
@@ -135,6 +136,8 @@ export default function EditProjetPage() {
     if (error) {
       setMessage({ text: "Erreur lors de la sauvegarde : " + error.message, type: 'error' });
     } else {
+      // Purge globale du site
+      await purgeCache();
       setMessage({ text: "Projet mis à jour avec succès !", type: 'success' });
       setTimeout(() => setMessage(null), 3000);
     }
@@ -183,6 +186,8 @@ export default function EditProjetPage() {
         .eq('id', editingSpId);
 
       if (!error) {
+        // Purge globale
+        await purgeCache();
         setSousProjets(sousProjets.map(sp => 
           sp.id === editingSpId ? { ...sp, ...spData, id: editingSpId } : sp
         ).sort((a, b) => a.ordre - b.ordre));
@@ -198,6 +203,8 @@ export default function EditProjetPage() {
         .single();
 
       if (!error && data) {
+        // Purge globale
+        await purgeCache();
         setSousProjets([...sousProjets, data as SousProjet].sort((a, b) => a.ordre - b.ordre));
         resetSpForm();
       } else {
@@ -223,6 +230,8 @@ export default function EditProjetPage() {
       .eq('id', id);
 
     if (!error) {
+      // Purge globale
+      await purgeCache();
       setSousProjets(sousProjets.filter(sp => sp.id !== id));
     }
   };

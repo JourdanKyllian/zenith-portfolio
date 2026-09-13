@@ -7,6 +7,7 @@ import { ArrowLeft, Save, Image as ImageIcon, Link2, FileText, ToggleLeft, Toggl
 import Link from 'next/link';
 import { Categorie } from '@/types';
 import Alert from '@/components/ui/Alert';
+import { purgeCache } from '@/app/actions/revalidate';
 
 export default function NouveauProjetPage() {
   const router = useRouter();
@@ -96,6 +97,8 @@ export default function NouveauProjetPage() {
       setErrorMessage(error.message);
       setIsSubmitting(false);
     } else if (data) {
+      // Purge globale (Accueil + Galerie potentiellement impactés)
+      await purgeCache();
       router.push(`/admin/dashboard/projet/${data.id}`);
     }
   };

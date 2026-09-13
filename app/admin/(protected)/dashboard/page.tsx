@@ -12,6 +12,7 @@ import {
 import Link from 'next/link';
 import { Projet } from '@/types';
 import ConfirmModal from '@/components/ui/ConfirmModal';
+import { purgeCache } from '@/app/actions/revalidate';
 
 export default function DashboardPage() {
   const [projets, setProjets] = useState<Projet[]>([]);
@@ -56,6 +57,8 @@ export default function DashboardPage() {
       .eq('id', id);
 
     if (!error) {
+      // Purge globale (impacte accueil + galerie)
+      await purgeCache();
       setProjets(projets.filter(p => p.id !== id));
     } else {
       console.error("Erreur lors de la suppression :", error);

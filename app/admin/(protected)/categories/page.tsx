@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import ConfirmModal from '@/components/ui/ConfirmModal';
 import Alert from '@/components/ui/Alert';
+import { purgeCache } from '@/app/actions/revalidate';
 
 interface Categorie {
   id: string;
@@ -123,6 +124,8 @@ export default function CategoriesPage() {
         .eq('id', editingId);
 
       if (!error) {
+        // Purge de la galerie
+        await purgeCache('/projet');
         setCategories(categories.map(c => c.id === editingId ? { ...c, ...catData } : c).sort((a, b) => a.name.localeCompare(b.name)));
         setFormMessage({ text: "Catégorie mise à jour avec succès !", type: 'success' });
         setTimeout(() => resetForm(), 1500);
@@ -137,6 +140,8 @@ export default function CategoriesPage() {
         .single();
 
       if (!error && data) {
+        // Purge de la galerie
+        await purgeCache('/projet');
         setCategories([...categories, data as Categorie].sort((a, b) => a.name.localeCompare(b.name)));
         setFormMessage({ text: "Catégorie créée avec succès !", type: 'success' });
         setTimeout(() => resetForm(), 1500);
@@ -161,6 +166,8 @@ export default function CategoriesPage() {
     setDeleteTarget(null);
     const { error } = await supabase.from('categorie').delete().eq('id', id);
     if (!error) {
+      // Purge de la galerie
+      await purgeCache('/projet');
       setCategories(categories.filter(c => c.id !== id));
     }
   };

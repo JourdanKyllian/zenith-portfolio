@@ -7,6 +7,7 @@ import { Link as LinkIcon, Mail, ShieldCheck, User, Share2, Edit3, X, ExternalLi
 import { LinkedinIcon, InstagramIcon, FacebookIcon, YoutubeIcon, TiktokIcon } from '@/components/SocialIcons';
 import PasswordInput from '@/components/ui/PasswordInput';
 import Alert from '@/components/ui/Alert';
+import { purgeCache } from '@/app/actions/revalidate';
 
 export default function ConfigurationPage() {
   const [authEmail, setAuthEmail] = useState('');
@@ -19,7 +20,6 @@ export default function ConfigurationPage() {
   const [passMessage, setPassMessage] = useState<{ text: string, type: 'success' | 'error' } | null>(null);
   const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
 
-  // --- ÉTATS RÉSEAUX SOCIAUX ---
   const [socials, setSocials] = useState({
     linkedin_url: '',
     instagram_url: '',
@@ -28,7 +28,6 @@ export default function ConfigurationPage() {
     youtube_url: ''
   });
   
-  // Nouvel état pour suivre individuellement quel réseau est en cours d'édition
   const [editingSocials, setEditingSocials] = useState<Record<string, boolean>>({});
   const [isSavingSocials, setIsSavingSocials] = useState(false);
   const [socialMessage, setSocialMessage] = useState<{ text: string, type: 'success' | 'error' } | null>(null);
@@ -69,6 +68,8 @@ export default function ConfigurationPage() {
         if (authError) throw new Error(authError.message);
         setGlobalMessage({ text: "Un mail de confirmation a été envoyé à la nouvelle adresse.", type: 'warning' });
       } else {
+        // Purge du cache global
+        await purgeCache('/');
         setGlobalMessage({ text: "Informations enregistrées avec succès !", type: 'success' });
         setTimeout(() => setGlobalMessage(null), 3000);
       }
@@ -123,11 +124,11 @@ export default function ConfigurationPage() {
 
       if (error) throw new Error(error.message);
       
+      // Purge du cache global (Layout/Footer)
+      await purgeCache('/');
+      
       setSocialMessage({ text: "Réseaux sociaux mis à jour avec succès !", type: 'success' });
-      
-      // On referme tous les champs en mode édition après sauvegarde
       setEditingSocials({});
-      
       setTimeout(() => setSocialMessage(null), 3000);
     } catch (error) {
       const message = error instanceof Error ? error.message : "Une erreur est survenue";
@@ -136,7 +137,6 @@ export default function ConfigurationPage() {
     setIsSavingSocials(false);
   };
 
-  // Tableau de configuration pour générer l'UI dynamiquement (DRY)
   const socialFields: { id: keyof typeof socials; label: string; icon: React.ElementType; placeholder: string }[] = [
     { id: 'linkedin_url', label: 'LinkedIn', icon: LinkedinIcon, placeholder: 'https://linkedin.com/in/...' },
     { id: 'instagram_url', label: 'Instagram', icon: InstagramIcon, placeholder: 'https://instagram.com/...' },
@@ -153,8 +153,6 @@ export default function ConfigurationPage() {
       </header>
 
       <div className="relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
-        
-        {/* CARTE 1 : CONNEXION & CV */}
         <section className="bg-z-card border border-z-border rounded-xl p-6 shadow-2xl">
           <div className="mb-6">
             <h2 className="font-sub text-xs uppercase tracking-[0.2em] text-z-blue mb-1 flex items-center gap-2">
@@ -194,7 +192,6 @@ export default function ConfigurationPage() {
           </form>
         </section>
 
-        {/* CARTE 2 : SÉCURITÉ */}
         <section className="bg-z-card border border-z-border rounded-xl p-6 shadow-2xl">
           <div className="mb-6">
             <h2 className="font-sub text-xs uppercase tracking-[0.2em] text-z-blue mb-1 flex items-center gap-2">
@@ -221,7 +218,6 @@ export default function ConfigurationPage() {
           </form>
         </section>
 
-        {/* CARTE 3 : RÉSEAUX SOCIAUX (MODE INLINE EDIT) */}
         <section className="bg-z-card border border-z-border rounded-xl p-6 shadow-2xl lg:col-span-2">
           <div className="mb-8">
             <h2 className="font-sub text-xs uppercase tracking-[0.2em] text-z-blue mb-1 flex items-center gap-2">
@@ -245,7 +241,6 @@ export default function ConfigurationPage() {
                     </label>
 
                     {!isEditing ? (
-                      // MODE AFFICHAGE LECTURE SEULE
                       <div className="flex items-center justify-between p-3 bg-white/5 border border-z-border rounded-lg group h-11.5 transition-colors hover:bg-white/10">
                         <div className="flex items-center gap-3 overflow-hidden pr-2">
                           {value ? (
@@ -272,7 +267,6 @@ export default function ConfigurationPage() {
                         </button>
                       </div>
                     ) : (
-                      // MODE ÉDITION (INPUT)
                       <div className="flex items-center gap-2 h-11.5 animate-in fade-in slide-in-from-right-2 duration-200">
                         <input 
                           type="url" 
