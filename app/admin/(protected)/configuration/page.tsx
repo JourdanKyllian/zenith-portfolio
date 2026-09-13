@@ -10,6 +10,7 @@ import Alert from '@/components/ui/Alert';
 import { purgeCache } from '@/app/actions/revalidate';
 
 export default function ConfigurationPage() {
+  const [isLoading, setIsLoading] = useState(true);
   const [authEmail, setAuthEmail] = useState('');
   const [cvUrl, setCvUrl] = useState('');
   const [isSavingSettings, setIsSavingSettings] = useState(false);
@@ -32,24 +33,25 @@ export default function ConfigurationPage() {
   const [isSavingSocials, setIsSavingSocials] = useState(false);
   const [socialMessage, setSocialMessage] = useState<{ text: string, type: 'success' | 'error' } | null>(null);
 
-  const fetchSettings = async () => {
-    const { data: authData } = await supabase.auth.getUser();
-    if (authData.user) setAuthEmail(authData.user.email || '');
-
-    const { data: dbData } = await supabase.from('parametres').select('*').eq('user_id', process.env.NEXT_PUBLIC_PORTFOLIO_USER_ID).single();
-    if (dbData) {
-      setCvUrl(dbData.cv_url || '');
-      setSocials({
-        linkedin_url: dbData.linkedin_url || '',
-        instagram_url: dbData.instagram_url || '',
-        facebook_url: dbData.facebook_url || '',
-        tiktok_url: dbData.tiktok_url || '',
-        youtube_url: dbData.youtube_url || ''
-      });
-    }
-  };
-
   useEffect(() => {
+    const fetchSettings = async () => {
+      const { data: authData } = await supabase.auth.getUser();
+      if (authData.user) setAuthEmail(authData.user.email || '');
+
+      const { data: dbData } = await supabase.from('parametres').select('*').eq('user_id', process.env.NEXT_PUBLIC_PORTFOLIO_USER_ID).single();
+      if (dbData) {
+        setCvUrl(dbData.cv_url || '');
+        setSocials({
+          linkedin_url: dbData.linkedin_url || '',
+          instagram_url: dbData.instagram_url || '',
+          facebook_url: dbData.facebook_url || '',
+          tiktok_url: dbData.tiktok_url || '',
+          youtube_url: dbData.youtube_url || ''
+        });
+      }
+      setIsLoading(false);
+    };
+
     fetchSettings();
   }, []);
 
@@ -68,7 +70,6 @@ export default function ConfigurationPage() {
         if (authError) throw new Error(authError.message);
         setGlobalMessage({ text: "Un mail de confirmation a été envoyé à la nouvelle adresse.", type: 'warning' });
       } else {
-        // Purge du cache global
         await purgeCache('/');
         setGlobalMessage({ text: "Informations enregistrées avec succès !", type: 'success' });
         setTimeout(() => setGlobalMessage(null), 3000);
@@ -124,9 +125,7 @@ export default function ConfigurationPage() {
 
       if (error) throw new Error(error.message);
       
-      // Purge du cache global (Layout/Footer)
       await purgeCache('/');
-      
       setSocialMessage({ text: "Réseaux sociaux mis à jour avec succès !", type: 'success' });
       setEditingSocials({});
       setTimeout(() => setSocialMessage(null), 3000);
@@ -144,6 +143,58 @@ export default function ConfigurationPage() {
     { id: 'tiktok_url', label: 'TikTok', icon: TiktokIcon, placeholder: 'https://tiktok.com/...' },
     { id: 'youtube_url', label: 'YouTube', icon: YoutubeIcon, placeholder: 'https://youtube.com/...' },
   ];
+
+  if (isLoading) {
+    return (
+      <>
+        <header className="mb-10 relative z-10">
+          <h1 className="font-display font-bold text-3xl uppercase tracking-wider text-white">Configuration</h1>
+          <p className="font-body text-sm text-z-muted mt-1">Gérez les identifiants de votre compte.</p>
+        </header>
+        
+        <div className="relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+          {/* Skeleton Carte 1 */}
+          <section className="bg-z-card border border-z-border rounded-xl p-6 shadow-2xl animate-pulse">
+            <div className="h-4 w-32 bg-white/10 rounded mb-2"></div>
+            <div className="h-3 w-48 bg-white/5 rounded mb-8"></div>
+            <div className="space-y-6">
+              <div><div className="h-3 w-24 bg-white/10 rounded mb-2"></div><div className="h-11 bg-white/5 rounded-lg border border-z-border"></div></div>
+              <div><div className="h-3 w-24 bg-white/10 rounded mb-2"></div><div className="h-11 bg-white/5 rounded-lg border border-z-border"></div></div>
+              <div className="h-11 w-40 bg-z-blue/20 rounded-lg mt-2"></div>
+            </div>
+          </section>
+
+          {/* Skeleton Carte 2 */}
+          <section className="bg-z-card border border-z-border rounded-xl p-6 shadow-2xl animate-pulse">
+            <div className="h-4 w-32 bg-white/10 rounded mb-2"></div>
+            <div className="h-3 w-48 bg-white/5 rounded mb-8"></div>
+            <div className="space-y-6">
+              <div><div className="h-3 w-24 bg-white/10 rounded mb-2"></div><div className="h-11 bg-white/5 rounded-lg border border-z-border"></div></div>
+              <div><div className="h-3 w-24 bg-white/10 rounded mb-2"></div><div className="h-11 bg-white/5 rounded-lg border border-z-border"></div></div>
+              <div className="h-11 w-48 bg-white/5 border border-z-border rounded-lg mt-2"></div>
+            </div>
+          </section>
+
+          {/* Skeleton Carte 3 (Réseaux) */}
+          <section className="bg-z-card border border-z-border rounded-xl p-6 shadow-2xl lg:col-span-2 animate-pulse">
+            <div className="h-4 w-32 bg-white/10 rounded mb-2"></div>
+            <div className="h-3 w-48 bg-white/5 rounded mb-8"></div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6 mb-6">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <div key={i}>
+                  <div className="h-3 w-20 bg-white/10 rounded mb-2"></div>
+                  <div className="h-11.5 bg-white/5 rounded-lg border border-z-border"></div>
+                </div>
+              ))}
+            </div>
+            <div className="pt-4 border-t border-z-border">
+              <div className="h-11 w-48 bg-z-blue/20 rounded-lg mt-2"></div>
+            </div>
+          </section>
+        </div>
+      </>
+    );
+  }
 
   return (
     <>

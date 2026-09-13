@@ -6,9 +6,24 @@ import { getProjectAssetsFromDrive, DriveAssets } from '@/lib/googleDrive';
 import { SousProjet, Projet } from '@/types';
 import ProjectMediaContent from '@/components/ProjectMediaContent';
 import { getBadgeTheme } from '@/config/colors';
-import SocialLinks from '@/components/SocialLinks'; // Import du composant mutualisé
+import SocialLinks from '@/components/SocialLinks';
 
 export const revalidate = 3600;
+
+// --- NOUVEAUTÉ : PRÉ-GÉNÉRATION STATIQUE ---
+export async function generateStaticParams() {
+  const { data: projets } = await supabase
+    .from('projet')
+    .select('slug')
+    .eq('en_ligne', true)
+    .eq('user_id', process.env.NEXT_PUBLIC_PORTFOLIO_USER_ID);
+
+  if (!projets) return [];
+
+  return projets.map((projet) => ({
+    slug: projet.slug,
+  }));
+}
 
 interface ProcessedSousProjet extends SousProjet {
   finalYoutubeUrl: string | null;
@@ -140,7 +155,6 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
                 </div>
               )}
 
-              {/* Injection du composant mutualisé en variante 'project' */}
               {(project.link_instagram || project.link_youtube || project.link_tiktok || project.link_twitch || project.link_facebook) && (
                 <SocialLinks 
                   variant="project" 

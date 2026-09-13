@@ -166,7 +166,7 @@ export default function ProjectMediaContent({ sousProjets, coverImageUrl, projec
                         sizes="(max-width: 768px) 100vw, 33vw"
                         className="object-cover transition-transform duration-500 group-hover:scale-102" 
                         alt={`${seoDescription} (${imgIndex + 1})`}
-                        loading="lazy"
+                        priority={idx === 0 && imgIndex < 2}
                       />
                       
                       <div className="absolute inset-0 bg-z-night/70 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-2 z-10">
