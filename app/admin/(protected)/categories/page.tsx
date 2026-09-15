@@ -14,11 +14,14 @@ import {
 import ConfirmModal from '@/components/ui/ConfirmModal';
 import Alert from '@/components/ui/Alert';
 import { purgeCache } from '@/app/actions/revalidate';
+import { CATEGORY_COLORS } from '@/config/colors';
+import { CategoryBadge } from '@/components/CategoryBadge';
 
 interface Categorie {
   id: string;
   name: string;
   slug: string;
+  color: string | null;
   projet: { id: string }[];
 }
 
@@ -30,6 +33,7 @@ export default function CategoriesPage() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [newName, setNewName] = useState('');
   const [newSlug, setNewSlug] = useState('');
+  const [newColor, setNewColor] = useState('');
   
   const [formMessage, setFormMessage] = useState<{ text: string, type: 'success' | 'error' } | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -58,6 +62,7 @@ export default function CategoriesPage() {
   const resetForm = () => {
     setNewName('');
     setNewSlug('');
+    setNewColor('');
     setEditingId(null);
     setShowForm(false);
     setFormMessage(null);
@@ -66,6 +71,7 @@ export default function CategoriesPage() {
   const handleEditClick = (cat: Categorie) => {
     setNewName(cat.name);
     setNewSlug(cat.slug);
+    setNewColor(cat.color || '');
     setEditingId(cat.id);
     setShowForm(true);
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -114,6 +120,7 @@ export default function CategoriesPage() {
     const catData = { 
       name: newName, 
       slug: newSlug, 
+      color: newColor || null,
       user_id: process.env.NEXT_PUBLIC_PORTFOLIO_USER_ID 
     };
 
@@ -124,7 +131,6 @@ export default function CategoriesPage() {
         .eq('id', editingId);
 
       if (!error) {
-        // Purge de la galerie
         await purgeCache('/projet');
         setCategories(categories.map(c => c.id === editingId ? { ...c, ...catData } : c).sort((a, b) => a.name.localeCompare(b.name)));
         setFormMessage({ text: "Catégorie mise à jour avec succès !", type: 'success' });
@@ -140,7 +146,6 @@ export default function CategoriesPage() {
         .single();
 
       if (!error && data) {
-        // Purge de la galerie
         await purgeCache('/projet');
         setCategories([...categories, data as Categorie].sort((a, b) => a.name.localeCompare(b.name)));
         setFormMessage({ text: "Catégorie créée avec succès !", type: 'success' });
@@ -166,7 +171,6 @@ export default function CategoriesPage() {
     setDeleteTarget(null);
     const { error } = await supabase.from('categorie').delete().eq('id', id);
     if (!error) {
-      // Purge de la galerie
       await purgeCache('/projet');
       setCategories(categories.filter(c => c.id !== id));
     }
@@ -196,7 +200,7 @@ export default function CategoriesPage() {
 
       {showForm && (
         <div className="bg-z-card border border-z-blue/30 rounded-xl p-6 mb-8 shadow-[0_0_20px_rgba(0,123,255,0.1)] relative z-10 animate-in fade-in slide-in-from-top-4 duration-300">
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center justify-between mb-6">
             <h3 className="font-sub text-xs uppercase tracking-widest text-z-blue">
               {editingId ? 'Modifier la catégorie' : 'Créer une catégorie'}
             </h3>
@@ -206,38 +210,78 @@ export default function CategoriesPage() {
           </div>
           
           {formMessage && (
-            <div className="mb-4">
+            <div className="mb-6">
               <Alert type={formMessage.type}>{formMessage.text}</Alert>
             </div>
           )}
 
-          <div className="flex flex-col md:flex-row gap-4 items-end">
-            <div className="flex-1 w-full space-y-2">
-              <label className="text-[10px] uppercase font-bold tracking-widest text-z-muted ml-1">Nom de la catégorie</label>
-              <input 
-                type="text" 
-                value={newName} 
-                onChange={handleNameChange}
-                className="w-full bg-z-bg border border-z-border rounded-lg py-3 px-4 text-sm focus:border-z-blue focus:outline-none transition-colors" 
-                placeholder="Ex: Post Production"
-              />
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <label className="text-[10px] uppercase font-bold tracking-widest text-z-muted ml-1">Nom de la catégorie</label>
+                <input 
+                  type="text" 
+                  value={newName} 
+                  onChange={handleNameChange}
+                  className="w-full bg-z-bg border border-z-border rounded-lg py-3 px-4 text-sm focus:border-z-blue focus:outline-none transition-colors" 
+                  placeholder="Ex: Post Production"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-[10px] uppercase font-bold tracking-widest text-z-muted ml-1">Slug généré (URL)</label>
+                <input 
+                  type="text" 
+                  value={newSlug} 
+                  onChange={(e) => { setNewSlug(e.target.value); setFormMessage(null); }}
+                  className="w-full bg-z-bg border border-z-border rounded-lg py-3 px-4 text-sm text-z-muted focus:border-z-blue focus:outline-none transition-colors" 
+                />
+              </div>
             </div>
-            <div className="flex-1 w-full space-y-2">
-              <label className="text-[10px] uppercase font-bold tracking-widest text-z-muted ml-1">Slug généré (URL)</label>
-              <input 
-                type="text" 
-                value={newSlug} 
-                onChange={(e) => { setNewSlug(e.target.value); setFormMessage(null); }}
-                className="w-full bg-z-bg border border-z-border rounded-lg py-3 px-4 text-sm text-z-muted focus:border-z-blue focus:outline-none transition-colors" 
-              />
+
+            <div className="space-y-2">
+              <label className="text-[10px] uppercase font-bold tracking-widest text-z-muted ml-1">Couleur du badge</label>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={() => setNewColor('')}
+                  className={`px-3 py-1.5 rounded text-[10px] font-bold uppercase tracking-widest border transition-all ${
+                    !newColor 
+                      ? 'bg-z-card text-white border-z-blue ring-1 ring-z-blue/50 scale-105 shadow-md' 
+                      : 'bg-z-bg text-z-muted border-z-border hover:border-z-blue/30'
+                  }`}
+                >
+                  Par défaut
+                </button>
+                
+                {Object.entries(CATEGORY_COLORS).map(([key, theme]) => {
+                  const isSelected = newColor === key;
+                  return (
+                    <button
+                      key={key}
+                      type="button"
+                      onClick={() => setNewColor(key)}
+                      className={`px-3 py-1.5 rounded text-[10px] font-bold uppercase tracking-widest border transition-all ${theme.bg} ${theme.text} ${
+                        isSelected 
+                          ? 'border-current scale-105 shadow-md opacity-100 ring-1 ring-current/50' 
+                          : `${theme.border} opacity-50 hover:opacity-100 hover:scale-105`
+                      }`}
+                    >
+                      {theme.name}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
-            <button 
-              onClick={handleSaveCategorie} 
-              disabled={isSubmitting || !newName}
-              className="btn-blue h-11.5 px-6 rounded-lg font-bold text-xs tracking-widest flex items-center gap-2 hover:scale-105 transition-transform disabled:opacity-50 disabled:hover:scale-100"
-            >
-              <Save size={16} /> {isSubmitting ? '...' : (editingId ? 'Mettre à jour' : 'Enregistrer')}
-            </button>
+
+            <div className="pt-4 border-t border-z-border flex justify-end">
+              <button 
+                onClick={handleSaveCategorie} 
+                disabled={isSubmitting || !newName}
+                className="btn-blue py-3 px-6 rounded-lg font-bold text-xs tracking-widest flex items-center gap-2 hover:scale-105 transition-transform disabled:opacity-50 disabled:hover:scale-100"
+              >
+                <Save size={16} /> {isSubmitting ? '...' : (editingId ? 'Mettre à jour' : 'Enregistrer')}
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -247,8 +291,7 @@ export default function CategoriesPage() {
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-white/5 border-b border-z-border font-sub text-[10px] uppercase tracking-widest text-z-muted">
-                <th className="p-4 font-bold">Nom</th>
-                <th className="p-4 font-bold">Slug (URL)</th>
+                <th className="p-4 font-bold">Catégorie</th>
                 <th className="p-4 font-bold text-center">Projets liés</th>
                 <th className="p-4 font-bold text-right">Actions</th>
               </tr>
@@ -257,8 +300,7 @@ export default function CategoriesPage() {
               {isLoading ? (
                 Array.from({ length: 3 }).map((_, i) => (
                   <tr key={i} className="animate-pulse bg-white/1">
-                    <td className="p-4"><div className="h-4 w-32 bg-z-blue/10 rounded"></div></td>
-                    <td className="p-4"><div className="h-4 w-24 bg-z-blue/10 rounded"></div></td>
+                    <td className="p-4"><div className="h-6 w-32 bg-z-blue/10 rounded"></div></td>
                     <td className="p-4"><div className="h-6 w-10 mx-auto bg-z-blue/10 rounded-full"></div></td>
                     <td className="p-4 text-right flex justify-end gap-2">
                       <div className="h-8 w-8 bg-z-blue/10 rounded"></div>
@@ -267,7 +309,7 @@ export default function CategoriesPage() {
                 ))
               ) : categories.length === 0 ? (
                 <tr>
-                  <td colSpan={4} className="p-12 text-center">
+                  <td colSpan={3} className="p-12 text-center">
                     <FolderOpen size={48} className="mx-auto text-z-muted/30 mb-4" />
                     <p className="font-body text-z-muted">Aucune catégorie existante.</p>
                   </td>
@@ -275,11 +317,9 @@ export default function CategoriesPage() {
               ) : (
                 categories.map((cat) => (
                   <tr key={cat.id} className="hover:bg-white/2 transition-colors">
-                    <td className="p-4 font-display font-bold text-sm tracking-wide text-white">
-                      {cat.name}
-                    </td>
-                    <td className="p-4 font-body text-xs text-z-muted">
-                      /{cat.slug}
+                    <td className="p-4">
+                      {/* Utilisation du vrai composant CategoryBadge pour un rendu exact */}
+                      <CategoryBadge category={{ name: cat.name, color: cat.color || '' }} />
                     </td>
                     <td className="p-4 text-center">
                       <span className="px-3 py-1 bg-z-blue/10 text-z-blue border border-z-blue/20 rounded-full text-[10px] font-bold">

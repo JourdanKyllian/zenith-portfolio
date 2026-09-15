@@ -15,7 +15,7 @@ interface DrivePdf {
 interface ExtendedSousProjet {
   id: number;
   projet_id: number;
-  titre: string;
+  titre: string | null;
   description: string | null;
   drive_url: string | null;
   ordre: number;
@@ -32,20 +32,13 @@ interface ProjectMediaContentProps {
   projectTitle: string;
 }
 
-/**
- * Extrait l'ID d'une vidéo YouTube à partir de n'importe quelle URL.
- */
 function getYoutubeId(url: string | null | undefined): string | null {
   if (!url) return null;
-  const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+  const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=|shorts\/)([^#\&\?]*).*/;
   const match = url.match(regExp);
   return match && match[2].length === 11 ? match[2] : null;
 }
 
-/**
- * Client Component : Gère l'affichage asynchrone des médias (Drive, YouTube, PDF) 
- * et implémente une Lightbox interactive (navigation clavier/souris).
- */
 export default function ProjectMediaContent({ sousProjets, coverImageUrl, projectTitle }: ProjectMediaContentProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -101,7 +94,6 @@ export default function ProjectMediaContent({ sousProjets, coverImageUrl, projec
       <div className="lg:col-span-2 space-y-16">
         {sousProjets.map((sp, idx) => {
           
-          // Nettoyage et construction de l'URL d'intégration Youtube parfaite
           let embedYoutubeUrl = null;
           if (sp.finalYoutubeUrl) {
             const ytId = getYoutubeId(sp.finalYoutubeUrl);
@@ -167,6 +159,7 @@ export default function ProjectMediaContent({ sousProjets, coverImageUrl, projec
                         className="object-cover transition-transform duration-500 group-hover:scale-102" 
                         alt={`${seoDescription} (${imgIndex + 1})`}
                         priority={idx === 0 && imgIndex < 2}
+                        loading={idx === 0 && imgIndex < 2 ? undefined : "lazy"}
                       />
                       
                       <div className="absolute inset-0 bg-z-night/70 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-2 z-10">

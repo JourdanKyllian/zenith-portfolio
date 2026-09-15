@@ -136,7 +136,6 @@ export default function EditProjetPage() {
     if (error) {
       setMessage({ text: "Erreur lors de la sauvegarde : " + error.message, type: 'error' });
     } else {
-      // Purge globale du site
       await purgeCache();
       setMessage({ text: "Projet mis à jour avec succès !", type: 'success' });
       setTimeout(() => setMessage(null), 3000);
@@ -156,7 +155,7 @@ export default function EditProjetPage() {
   };
 
   const handleEditClick = (sp: SousProjet) => {
-    setSpTitre(sp.titre);
+    setSpTitre(sp.titre || '');
     setSpDescription(sp.description || '');
     setSpYoutube(sp.youtube_url || '');
     setSpDrive(sp.drive_url || '');
@@ -167,11 +166,10 @@ export default function EditProjetPage() {
   };
 
   const handleSaveSousProjet = async () => {
-    if (!spTitre) return;
     setSpError(null);
     
     const spData = {
-      titre: spTitre,
+      titre: spTitre || null,
       description: spDescription || null,
       youtube_url: spYoutube || null,
       drive_url: spDrive || null,
@@ -186,7 +184,6 @@ export default function EditProjetPage() {
         .eq('id', editingSpId);
 
       if (!error) {
-        // Purge globale
         await purgeCache();
         setSousProjets(sousProjets.map(sp => 
           sp.id === editingSpId ? { ...sp, ...spData, id: editingSpId } : sp
@@ -203,7 +200,6 @@ export default function EditProjetPage() {
         .single();
 
       if (!error && data) {
-        // Purge globale
         await purgeCache();
         setSousProjets([...sousProjets, data as SousProjet].sort((a, b) => a.ordre - b.ordre));
         resetSpForm();
@@ -213,12 +209,12 @@ export default function EditProjetPage() {
     }
   };
 
-  const requestDeleteSp = (id: number, titre: string) => {
+  const requestDeleteSp = (id: number, titre: string | null) => {
     const skipUntil = localStorage.getItem('skipDeleteConfirmUntil');
     if (skipUntil && parseInt(skipUntil) > new Date().getTime()) {
       executeDeleteSp(id);
     } else {
-      setDeleteSpTarget({ id, titre });
+      setDeleteSpTarget({ id, titre: titre || `Séquence média` });
     }
   };
 
@@ -230,7 +226,6 @@ export default function EditProjetPage() {
       .eq('id', id);
 
     if (!error) {
-      // Purge globale
       await purgeCache();
       setSousProjets(sousProjets.filter(sp => sp.id !== id));
     }
@@ -370,7 +365,7 @@ export default function EditProjetPage() {
                   <div key={sp.id} className={`bg-z-bg border rounded-lg p-4 group transition-colors ${editingSpId === sp.id ? 'border-z-blue' : 'border-z-border'}`}>
                     <div className="flex justify-between items-start">
                       <div>
-                        <h4 className="text-sm font-bold text-white mb-1">{sp.titre}</h4>
+                        <h4 className="text-sm font-bold text-white mb-1">{sp.titre || `Média (${sp.ordre})`}</h4>
                         <div className="flex items-center gap-3 text-z-muted">
                             <span className="flex items-center gap-1 text-[10px] font-bold uppercase">
                                 <ListOrdered size={12}/> {sp.ordre}
@@ -426,7 +421,7 @@ export default function EditProjetPage() {
                 )}
 
                 <div className="space-y-2">
-                  <input type="text" placeholder="Titre (ex: Teaser, Making-of)*" value={spTitre} onChange={e => setSpTitre(e.target.value)} className="w-full bg-z-card border border-z-border rounded p-2 text-xs" />
+                  <input type="text" placeholder="Titre (ex: Teaser, Making-of)" value={spTitre} onChange={e => setSpTitre(e.target.value)} className="w-full bg-z-card border border-z-border rounded p-2 text-xs" />
                 </div>
                 <div className="space-y-2">
                   <textarea placeholder="Description optionnelle..." value={spDescription} onChange={e => setSpDescription(e.target.value)} className="w-full bg-z-card border border-z-border rounded p-2 text-xs resize-none" rows={2} />
@@ -457,7 +452,7 @@ export default function EditProjetPage() {
                   <input type="number" min="1" value={spOrdre} onChange={e => setSpOrdre(parseInt(e.target.value))} className="w-full bg-z-card border border-z-border rounded p-2 text-xs focus:border-z-blue focus:outline-none" />
                 </div>
                 <div className="flex gap-2 pt-2">
-                  <button type="button" onClick={handleSaveSousProjet} disabled={!spTitre} className="flex-1 btn-blue py-2 rounded text-xs font-bold tracking-widest disabled:opacity-50">
+                  <button type="button" onClick={handleSaveSousProjet} className="flex-1 btn-blue py-2 rounded text-xs font-bold tracking-widest">
                     {editingSpId ? 'Mettre à jour' : 'Ajouter'}
                   </button>
                   <button type="button" onClick={resetSpForm} className="flex-1 bg-z-card border border-z-border text-white py-2 rounded text-xs font-bold hover:bg-white/5">

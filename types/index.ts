@@ -33,7 +33,7 @@ export interface Projet {
 export interface SousProjet {
   id: number;
   created_at: string;
-  titre: string;
+  titre: string | null;
   description: string | null;
   youtube_url: string | null;
   drive_url: string | null;
