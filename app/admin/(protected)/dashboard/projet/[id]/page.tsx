@@ -16,7 +16,7 @@ import RichTextEditor from '@/components/ui/RichTextEditor';
 import ProjectMediaContent from '@/components/ProjectMediaContent';
 import { getBadgeTheme } from '@/config/colors';
 
-// --- UTILITAIRE : Résolution des images Drive pour l'aperçu ---
+// Utilitaire de résolution d'image Drive
 function getDriveFileId(urlOrId: string | null | undefined): string | null {
   if (!urlOrId) return null;
   if (!urlOrId.includes('/')) return urlOrId;
@@ -278,28 +278,31 @@ export default function EditProjetPage() {
   const previewSousProjets = sousProjets.map(sp => ({
     ...sp,
     finalYoutubeUrl: sp.youtube_url,
-    driveImages: [], // On laisse vide pour ne pas faire de requêtes massives en preview
+    driveImages: [], // Laissé vide pour l'aperçu afin de ne pas surcharger de requêtes Google
     pdf: null,
     driveVideoUrl: null
   }));
 
-  // Résolution de la miniature pour un rendu propre dans l'aperçu
+  // Résolution propre de la miniature pour l'aperçu !
   let previewCoverUrl = "https://images.unsplash.com/photo-1536440136628-849c177e76a1?q=80&w=1025&auto=format&fit=cover";
   if (miniatureUrl) {
     if (miniatureUrl.startsWith('http') && !miniatureUrl.includes('drive.google.com')) {
       previewCoverUrl = miniatureUrl;
     } else {
       const driveImageId = getDriveFileId(miniatureUrl);
-      if (driveImageId) previewCoverUrl = `https://drive.google.com/thumbnail?id=${driveImageId}&sz=w2048`;
+      if (driveImageId) {
+        previewCoverUrl = `https://drive.google.com/thumbnail?id=${driveImageId}&sz=w2048`;
+      }
     }
   }
 
   return (
     <>
-      <div className="w-full flex flex-col lg:flex-row gap-6 h-auto lg:h-[calc(100vh-4rem)]">
+      <div className="w-full flex flex-col lg:flex-row gap-4 xl:gap-6 h-auto lg:h-[calc(100vh-4rem)]">
         
         {/* COLONNE 1 : PROJET PRINCIPAL (Onglets Édition / Aperçu Live) */}
-        <div className="flex-[1.2] flex flex-col min-w-0 bg-z-card/80 border border-z-border rounded-xl shadow-xl overflow-hidden relative z-10">
+        {/* flex-1 garantit qu'il prend TOUT l'espace disponible */}
+        <div className="flex-1 flex flex-col min-w-0 bg-z-card/80 border border-z-border rounded-xl shadow-xl overflow-hidden relative z-10">
           
           <header className="shrink-0 p-4 border-b border-z-border flex flex-col xl:flex-row xl:items-center justify-between gap-4 bg-z-card/50 backdrop-blur-md">
             <div className="flex items-center gap-4">
@@ -347,11 +350,11 @@ export default function EditProjetPage() {
           <div className="flex-1 overflow-y-auto custom-scrollbar relative">
             
             {/* --- VUE 1 : FORMULAIRE D'ÉDITION --- */}
-            <div className={`p-6 space-y-6 ${leftPanelMode === 'edit' ? 'block' : 'hidden'}`}>
+            <div className={`p-4 sm:p-6 space-y-6 ${leftPanelMode === 'edit' ? 'block' : 'hidden'}`}>
               {message && <Alert type={message.type}>{message.text}</Alert>}
 
               <form onSubmit={handleUpdateProjet} className="space-y-6">
-                <section className="bg-z-bg border border-z-border rounded-xl p-6">
+                <section className="bg-z-bg border border-z-border rounded-xl p-4 sm:p-6">
                   <h2 className="font-sub text-xs uppercase tracking-[0.2em] text-z-blue mb-6 flex items-center gap-2">
                     <FileText size={16} /> Informations
                   </h2>
@@ -410,7 +413,7 @@ export default function EditProjetPage() {
                   </div>
                 </section>
 
-                <section className="bg-z-bg border border-z-border rounded-xl p-6">
+                <section className="bg-z-bg border border-z-border rounded-xl p-4 sm:p-6">
                   <h2 className="font-sub text-xs uppercase tracking-[0.2em] text-z-blue mb-6 flex items-center gap-2">
                     <ImageIcon size={16} /> Média Principal
                   </h2>
@@ -429,7 +432,7 @@ export default function EditProjetPage() {
                   </div>
                 </section>
 
-                <section className="bg-z-bg border border-z-border rounded-xl p-6">
+                <section className="bg-z-bg border border-z-border rounded-xl p-4 sm:p-6">
                   <h2 className="font-sub text-xs uppercase tracking-[0.2em] text-z-blue mb-6 flex items-center gap-2">
                     <Link2 size={16} /> Réseaux liés
                   </h2>
@@ -444,7 +447,7 @@ export default function EditProjetPage() {
               </form>
             </div>
 
-            {/* --- VUE 2 : APERÇU LIVE (Simulateur d'appareil) --- */}
+            {/* --- VUE 2 : APERÇU LIVE --- */}
             <div className={`w-full h-full bg-[#020203] flex flex-col overflow-hidden ${leftPanelMode === 'preview' ? 'flex' : 'hidden'}`}>
               
               <div className="shrink-0 flex justify-center items-center p-3 border-b border-white/5 bg-black/40 backdrop-blur-sm z-20">
@@ -470,20 +473,10 @@ export default function EditProjetPage() {
                 </div>
               </div>
 
-              {/* Faux Écran (Device) */}
-              <div className="flex-1 flex justify-center items-center overflow-hidden relative p-4 bg-black/50">
-                <div
-                  className={`bg-z-bg overflow-y-auto custom-scrollbar transition-all duration-300 origin-center flex flex-col ${
-                    previewDevice === 'mobile'
-                      ? 'w-93.75 h-203 rounded-[2.5rem] border-10 border-z-card shadow-2xl ring-1 ring-white/10'
-                      : 'w-7xl h-212.5 rounded-xl border border-z-border shadow-2xl'
-                  }`}
-                  style={{
-                    transform: previewDevice === 'desktop' ? 'scale(0.55)' : 'scale(0.85)',
-                  }}
-                >
-                  {/* Intérieur de la page simulée */}
-                  <div className="pb-20 w-full">
+              {/* Faux Écran */}
+              <div className="flex-1 overflow-y-auto custom-scrollbar relative p-0 bg-z-bg">
+                {previewDevice === 'desktop' ? (
+                  <div className="w-full min-h-full">
                     <section className="relative h-[60vh] w-full overflow-hidden">
                       <img 
                         src={previewCoverUrl} 
@@ -523,37 +516,76 @@ export default function EditProjetPage() {
                       />
                     </section>
                   </div>
-                </div>
+                ) : (
+                  <div className="w-[375px] min-h-[812px] my-8 mx-auto rounded-[2.5rem] border-[12px] border-black shadow-2xl ring-1 ring-white/10 overflow-hidden shrink-0 bg-z-bg relative">
+                    <section className="relative h-[40vh] w-full overflow-hidden">
+                      <img 
+                        src={previewCoverUrl} 
+                        alt="Cover" 
+                        className="w-full h-full object-cover opacity-30" 
+                      />
+                      <div className="absolute inset-0 bg-linear-to-t from-z-bg to-transparent" />
+                      <div className="absolute bottom-0 left-0 w-full p-6 z-10">
+                        <h1 className="font-display font-bold text-4xl uppercase tracking-tighter leading-none mb-4">
+                          {titre || "Titre du projet"}
+                        </h1>
+                        {activeCategory && (
+                          <div className={`inline-block px-3 py-1 rounded border transition-colors duration-300 ${badgeTheme.border} ${badgeTheme.bg} ${badgeTheme.text} text-[9px] font-bold uppercase tracking-widest`}>
+                            {activeCategory.name}
+                          </div>
+                        )}
+                      </div>
+                    </section>
+
+                    <section className="px-6 py-12 space-y-12">
+                      {description && (
+                        <div>
+                          <h3 className="text-z-muted font-sub text-[10px] font-bold uppercase tracking-widest mb-6">
+                            Introduction
+                          </h3>
+                          <div 
+                            className="font-body text-sm text-z-text/80 leading-relaxed whitespace-pre-wrap rich-text" 
+                            dangerouslySetInnerHTML={{ __html: description }} 
+                          />
+                        </div>
+                      )}
+                      
+                      <ProjectMediaContent 
+                        sousProjets={previewSousProjets} 
+                        coverImageUrl="" 
+                        projectTitle={titre} 
+                      />
+                    </section>
+                  </div>
+                )}
               </div>
             </div>
 
           </div>
         </div>
 
-        {/* COLONNE 2 : LES DÉTAILS DU PROJET */}
-        <div className="flex-[0.8] flex flex-col min-w-0 bg-z-card/80 border border-z-border rounded-xl shadow-xl overflow-hidden relative z-10">
-          <header className="shrink-0 p-6 border-b border-z-border flex items-center justify-between bg-z-card/50 backdrop-blur-md">
+        {/* COLONNE 2 : LES DÉTAILS DU PROJET (Largeur fixe optimisée) */}
+        <div className="w-full lg:w-[360px] xl:w-[420px] shrink-0 flex flex-col min-w-0 bg-z-card/80 border border-z-border rounded-xl shadow-xl overflow-hidden relative z-10">
+          <header className="shrink-0 p-4 xl:p-6 border-b border-z-border flex items-center justify-between bg-z-card/50 backdrop-blur-md">
             <div className="flex items-center gap-3">
               <h2 className="font-sub text-xs uppercase tracking-[0.2em] text-white flex items-center gap-2">
                 <Video size={16} className="text-z-blue" /> Détails
               </h2>
-              <span className="px-2 py-1 bg-z-blue/10 text-z-blue rounded-full text-[10px] font-bold">
-                {sousProjets.length}
-              </span>
+              <span className="px-2 py-1 bg-z-blue/10 text-z-blue rounded-full text-[10px] font-bold">{sousProjets.length}</span>
             </div>
 
             {hasUnsavedChanges && (
               <button 
                 onClick={handleSaveDetails} 
                 disabled={isSavingDetails}
-                className="flex items-center gap-2 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 hover:bg-emerald-500 hover:text-white px-4 py-2 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-colors animate-in fade-in zoom-in duration-200 cursor-pointer disabled:opacity-50 shadow-lg shadow-emerald-500/10"
+                className="flex items-center gap-2 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 hover:bg-emerald-500 hover:text-white px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-colors animate-in fade-in zoom-in duration-200 cursor-pointer disabled:opacity-50 shadow-lg shadow-emerald-500/10"
               >
                 {isSavingDetails ? <span className="animate-pulse">Sauvegarde...</span> : <><Save size={14} /> Sauver</>}
               </button>
             )}
           </header>
 
-          <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6 custom-scrollbar">
+          <div className="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar">
             <div className="space-y-3">
               {sousProjets.length === 0 ? (
                 <p className="text-sm text-z-muted italic text-center py-4">Aucun détail lié.</p>
@@ -567,7 +599,7 @@ export default function EditProjetPage() {
                     onDrop={(e) => handleDrop(e, sp.id)} 
                     onDragEnd={() => { setDraggedId(null); setDragOverId(null); }}
                     onClick={() => setEditingSpId(sp.id)}
-                    className={`bg-z-bg border rounded-lg p-3 sm:p-4 group transition-all duration-200 cursor-pointer ${
+                    className={`bg-z-bg border rounded-lg p-3 group transition-all duration-200 cursor-pointer ${
                       editingSpId === sp.id ? 'border-z-blue bg-z-blue/5' : 'border-z-border hover:border-z-blue/50'
                     } ${draggedId === sp.id ? 'opacity-40 scale-95 border-dashed border-z-blue' : ''} ${
                       dragOverId === sp.id && draggedId !== sp.id ? 'border-z-blue bg-z-blue/10 translate-y-1' : ''
@@ -636,7 +668,7 @@ export default function EditProjetPage() {
 
                 <div className="pt-4 border-t border-z-border">
                   <button type="button" onClick={() => setEditingSpId(null)} className="w-full bg-z-card border border-z-border text-white py-3 rounded-lg text-xs font-bold uppercase tracking-widest hover:bg-white/5 cursor-pointer transition-colors">
-                    Fermer l'éditeur de ce détail
+                    Fermer l'éditeur
                   </button>
                 </div>
               </div>
