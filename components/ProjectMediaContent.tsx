@@ -110,9 +110,10 @@ export default function ProjectMediaContent({ sousProjets, coverImageUrl, projec
                 <div className="border-l-2 border-z-blue/50 pl-4 py-1">
                   {sp.titre && <h4 className="font-display text-2xl uppercase font-bold text-z-text">{sp.titre}</h4>}
                   {sp.description && (
-                    <p className={`font-body text-z-muted mt-2 ${hasMedia ? 'text-sm' : 'text-base leading-relaxed text-z-text/90'}`}>
-                      {sp.description}
-                    </p>
+                    <div 
+                      className={`font-body text-z-muted mt-2 ${hasMedia ? 'text-sm' : 'text-base leading-relaxed text-z-text/90'} rich-text`}
+                      dangerouslySetInnerHTML={{ __html: sp.description }}
+                    />
                   )}
                 </div>
               )}

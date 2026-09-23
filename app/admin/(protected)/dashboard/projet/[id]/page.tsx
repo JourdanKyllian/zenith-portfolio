@@ -13,6 +13,7 @@ import { Categorie, Projet, SousProjet } from '@/types';
 import ConfirmModal from '@/components/ui/ConfirmModal';
 import Alert from '@/components/ui/Alert';
 import { purgeCache } from '@/app/actions/revalidate';
+import RichTextEditor from '@/components/ui/RichTextEditor';
 
 export default function EditProjetPage() {
   const router = useRouter();
@@ -363,8 +364,13 @@ export default function EditProjetPage() {
               </div>
 
               <div className="space-y-2">
-                <label className="text-[10px] uppercase font-bold tracking-widest text-z-muted ml-1">Description courte</label>
-                <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={3} className="w-full bg-z-bg border border-z-border rounded-lg p-3 text-sm focus:border-z-blue focus:outline-none resize-none" />
+                <label className="text-[10px] uppercase font-bold tracking-widest text-z-muted ml-1">Description du projet</label>
+                <RichTextEditor 
+                  value={description} 
+                  onChange={setDescription} 
+                  placeholder="Présentez le contexte et les enjeux de ce projet..." 
+                  minHeight="200px" 
+                />
               </div>
             </section>
 
@@ -503,7 +509,12 @@ export default function EditProjetPage() {
                   <input type="text" placeholder="Titre (ex: Teaser, Making-of)" value={spTitre} onChange={e => setSpTitre(e.target.value)} className="w-full bg-z-card border border-z-border rounded p-2 text-xs" />
                 </div>
                 <div className="space-y-2">
-                  <textarea placeholder="Description optionnelle..." value={spDescription} onChange={e => setSpDescription(e.target.value)} className="w-full bg-z-card border border-z-border rounded p-2 text-xs resize-none" rows={2} />
+                  <RichTextEditor 
+                    value={spDescription} 
+                    onChange={setSpDescription} 
+                    placeholder="Description optionnelle (matériel utilisé, contexte...)" 
+                    minHeight="120px" 
+                  />
                 </div>
                 <div className="space-y-2">
                   <input type="url" placeholder="URL iframe YouTube (optionnel)" value={spYoutube} onChange={e => setSpYoutube(e.target.value)} className="w-full bg-z-card border border-z-border rounded p-2 text-xs" />

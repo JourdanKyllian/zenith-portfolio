@@ -242,3 +242,19 @@
   80%  { clip-path: inset(8% 0 80% 0);  transform: translate(1px, 0); }
   100% { clip-path: inset(50% 0 25% 0); transform: translate(-1px, 0); }
 }
+
+@layer utilities {
+  /* Restauration des styles natifs pour les zones de texte enrichi */
+  .rich-text b, .rich-text strong { font-weight: 700; color: #fff; }
+  .rich-text i, .rich-text em { font-style: italic; }
+  .rich-text u { text-decoration: underline; text-underline-offset: 2px; }
+  
+  /* Placeholder pour le composant contentEditable */
+  .rich-editor-content:empty:before {
+    content: attr(data-placeholder);
+    color: var(--color-z-muted);
+    opacity: 0.5;
+    pointer-events: none;
+    display: block;
+  }
+}

@@ -10,7 +10,7 @@ import SocialLinks from '@/components/SocialLinks';
 
 export const revalidate = 3600;
 
-// --- NOUVEAUTÉ : PRÉ-GÉNÉRATION STATIQUE ---
+// --- PRÉ-GÉNÉRATION STATIQUE ---
 export async function generateStaticParams() {
   const { data: projets } = await supabase
     .from('projet')
@@ -176,7 +176,12 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
         <div className="lg:col-span-1 space-y-10">
           <div>
             <h3 className="text-z-muted font-sub text-[10px] font-bold uppercase tracking-widest mb-6">Introduction</h3>
-            <p className="font-body text-z-text/80 leading-relaxed whitespace-pre-wrap">{project.description}</p>
+            {project.description && (
+              <div 
+                className="font-body text-z-text/80 leading-relaxed whitespace-pre-wrap rich-text" 
+                dangerouslySetInnerHTML={{ __html: project.description }} 
+              />
+            )}
           </div>
           
           {hasAnyVideo && (

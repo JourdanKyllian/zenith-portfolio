@@ -8,6 +8,7 @@ import Link from 'next/link';
 import { Categorie } from '@/types';
 import Alert from '@/components/ui/Alert';
 import { purgeCache } from '@/app/actions/revalidate';
+import RichTextEditor from '@/components/ui/RichTextEditor';
 
 export default function NouveauProjetPage() {
   const router = useRouter();
@@ -180,12 +181,12 @@ export default function NouveauProjetPage() {
           </div>
 
           <div className="space-y-2">
-            <label className="text-[10px] uppercase font-bold tracking-widest text-z-muted ml-1">Description courte</label>
-            <textarea 
-              value={description} onChange={(e) => setDescription(e.target.value)}
-              rows={3}
-              className="w-full bg-z-bg border border-z-border rounded-lg p-3 text-sm focus:border-z-blue focus:outline-none resize-none" 
-              placeholder="Résumé du projet..." 
+            <label className="text-[10px] uppercase font-bold tracking-widest text-z-muted ml-1">Description du projet</label>
+            <RichTextEditor 
+              value={description} 
+              onChange={setDescription} 
+              placeholder="Présentez le contexte et les enjeux de ce projet..." 
+              minHeight="200px" 
             />
           </div>
         </section>
