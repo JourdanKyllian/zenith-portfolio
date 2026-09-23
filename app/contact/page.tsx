@@ -75,18 +75,6 @@ export default function ContactPage() {
                   </div>
                 </div>
               </div>
-
-              <div className="relative w-full h-62.5 xl:h-80 hidden lg:block group overflow-hidden">
-                <Image
-                  src="/aigle.webp"
-                  alt="Emblème Zenith Production"
-                  fill
-                  priority
-                  sizes="(max-width: 1280px) 100vw, 400px"
-                  className="object-cover object-top block opacity-25 filter grayscale group-hover:opacity-70 group-hover:grayscale-0 group-hover:scale-[1.03] origin-top transition-all duration-1000"
-                />
-                <div className="absolute inset-x-0 bottom-0 h-2/3 bg-linear-to-t from-z-bg via-z-bg/90 to-transparent pointer-events-none" />
-              </div>
             </div>
 
             <div className="lg:col-span-3 p-8 sm:p-10 rounded-2xl bg-z-card border border-z-border shadow-2xl">
