@@ -6,7 +6,7 @@ import { useRouter, useParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { 
   ArrowLeft, Save, Image as ImageIcon, Link2, FileText, ToggleLeft, ToggleRight, 
-  Plus, Trash2, Video, HardDrive, ListOrdered, Edit3
+  Plus, Trash2, Video, HardDrive, ListOrdered, Edit3, GripVertical
 } from 'lucide-react';
 import Link from 'next/link';
 import { Categorie, Projet, SousProjet } from '@/types';
@@ -49,8 +49,11 @@ export default function EditProjetPage() {
 
   const [deleteSpTarget, setDeleteSpTarget] = useState<{ id: number, titre: string } | null>(null);
 
+  // --- ÉTATS POUR LE DRAG & DROP ---
+  const [draggedId, setDraggedId] = useState<number | null>(null);
+  const [dragOverId, setDragOverId] = useState<number | null>(null);
+
   const fetchData = useCallback(async () => {
-    
     const { data: catData } = await supabase
       .from('categorie')
       .select('*')
@@ -173,7 +176,7 @@ export default function EditProjetPage() {
       description: spDescription || null,
       youtube_url: spYoutube || null,
       drive_url: spDrive || null,
-      ordre: spOrdre,
+      ordre: spOrdre, // Ordre automatique ou conservé
       projet_id: parseInt(projetId)
     };
 
@@ -227,7 +230,65 @@ export default function EditProjetPage() {
 
     if (!error) {
       await purgeCache();
-      setSousProjets(sousProjets.filter(sp => sp.id !== id));
+      // On retire l'élément et on recalcule l'ordre de ceux qui restent
+      const filtered = sousProjets.filter(sp => sp.id !== id);
+      const reordered = filtered.map((sp, idx) => ({ ...sp, ordre: idx + 1 }));
+      setSousProjets(reordered);
+      
+      // On sauvegarde le nouvel ordre en DB
+      Promise.all(reordered.map(sp => 
+        supabase.from('sousprojet').update({ ordre: sp.ordre }).eq('id', sp.id)
+      )).catch(console.error);
+    }
+  };
+
+  // --- LOGIQUE DRAG & DROP ---
+  const handleDragStart = (e: React.DragEvent, id: number) => {
+    setDraggedId(id);
+    e.dataTransfer.effectAllowed = 'move';
+  };
+
+  const handleDragOver = (e: React.DragEvent, id: number) => {
+    e.preventDefault(); // Indispensable pour autoriser le drop
+    if (dragOverId !== id) setDragOverId(id);
+  };
+
+  const handleDrop = async (e: React.DragEvent, targetId: number) => {
+    e.preventDefault();
+    setDragOverId(null);
+
+    if (!draggedId || draggedId === targetId) {
+      setDraggedId(null);
+      return;
+    }
+
+    // Réorganisation du tableau en mémoire
+    const draggedIndex = sousProjets.findIndex(sp => sp.id === draggedId);
+    const targetIndex = sousProjets.findIndex(sp => sp.id === targetId);
+
+    const newItems = [...sousProjets];
+    const [draggedItem] = newItems.splice(draggedIndex, 1);
+    newItems.splice(targetIndex, 0, draggedItem);
+
+    // Recalcul parfait de l'ordre (de 1 à N)
+    const updatedItems = newItems.map((sp, index) => ({
+      ...sp,
+      ordre: index + 1
+    }));
+
+    setSousProjets(updatedItems);
+    setDraggedId(null);
+
+    // Persistance asynchrone sur Supabase
+    try {
+      await Promise.all(
+        updatedItems.map(sp => 
+          supabase.from('sousprojet').update({ ordre: sp.ordre }).eq('id', sp.id)
+        )
+      );
+      await purgeCache(); // Invalidation du cache pour mettre à jour la vitrine
+    } catch (err) {
+      console.error("Erreur de réorganisation :", err);
     }
   };
 
@@ -362,12 +423,30 @@ export default function EditProjetPage() {
                 <p className="text-sm text-z-muted italic text-center py-4">Aucun sous-projet lié.</p>
               ) : (
                 sousProjets.map(sp => (
-                  <div key={sp.id} className={`bg-z-bg border rounded-lg p-4 group transition-colors ${editingSpId === sp.id ? 'border-z-blue' : 'border-z-border'}`}>
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <h4 className="text-sm font-bold text-white mb-1">{sp.titre || `Média (${sp.ordre})`}</h4>
+                  <div 
+                    key={sp.id} 
+                    draggable
+                    onDragStart={(e) => handleDragStart(e, sp.id)}
+                    onDragOver={(e) => handleDragOver(e, sp.id)}
+                    onDrop={(e) => handleDrop(e, sp.id)}
+                    onDragEnd={() => { setDraggedId(null); setDragOverId(null); }}
+                    className={`bg-z-bg border rounded-lg p-4 group transition-all duration-200 ${
+                      editingSpId === sp.id ? 'border-z-blue' : 'border-z-border'
+                    } ${draggedId === sp.id ? 'opacity-40 scale-95 border-dashed border-z-blue' : ''} ${
+                      dragOverId === sp.id && draggedId !== sp.id ? 'border-z-blue bg-z-blue/10 translate-y-1' : ''
+                    }`}
+                  >
+                    <div className="flex justify-between items-start gap-3">
+                      
+                      {/* Poignée de déplacement (Grip) */}
+                      <div className="cursor-grab active:cursor-grabbing text-z-muted/30 hover:text-white pt-1 transition-colors">
+                        <GripVertical size={16} />
+                      </div>
+
+                      <div className="flex-1">
+                        <h4 className="text-sm font-bold text-white mb-1">{sp.titre || `Séquence Média`}</h4>
                         <div className="flex items-center gap-3 text-z-muted">
-                            <span className="flex items-center gap-1 text-[10px] font-bold uppercase">
+                            <span className="flex items-center gap-1 text-[10px] font-bold uppercase text-z-blue">
                                 <ListOrdered size={12}/> {sp.ordre}
                             </span>
                             {sp.youtube_url && (
@@ -383,13 +462,13 @@ export default function EditProjetPage() {
                         </div>
                       </div>
                       <div className="flex items-center gap-1">
-                        <button type="button" onClick={() => handleEditClick(sp)} className="text-z-muted hover:text-white p-1 transition-colors">
+                        <button type="button" onClick={() => handleEditClick(sp)} className="text-z-muted hover:text-white p-1 transition-colors cursor-pointer">
                           <Edit3 size={14} />
                         </button>
                         <button 
                           type="button" 
                           onClick={() => requestDeleteSp(sp.id, sp.titre)}
-                          className="text-z-muted hover:text-red-400 p-1 transition-colors"
+                          className="text-z-muted hover:text-red-400 p-1 transition-colors cursor-pointer"
                         >
                           <Trash2 size={14} />
                         </button>
@@ -404,7 +483,7 @@ export default function EditProjetPage() {
               <button 
                 type="button"
                 onClick={() => { resetSpForm(); setShowSpForm(true); }}
-                className="w-full py-3 border border-dashed border-z-blue/50 text-z-blue rounded-lg text-xs font-bold uppercase tracking-widest hover:bg-z-blue/5 transition-colors flex items-center justify-center gap-2"
+                className="w-full py-3 border border-dashed border-z-blue/50 text-z-blue rounded-lg text-xs font-bold uppercase tracking-widest hover:bg-z-blue/5 transition-colors flex items-center justify-center gap-2 cursor-pointer"
               >
                 <Plus size={16} /> Ajouter un détail
               </button>
@@ -447,15 +526,11 @@ export default function EditProjetPage() {
                   </p>
                 </div>
 
-                <div className="space-y-2">
-                  <label className="text-[10px] uppercase font-bold tracking-widest text-z-muted ml-1">Ordre d'affichage</label>
-                  <input type="number" min="1" value={spOrdre} onChange={e => setSpOrdre(parseInt(e.target.value))} className="w-full bg-z-card border border-z-border rounded p-2 text-xs focus:border-z-blue focus:outline-none" />
-                </div>
                 <div className="flex gap-2 pt-2">
-                  <button type="button" onClick={handleSaveSousProjet} className="flex-1 btn-blue py-2 rounded text-xs font-bold tracking-widest">
+                  <button type="button" onClick={handleSaveSousProjet} className="flex-1 btn-blue py-2 rounded text-xs font-bold tracking-widest cursor-pointer">
                     {editingSpId ? 'Mettre à jour' : 'Ajouter'}
                   </button>
-                  <button type="button" onClick={resetSpForm} className="flex-1 bg-z-card border border-z-border text-white py-2 rounded text-xs font-bold hover:bg-white/5">
+                  <button type="button" onClick={resetSpForm} className="flex-1 bg-z-card border border-z-border text-white py-2 rounded text-xs font-bold hover:bg-white/5 cursor-pointer">
                     Annuler
                   </button>
                 </div>
