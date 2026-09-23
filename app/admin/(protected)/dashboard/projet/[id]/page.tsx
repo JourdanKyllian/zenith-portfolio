@@ -6,7 +6,7 @@ import { useRouter, useParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { 
   ArrowLeft, Save, Image as ImageIcon, Link2, FileText, ToggleLeft, ToggleRight, 
-  Plus, Trash2, Video, HardDrive, ListOrdered, Edit3, GripVertical, CheckCircle2, Eye, PenTool
+  Plus, Trash2, Video, HardDrive, ListOrdered, Edit3, GripVertical, CheckCircle2, Eye, PenTool, Monitor, Smartphone
 } from 'lucide-react';
 import Link from 'next/link';
 import { Categorie, Projet, SousProjet } from '@/types';
@@ -49,10 +49,11 @@ export default function EditProjetPage() {
   const [isSavingDetails, setIsSavingDetails] = useState(false);
   const [deleteSpTarget, setDeleteSpTarget] = useState<{ id: number, titre: string } | null>(null);
 
-  // --- ÉTATS UI ---
+  // --- ÉTATS UI & DRAG AND DROP ---
   const [draggedId, setDraggedId] = useState<number | null>(null);
   const [dragOverId, setDragOverId] = useState<number | null>(null);
-  const [leftPanelMode, setLeftPanelMode] = useState<'edit' | 'preview'>('edit'); // L'onglet actif à gauche
+  const [leftPanelMode, setLeftPanelMode] = useState<'edit' | 'preview'>('edit');
+  const [previewDevice, setPreviewDevice] = useState<'desktop' | 'mobile'>('desktop');
 
   const fetchData = useCallback(async () => {
     const { data: catData } = await supabase
@@ -97,6 +98,7 @@ export default function EditProjetPage() {
     fetchData(); 
   }, [fetchData]);
 
+  // --- ACTIONS GLOBALES (PROJET) ---
   const handleUpdateProjet = async (e?: React.FormEvent) => {
     if(e) e.preventDefault();
     setIsSubmitting(true);
@@ -146,7 +148,7 @@ export default function EditProjetPage() {
     setIsSubmitting(false);
   };
   
-  // --- MÉCANIQUE LIVE-EDIT DES DÉTAILS ---
+  // --- ACTIONS LIVE-EDIT (DÉTAILS) ---
   const handleAddSp = () => {
     const newId = -Date.now(); 
     const newSp: SousProjet = { 
@@ -260,7 +262,7 @@ export default function EditProjetPage() {
   const previewSousProjets = sousProjets.map(sp => ({
     ...sp,
     finalYoutubeUrl: sp.youtube_url,
-    driveImages: miniatureUrl && sp.ordre === 1 ? [miniatureUrl] : [], // On triche un peu en simulant une image
+    driveImages: miniatureUrl && sp.ordre === 1 ? [miniatureUrl] : [], // On triche un peu en simulant une image pour l'aperçu
     pdf: null,
     driveVideoUrl: null
   }));
@@ -269,7 +271,7 @@ export default function EditProjetPage() {
     <>
       <div className="w-full flex flex-col lg:flex-row gap-6 h-auto lg:h-[calc(100vh-4rem)]">
         
-        {/* COLONNE 1 : PROJET PRINCIPAL (Avec Onglets Édition / Aperçu) */}
+        {/* COLONNE 1 : PROJET PRINCIPAL (Onglets Édition / Aperçu Live) */}
         <div className="flex-[1.2] flex flex-col min-w-0 bg-z-card/80 border border-z-border rounded-xl shadow-xl overflow-hidden relative z-10">
           
           <header className="shrink-0 p-4 border-b border-z-border flex flex-col xl:flex-row xl:items-center justify-between gap-4 bg-z-card/50 backdrop-blur-md">
@@ -278,11 +280,12 @@ export default function EditProjetPage() {
                 <ArrowLeft size={18} />
               </Link>
               <div className="min-w-0">
-                <h1 className="font-display font-bold text-xl uppercase tracking-wider text-white truncate">{titre || "Nouveau Projet"}</h1>
+                <h1 className="font-display font-bold text-xl uppercase tracking-wider text-white truncate">
+                  {titre || "Nouveau Projet"}
+                </h1>
               </div>
             </div>
             
-            {/* LES ONGLETS DE SWITCH */}
             <div className="flex items-center justify-between xl:justify-end gap-4 w-full xl:w-auto">
               <div className="flex bg-z-bg p-1 rounded-lg border border-z-border shrink-0">
                 <button 
@@ -314,7 +317,7 @@ export default function EditProjetPage() {
 
           <div className="flex-1 overflow-y-auto custom-scrollbar relative">
             
-            {/* VUE ÉDITION */}
+            {/* VUE 1 : FORMULAIRE D'ÉDITION */}
             <div className={`p-6 space-y-6 ${leftPanelMode === 'edit' ? 'block' : 'hidden'}`}>
               {message && <Alert type={message.type}>{message.text}</Alert>}
 
@@ -343,7 +346,8 @@ export default function EditProjetPage() {
                     <div className="space-y-2 flex flex-col justify-center">
                       <label className="text-[10px] uppercase font-bold tracking-widest text-z-muted ml-1 mb-2">Visibilité</label>
                       <button type="button" onClick={() => setEnLigne(!enLigne)} className={`flex items-center gap-3 w-fit px-4 py-2 rounded-lg font-bold text-xs uppercase tracking-widest transition-colors ${enLigne ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-z-card border border-z-border text-z-muted'}`}>
-                        {enLigne ? <ToggleRight size={20} /> : <ToggleLeft size={20} />} {enLigne ? 'Public' : 'Brouillon'}
+                        {enLigne ? <ToggleRight size={20} /> : <ToggleLeft size={20} />}
+                        {enLigne ? 'Public' : 'Brouillon'}
                       </button>
                     </div>
                   </div>
@@ -378,47 +382,87 @@ export default function EditProjetPage() {
               </form>
             </div>
 
-            {/* VUE APERÇU LIVE */}
-            <div className={`w-full bg-[#040407] min-h-full ${leftPanelMode === 'preview' ? 'block' : 'hidden'}`}>
-              <div className="p-8 sm:p-12 space-y-12">
-                
-                {/* Mini Hero Simulé */}
-                <div className="border-b border-z-border pb-8">
-                  <h1 className="font-display font-bold text-4xl sm:text-6xl uppercase tracking-tighter leading-none mb-4">{titre || "Titre du projet"}</h1>
-                  {activeCategory && (
-                    <div className={`inline-block px-3 py-1 rounded border transition-colors duration-300 ${badgeTheme.border} ${badgeTheme.bg} ${badgeTheme.text} text-[9px] font-bold uppercase tracking-widest`}>
-                      {activeCategory.name}
-                    </div>
-                  )}
+            {/* VUE 2 : APERÇU LIVE (Simulateur d'appareil) */}
+            <div className={`w-full h-full bg-[#020203] flex flex-col ${leftPanelMode === 'preview' ? 'block' : 'hidden'}`}>
+              
+              {/* Toolbar du Simulateur */}
+              <div className="shrink-0 flex justify-center items-center p-3 border-b border-white/5 bg-black/40 backdrop-blur-sm z-20">
+                <div className="flex bg-z-card p-1 rounded-lg border border-z-border">
+                  <button
+                    onClick={() => setPreviewDevice('desktop')}
+                    className={`px-3 py-1.5 rounded-md flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest transition-all ${
+                      previewDevice === 'desktop' ? 'bg-white/10 text-white' : 'text-z-muted hover:text-white'
+                    }`}
+                  >
+                    <Monitor size={14} /> Bureau
+                  </button>
+                  <button
+                    onClick={() => setPreviewDevice('mobile')}
+                    className={`px-3 py-1.5 rounded-md flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest transition-all ${
+                      previewDevice === 'mobile' ? 'bg-white/10 text-white' : 'text-z-muted hover:text-white'
+                    }`}
+                  >
+                    <Smartphone size={14} /> Mobile
+                  </button>
                 </div>
+              </div>
 
-                {/* Introduction & Médias Live */}
-                <div className="grid grid-cols-1 gap-12">
-                  {description && (
-                    <div>
-                      <h3 className="text-z-muted font-sub text-[10px] font-bold uppercase tracking-widest mb-4">Introduction</h3>
-                      <div className="font-body text-z-text/80 leading-relaxed whitespace-pre-wrap rich-text" dangerouslySetInnerHTML={{ __html: description }} />
-                    </div>
-                  )}
-                  
-                  <div className="border border-dashed border-z-blue/30 rounded-xl p-4 bg-z-card/50">
-                    <div className="text-[10px] text-z-blue font-bold uppercase tracking-widest mb-6">↓ Séquençage des détails ↓</div>
-                    {/* On réutilise le composant de la vitrine pour un rendu 100% fidèle */}
-                    <ProjectMediaContent sousProjets={previewSousProjets} coverImageUrl="" projectTitle={titre} />
+              {/* Faux Écran (Device) */}
+              <div className="flex-1 flex justify-center items-center overflow-hidden relative p-4">
+                <div
+                  className={`bg-z-bg overflow-y-auto custom-scrollbar transition-all duration-500 ease-in-out origin-center ${
+                    previewDevice === 'mobile'
+                      ? 'w-93.75 h-203 rounded-[2.5rem] border-10 border-z-card shadow-2xl ring-1 ring-white/10'
+                      : 'w-7xl h-212.5 rounded-xl border border-z-border shadow-2xl'
+                  }`}
+                  style={{
+                    // Le zoom magique pour que le bureau rentre dans l'écran de l'admin
+                    transform: `scale(${previewDevice === 'desktop' ? 0.6 : 0.85})`
+                  }}
+                >
+                  <div className="pb-20">
+                    <section className="relative h-[60vh] w-full overflow-hidden">
+                      <img src={miniatureUrl || "https://images.unsplash.com/photo-1536440136628-849c177e76a1?q=80&w=1025&auto=format&fit=cover"} alt="Cover" className="w-full h-full object-cover opacity-30" />
+                      <div className="absolute inset-0 bg-linear-to-t from-z-bg to-transparent" />
+                      <div className="absolute bottom-0 left-0 w-full p-8 sm:p-16 max-w-7xl mx-auto z-10">
+                        <h1 className="font-display font-bold text-5xl sm:text-8xl uppercase tracking-tighter leading-none mb-6">
+                          {titre || "Titre du projet"}
+                        </h1>
+                        {activeCategory && (
+                          <div className={`inline-block px-3 py-1 rounded border transition-colors duration-300 ${badgeTheme.border} ${badgeTheme.bg} ${badgeTheme.text} text-[9px] font-bold uppercase tracking-widest`}>
+                            {activeCategory.name}
+                          </div>
+                        )}
+                      </div>
+                    </section>
+
+                    <section className="max-w-7xl mx-auto px-6 sm:px-8 py-20 grid grid-cols-1 lg:grid-cols-3 gap-20">
+                      <div className="lg:col-span-1 space-y-10">
+                        <div>
+                          <h3 className="text-z-muted font-sub text-[10px] font-bold uppercase tracking-widest mb-6">Introduction</h3>
+                          <div className="font-body text-z-text/80 leading-relaxed whitespace-pre-wrap rich-text" dangerouslySetInnerHTML={{ __html: description || "..." }} />
+                        </div>
+                      </div>
+                      
+                      {/* Affichage Live des sous-projets ! */}
+                      <ProjectMediaContent sousProjets={previewSousProjets} coverImageUrl="" projectTitle={titre} />
+                    </section>
                   </div>
                 </div>
-
               </div>
+
             </div>
 
           </div>
         </div>
 
-        {/* COLONNE 2 : LES DÉTAILS DU PROJET (Reste inchangée et toujours visible) */}
+        {/* COLONNE 2 : LES DÉTAILS DU PROJET (Liste toujours visible) */}
         <div className="flex-[0.8] flex flex-col min-w-0 bg-z-card/80 border border-z-border rounded-xl shadow-xl overflow-hidden relative z-10">
           <header className="shrink-0 p-6 border-b border-z-border flex items-center justify-between bg-z-card/50 backdrop-blur-md">
             <div className="flex items-center gap-3">
-              <h2 className="font-sub text-xs uppercase tracking-[0.2em] text-white flex items-center gap-2"><Video size={16} className="text-z-blue" /> Détails</h2>
+              <h2 className="font-sub text-xs uppercase tracking-[0.2em] text-white flex items-center gap-2">
+                <Video size={16} className="text-z-blue" /> Détails
+              </h2>
               <span className="px-2 py-1 bg-z-blue/10 text-z-blue rounded-full text-[10px] font-bold">{sousProjets.length}</span>
             </div>
 
@@ -460,7 +504,9 @@ export default function EditProjetPage() {
                       <div className="flex-1 min-w-0">
                         <h4 className="text-sm font-bold text-white mb-1 truncate">{sp.titre || `Séquence Média`}</h4>
                         <div className="flex items-center gap-3 text-z-muted">
-                            <span className="flex items-center gap-1 text-[10px] font-bold uppercase text-z-blue"><ListOrdered size={12}/> {sp.ordre}</span>
+                            <span className="flex items-center gap-1 text-[10px] font-bold uppercase text-z-blue">
+                              <ListOrdered size={12}/> {sp.ordre}
+                            </span>
                             {sp.youtube_url && <span title="Vidéo YouTube"><Video size={12} /></span>}
                             {sp.drive_url && <span title="Lien Drive"><HardDrive size={12} /></span>}
                         </div>
@@ -483,13 +529,16 @@ export default function EditProjetPage() {
               <Plus size={16} /> Ajouter un détail
             </button>
 
+            {/* Formulaire d'édition du détail en cours */}
             {activeSp && (
               <div className="bg-z-bg border border-z-blue/30 rounded-lg p-4 sm:p-5 space-y-5 animate-in fade-in slide-in-from-top-4 mt-6">
                 <div className="flex items-center justify-between mb-2">
                   <h4 className="text-xs font-bold text-white uppercase tracking-widest">
                     {activeSp.id < 0 ? 'Nouveau Détail' : 'Édition en cours'}
                   </h4>
-                  <span className="flex items-center gap-1 text-[9px] text-emerald-400 uppercase tracking-widest"><CheckCircle2 size={12}/> Actif</span>
+                  <span className="flex items-center gap-1 text-[9px] text-emerald-400 uppercase tracking-widest">
+                    <CheckCircle2 size={12}/> Actif
+                  </span>
                 </div>
                 
                 <div className="space-y-2">
