@@ -1,5 +1,4 @@
 "use client";
-/* eslint-disable react-hooks/set-state-in-effect */
 
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
@@ -16,6 +15,17 @@ import { purgeCache } from '@/app/actions/revalidate';
 import RichTextEditor from '@/components/ui/RichTextEditor';
 import ProjectMediaContent from '@/components/ProjectMediaContent';
 import { getBadgeTheme } from '@/config/colors';
+
+// --- UTILITAIRE : Résolution des images Drive pour l'aperçu ---
+function getDriveFileId(urlOrId: string | null | undefined): string | null {
+  if (!urlOrId) return null;
+  if (!urlOrId.includes('/')) return urlOrId;
+  const fileDMatch = urlOrId.match(/\/d\/([a-zA-Z0-9-_]+)/);
+  if (fileDMatch) return fileDMatch[1];
+  const idParamMatch = urlOrId.match(/id=([a-zA-Z0-9-_]+)/);
+  if (idParamMatch) return idParamMatch[1];
+  return null;
+}
 
 export default function EditProjetPage() {
   const router = useRouter();
@@ -100,7 +110,7 @@ export default function EditProjetPage() {
 
   // --- ACTIONS GLOBALES (PROJET) ---
   const handleUpdateProjet = async (e?: React.FormEvent) => {
-    if(e) e.preventDefault();
+    if (e) e.preventDefault();
     setIsSubmitting(true);
     setMessage(null);
 
@@ -252,20 +262,37 @@ export default function EditProjetPage() {
     setHasUnsavedChanges(true);
   };
 
-  if (isLoading) return <div className="flex items-center justify-center text-z-blue h-full min-h-[50vh]">Chargement de l'éditeur...</div>;
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center text-z-blue h-full min-h-[50vh]">
+        Chargement de l'éditeur...
+      </div>
+    );
+  }
 
   const activeSp = sousProjets.find(sp => sp.id === editingSpId);
   const activeCategory = categories.find(c => c.id.toString() === categorieId);
   const badgeTheme = getBadgeTheme(activeCategory?.color);
 
-  // Construction des données simulées pour la preview live
+  // --- TRAITEMENT DES DONNÉES POUR LA PREVIEW ---
   const previewSousProjets = sousProjets.map(sp => ({
     ...sp,
     finalYoutubeUrl: sp.youtube_url,
-    driveImages: miniatureUrl && sp.ordre === 1 ? [miniatureUrl] : [], // On triche un peu en simulant une image pour l'aperçu
+    driveImages: [], // On laisse vide pour ne pas faire de requêtes massives en preview
     pdf: null,
     driveVideoUrl: null
   }));
+
+  // Résolution de la miniature pour un rendu propre dans l'aperçu
+  let previewCoverUrl = "https://images.unsplash.com/photo-1536440136628-849c177e76a1?q=80&w=1025&auto=format&fit=cover";
+  if (miniatureUrl) {
+    if (miniatureUrl.startsWith('http') && !miniatureUrl.includes('drive.google.com')) {
+      previewCoverUrl = miniatureUrl;
+    } else {
+      const driveImageId = getDriveFileId(miniatureUrl);
+      if (driveImageId) previewCoverUrl = `https://drive.google.com/thumbnail?id=${driveImageId}&sz=w2048`;
+    }
+  }
 
   return (
     <>
@@ -289,12 +316,14 @@ export default function EditProjetPage() {
             <div className="flex items-center justify-between xl:justify-end gap-4 w-full xl:w-auto">
               <div className="flex bg-z-bg p-1 rounded-lg border border-z-border shrink-0">
                 <button 
+                  type="button"
                   onClick={() => setLeftPanelMode('edit')} 
                   className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-[10px] font-bold uppercase tracking-widest transition-all ${leftPanelMode === 'edit' ? 'bg-z-card text-white shadow-sm' : 'text-z-muted hover:text-white'}`}
                 >
                   <PenTool size={12} /> Édition
                 </button>
                 <button 
+                  type="button"
                   onClick={() => setLeftPanelMode('preview')} 
                   className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-[10px] font-bold uppercase tracking-widest transition-all ${leftPanelMode === 'preview' ? 'bg-z-card text-z-blue shadow-sm' : 'text-z-muted hover:text-white'}`}
                 >
@@ -317,35 +346,53 @@ export default function EditProjetPage() {
 
           <div className="flex-1 overflow-y-auto custom-scrollbar relative">
             
-            {/* VUE 1 : FORMULAIRE D'ÉDITION */}
+            {/* --- VUE 1 : FORMULAIRE D'ÉDITION --- */}
             <div className={`p-6 space-y-6 ${leftPanelMode === 'edit' ? 'block' : 'hidden'}`}>
               {message && <Alert type={message.type}>{message.text}</Alert>}
 
               <form onSubmit={handleUpdateProjet} className="space-y-6">
                 <section className="bg-z-bg border border-z-border rounded-xl p-6">
-                  <h2 className="font-sub text-xs uppercase tracking-[0.2em] text-z-blue mb-6 flex items-center gap-2"><FileText size={16} /> Informations</h2>
+                  <h2 className="font-sub text-xs uppercase tracking-[0.2em] text-z-blue mb-6 flex items-center gap-2">
+                    <FileText size={16} /> Informations
+                  </h2>
                   <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 mb-6">
                     <div className="space-y-2">
                       <label className="text-[10px] uppercase font-bold tracking-widest text-z-muted ml-1">Titre</label>
-                      <input required type="text" value={titre} onChange={(e) => {setTitre(e.target.value); setMessage(null);}} className="w-full bg-z-card border border-z-border rounded-lg p-3 text-sm focus:border-z-blue focus:outline-none" />
+                      <input 
+                        required type="text" value={titre} 
+                        onChange={(e) => {setTitre(e.target.value); setMessage(null);}} 
+                        className="w-full bg-z-card border border-z-border rounded-lg p-3 text-sm focus:border-z-blue focus:outline-none" 
+                      />
                     </div>
                     <div className="space-y-2">
                       <label className="text-[10px] uppercase font-bold tracking-widest text-z-muted ml-1">Slug (URL)</label>
-                      <input required type="text" value={slug} onChange={(e) => {setSlug(e.target.value); setMessage(null);}} className="w-full bg-z-card border border-z-border rounded-lg p-3 text-sm text-z-muted focus:border-z-blue focus:outline-none" />
+                      <input 
+                        required type="text" value={slug} 
+                        onChange={(e) => {setSlug(e.target.value); setMessage(null);}} 
+                        className="w-full bg-z-card border border-z-border rounded-lg p-3 text-sm text-z-muted focus:border-z-blue focus:outline-none" 
+                      />
                     </div>
                   </div>
 
                   <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 mb-6">
                     <div className="space-y-2">
                       <label className="text-[10px] uppercase font-bold tracking-widest text-z-muted ml-1">Catégorie</label>
-                      <select value={categorieId} onChange={(e) => setCategorieId(e.target.value)} className="w-full bg-z-card border border-z-border rounded-lg p-3 text-sm text-white focus:border-z-blue focus:outline-none appearance-none">
+                      <select 
+                        value={categorieId} 
+                        onChange={(e) => setCategorieId(e.target.value)} 
+                        className="w-full bg-z-card border border-z-border rounded-lg p-3 text-sm text-white focus:border-z-blue focus:outline-none appearance-none"
+                      >
                         <option value="">-- Sans catégorie --</option>
                         {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                       </select>
                     </div>
                     <div className="space-y-2 flex flex-col justify-center">
                       <label className="text-[10px] uppercase font-bold tracking-widest text-z-muted ml-1 mb-2">Visibilité</label>
-                      <button type="button" onClick={() => setEnLigne(!enLigne)} className={`flex items-center gap-3 w-fit px-4 py-2 rounded-lg font-bold text-xs uppercase tracking-widest transition-colors ${enLigne ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-z-card border border-z-border text-z-muted'}`}>
+                      <button 
+                        type="button" 
+                        onClick={() => setEnLigne(!enLigne)} 
+                        className={`flex items-center gap-3 w-fit px-4 py-2 rounded-lg font-bold text-xs uppercase tracking-widest transition-colors ${enLigne ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-z-card border border-z-border text-z-muted'}`}
+                      >
                         {enLigne ? <ToggleRight size={20} /> : <ToggleLeft size={20} />}
                         {enLigne ? 'Public' : 'Brouillon'}
                       </button>
@@ -354,23 +401,38 @@ export default function EditProjetPage() {
 
                   <div className="space-y-2">
                     <label className="text-[10px] uppercase font-bold tracking-widest text-z-muted ml-1">Description du projet</label>
-                    <RichTextEditor value={description} onChange={setDescription} placeholder="Présentez le contexte..." minHeight="200px" />
+                    <RichTextEditor 
+                      value={description} 
+                      onChange={setDescription} 
+                      placeholder="Présentez le contexte..." 
+                      minHeight="200px" 
+                    />
                   </div>
                 </section>
 
                 <section className="bg-z-bg border border-z-border rounded-xl p-6">
-                  <h2 className="font-sub text-xs uppercase tracking-[0.2em] text-z-blue mb-6 flex items-center gap-2"><ImageIcon size={16} /> Média Principal</h2>
+                  <h2 className="font-sub text-xs uppercase tracking-[0.2em] text-z-blue mb-6 flex items-center gap-2">
+                    <ImageIcon size={16} /> Média Principal
+                  </h2>
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
                       <label className="text-[10px] uppercase font-bold tracking-widest text-z-muted ml-1">URL de la miniature</label>
                       <span className="text-[9px] text-z-blue/70 italic px-2 py-0.5 bg-z-blue/5 rounded border border-z-blue/10">Drive direct</span>
                     </div>
-                    <input type="url" value={miniatureUrl} onChange={(e) => setMiniatureUrl(e.target.value)} className="w-full bg-z-card border border-z-border rounded-lg p-3 text-sm focus:border-z-blue focus:outline-none placeholder:text-z-muted/30" placeholder="https://drive.google.com/uc?id=..." />
+                    <input 
+                      type="url" 
+                      value={miniatureUrl} 
+                      onChange={(e) => setMiniatureUrl(e.target.value)} 
+                      className="w-full bg-z-card border border-z-border rounded-lg p-3 text-sm focus:border-z-blue focus:outline-none placeholder:text-z-muted/30" 
+                      placeholder="https://drive.google.com/uc?id=..." 
+                    />
                   </div>
                 </section>
 
                 <section className="bg-z-bg border border-z-border rounded-xl p-6">
-                  <h2 className="font-sub text-xs uppercase tracking-[0.2em] text-z-blue mb-6 flex items-center gap-2"><Link2 size={16} /> Réseaux liés</h2>
+                  <h2 className="font-sub text-xs uppercase tracking-[0.2em] text-z-blue mb-6 flex items-center gap-2">
+                    <Link2 size={16} /> Réseaux liés
+                  </h2>
                   <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
                     <input type="url" value={linkYoutube} onChange={(e) => setLinkYoutube(e.target.value)} className="bg-z-card border border-z-border rounded-lg p-3 text-sm" placeholder="YouTube" />
                     <input type="url" value={linkInstagram} onChange={(e) => setLinkInstagram(e.target.value)} className="bg-z-card border border-z-border rounded-lg p-3 text-sm" placeholder="Instagram" />
@@ -382,13 +444,13 @@ export default function EditProjetPage() {
               </form>
             </div>
 
-            {/* VUE 2 : APERÇU LIVE (Simulateur d'appareil) */}
-            <div className={`w-full h-full bg-[#020203] flex flex-col ${leftPanelMode === 'preview' ? 'block' : 'hidden'}`}>
+            {/* --- VUE 2 : APERÇU LIVE (Simulateur d'appareil) --- */}
+            <div className={`w-full h-full bg-[#020203] flex flex-col overflow-hidden ${leftPanelMode === 'preview' ? 'flex' : 'hidden'}`}>
               
-              {/* Toolbar du Simulateur */}
               <div className="shrink-0 flex justify-center items-center p-3 border-b border-white/5 bg-black/40 backdrop-blur-sm z-20">
                 <div className="flex bg-z-card p-1 rounded-lg border border-z-border">
                   <button
+                    type="button"
                     onClick={() => setPreviewDevice('desktop')}
                     className={`px-3 py-1.5 rounded-md flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest transition-all ${
                       previewDevice === 'desktop' ? 'bg-white/10 text-white' : 'text-z-muted hover:text-white'
@@ -397,6 +459,7 @@ export default function EditProjetPage() {
                     <Monitor size={14} /> Bureau
                   </button>
                   <button
+                    type="button"
                     onClick={() => setPreviewDevice('mobile')}
                     className={`px-3 py-1.5 rounded-md flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest transition-all ${
                       previewDevice === 'mobile' ? 'bg-white/10 text-white' : 'text-z-muted hover:text-white'
@@ -408,21 +471,25 @@ export default function EditProjetPage() {
               </div>
 
               {/* Faux Écran (Device) */}
-              <div className="flex-1 flex justify-center items-center overflow-hidden relative p-4">
+              <div className="flex-1 flex justify-center items-center overflow-hidden relative p-4 bg-black/50">
                 <div
-                  className={`bg-z-bg overflow-y-auto custom-scrollbar transition-all duration-500 ease-in-out origin-center ${
+                  className={`bg-z-bg overflow-y-auto custom-scrollbar transition-all duration-300 origin-center flex flex-col ${
                     previewDevice === 'mobile'
                       ? 'w-93.75 h-203 rounded-[2.5rem] border-10 border-z-card shadow-2xl ring-1 ring-white/10'
                       : 'w-7xl h-212.5 rounded-xl border border-z-border shadow-2xl'
                   }`}
                   style={{
-                    // Le zoom magique pour que le bureau rentre dans l'écran de l'admin
-                    transform: `scale(${previewDevice === 'desktop' ? 0.6 : 0.85})`
+                    transform: previewDevice === 'desktop' ? 'scale(0.55)' : 'scale(0.85)',
                   }}
                 >
-                  <div className="pb-20">
+                  {/* Intérieur de la page simulée */}
+                  <div className="pb-20 w-full">
                     <section className="relative h-[60vh] w-full overflow-hidden">
-                      <img src={miniatureUrl || "https://images.unsplash.com/photo-1536440136628-849c177e76a1?q=80&w=1025&auto=format&fit=cover"} alt="Cover" className="w-full h-full object-cover opacity-30" />
+                      <img 
+                        src={previewCoverUrl} 
+                        alt="Cover" 
+                        className="w-full h-full object-cover opacity-30" 
+                      />
                       <div className="absolute inset-0 bg-linear-to-t from-z-bg to-transparent" />
                       <div className="absolute bottom-0 left-0 w-full p-8 sm:p-16 max-w-7xl mx-auto z-10">
                         <h1 className="font-display font-bold text-5xl sm:text-8xl uppercase tracking-tighter leading-none mb-6">
@@ -439,31 +506,40 @@ export default function EditProjetPage() {
                     <section className="max-w-7xl mx-auto px-6 sm:px-8 py-20 grid grid-cols-1 lg:grid-cols-3 gap-20">
                       <div className="lg:col-span-1 space-y-10">
                         <div>
-                          <h3 className="text-z-muted font-sub text-[10px] font-bold uppercase tracking-widest mb-6">Introduction</h3>
-                          <div className="font-body text-z-text/80 leading-relaxed whitespace-pre-wrap rich-text" dangerouslySetInnerHTML={{ __html: description || "..." }} />
+                          <h3 className="text-z-muted font-sub text-[10px] font-bold uppercase tracking-widest mb-6">
+                            Introduction
+                          </h3>
+                          <div 
+                            className="font-body text-z-text/80 leading-relaxed whitespace-pre-wrap rich-text" 
+                            dangerouslySetInnerHTML={{ __html: description || "..." }} 
+                          />
                         </div>
                       </div>
                       
-                      {/* Affichage Live des sous-projets ! */}
-                      <ProjectMediaContent sousProjets={previewSousProjets} coverImageUrl="" projectTitle={titre} />
+                      <ProjectMediaContent 
+                        sousProjets={previewSousProjets} 
+                        coverImageUrl="" 
+                        projectTitle={titre} 
+                      />
                     </section>
                   </div>
                 </div>
               </div>
-
             </div>
 
           </div>
         </div>
 
-        {/* COLONNE 2 : LES DÉTAILS DU PROJET (Liste toujours visible) */}
+        {/* COLONNE 2 : LES DÉTAILS DU PROJET */}
         <div className="flex-[0.8] flex flex-col min-w-0 bg-z-card/80 border border-z-border rounded-xl shadow-xl overflow-hidden relative z-10">
           <header className="shrink-0 p-6 border-b border-z-border flex items-center justify-between bg-z-card/50 backdrop-blur-md">
             <div className="flex items-center gap-3">
               <h2 className="font-sub text-xs uppercase tracking-[0.2em] text-white flex items-center gap-2">
                 <Video size={16} className="text-z-blue" /> Détails
               </h2>
-              <span className="px-2 py-1 bg-z-blue/10 text-z-blue rounded-full text-[10px] font-bold">{sousProjets.length}</span>
+              <span className="px-2 py-1 bg-z-blue/10 text-z-blue rounded-full text-[10px] font-bold">
+                {sousProjets.length}
+              </span>
             </div>
 
             {hasUnsavedChanges && (
