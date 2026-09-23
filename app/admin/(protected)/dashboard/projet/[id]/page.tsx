@@ -6,7 +6,7 @@ import { useRouter, useParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { 
   ArrowLeft, Save, Image as ImageIcon, Link2, FileText, ToggleLeft, ToggleRight, 
-  Plus, Trash2, Video, HardDrive, ListOrdered, Edit3, GripVertical
+  Plus, Trash2, Video, HardDrive, ListOrdered, Edit3, GripVertical, CheckCircle2
 } from 'lucide-react';
 import Link from 'next/link';
 import { Categorie, Projet, SousProjet } from '@/types';
@@ -37,16 +37,13 @@ export default function EditProjetPage() {
   const [linkFacebook, setLinkFacebook] = useState('');
 
   const [categories, setCategories] = useState<Categorie[]>([]);
+  
+  // --- ÉTATS RÉACTIFS (LIVE-EDIT) POUR LES DÉTAILS ---
   const [sousProjets, setSousProjets] = useState<SousProjet[]>([]);
-
-  const [showSpForm, setShowSpForm] = useState(false);
+  const [deletedSpIds, setDeletedSpIds] = useState<number[]>([]);
   const [editingSpId, setEditingSpId] = useState<number | null>(null); 
-  const [spTitre, setSpTitre] = useState('');
-  const [spDescription, setSpDescription] = useState('');
-  const [spYoutube, setSpYoutube] = useState('');
-  const [spDrive, setSpDrive] = useState('');
-  const [spOrdre, setSpOrdre] = useState(1);
-  const [spError, setSpError] = useState<string | null>(null);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [isSavingDetails, setIsSavingDetails] = useState(false);
 
   const [deleteSpTarget, setDeleteSpTarget] = useState<{ id: number, titre: string } | null>(null);
 
@@ -89,7 +86,6 @@ export default function EditProjetPage() {
     
     const sp = p.sousprojet ? p.sousprojet.sort((a, b) => a.ordre - b.ordre) : [];
     setSousProjets(sp);
-    setSpOrdre(sp.length + 1); 
 
     setIsLoading(false);
   }, [projetId, router]);
@@ -98,6 +94,7 @@ export default function EditProjetPage() {
     fetchData();
   }, [fetchData]);
 
+  // Sauvegarde globale du Projet
   const handleUpdateProjet = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -118,24 +115,13 @@ export default function EditProjetPage() {
     }
 
     const updatedProjet = {
-      titre,
-      slug,
-      categorie_id: categorieId ? parseInt(categorieId) : null,
-      description: description || null,
-      en_ligne: enLigne,
-      miniature_url: miniatureUrl || null,
-      link_instagram: linkInstagram || null,
-      link_youtube: linkYoutube || null,
-      link_tiktok: linkTiktok || null,
-      link_twitch: linkTwitch || null,
-      link_facebook: linkFacebook || null,
+      titre, slug, categorie_id: categorieId ? parseInt(categorieId) : null,
+      description: description || null, en_ligne: enLigne, miniature_url: miniatureUrl || null,
+      link_instagram: linkInstagram || null, link_youtube: linkYoutube || null,
+      link_tiktok: linkTiktok || null, link_twitch: linkTwitch || null, link_facebook: linkFacebook || null,
     };
 
-    const { error } = await supabase
-      .from('projet')
-      .update(updatedProjet)
-      .eq('id', projetId)
-      .eq('user_id', process.env.NEXT_PUBLIC_PORTFOLIO_USER_ID);
+    const { error } = await supabase.from('projet').update(updatedProjet).eq('id', projetId).eq('user_id', process.env.NEXT_PUBLIC_PORTFOLIO_USER_ID);
 
     if (error) {
       setMessage({ text: "Erreur lors de la sauvegarde : " + error.message, type: 'error' });
@@ -147,70 +133,55 @@ export default function EditProjetPage() {
     setIsSubmitting(false);
   };
   
-  const resetSpForm = () => {
-    setSpTitre('');
-    setSpDescription('');
-    setSpYoutube('');
-    setSpDrive('');
-    setSpOrdre(sousProjets.length + 1);
-    setEditingSpId(null);
-    setShowSpForm(false);
-    setSpError(null);
-  };
-
-  const handleEditClick = (sp: SousProjet) => {
-    setSpTitre(sp.titre || '');
-    setSpDescription(sp.description || '');
-    setSpYoutube(sp.youtube_url || '');
-    setSpDrive(sp.drive_url || '');
-    setSpOrdre(sp.ordre);
-    setEditingSpId(sp.id); 
-    setShowSpForm(true); 
-    window.scrollTo({ top: 0, behavior: 'smooth' }); 
-  };
-
-  const handleSaveSousProjet = async () => {
-    setSpError(null);
-    
-    const spData = {
-      titre: spTitre || null,
-      description: spDescription || null,
-      youtube_url: spYoutube || null,
-      drive_url: spDrive || null,
-      ordre: spOrdre, // Ordre automatique ou conservé
-      projet_id: parseInt(projetId)
+  // --- MÉCANIQUE LIVE-EDIT DES DÉTAILS ---
+  const handleAddSp = () => {
+    const newId = -Date.now(); // ID temporaire négatif
+    const newSp: SousProjet = {
+      id: newId, projet_id: parseInt(projetId),
+      titre: '', description: '', youtube_url: '', drive_url: '',
+      ordre: sousProjets.length + 1, created_at: new Date().toISOString()
     };
+    setSousProjets([...sousProjets, newSp]);
+    setEditingSpId(newId);
+    setHasUnsavedChanges(true);
+  };
 
-    if (editingSpId) {
-      const { error } = await supabase
-        .from('sousprojet')
-        .update(spData)
-        .eq('id', editingSpId);
+  const executeDeleteSp = (id: number) => {
+    if (id > 0) setDeletedSpIds(prev => [...prev, id]); // Ajoute aux suppressions BDD
+    const filtered = sousProjets.filter(sp => sp.id !== id);
+    const reordered = filtered.map((sp, idx) => ({ ...sp, ordre: idx + 1 }));
+    setSousProjets(reordered);
+    if (editingSpId === id) setEditingSpId(null);
+    setHasUnsavedChanges(true);
+    setDeleteSpTarget(null);
+  };
 
-      if (!error) {
-        await purgeCache();
-        setSousProjets(sousProjets.map(sp => 
-          sp.id === editingSpId ? { ...sp, ...spData, id: editingSpId } : sp
-        ).sort((a, b) => a.ordre - b.ordre));
-        resetSpForm();
-      } else {
-        setSpError(error.message);
-      }
-    } else {
-      const { data, error } = await supabase
-        .from('sousprojet')
-        .insert([spData])
-        .select()
-        .single();
+  const updateActiveSp = (field: keyof SousProjet, value: any) => {
+    setSousProjets(prev => prev.map(sp => sp.id === editingSpId ? { ...sp, [field]: value } : sp));
+    setHasUnsavedChanges(true);
+  };
 
-      if (!error && data) {
-        await purgeCache();
-        setSousProjets([...sousProjets, data as SousProjet].sort((a, b) => a.ordre - b.ordre));
-        resetSpForm();
-      } else {
-        setSpError(error?.message || "Erreur d'insertion");
-      }
+  // --- NOUVELLE DISQUETTE GLOBALE : SAUVEGARDE DE TOUT ---
+  const handleSaveDetails = async () => {
+    setIsSavingDetails(true);
+    try {
+      if (deletedSpIds.length > 0) await supabase.from('sousprojet').delete().in('id', deletedSpIds);
+      
+      const toUpdate = sousProjets.filter(sp => sp.id > 0).map(({ created_at, ...rest }) => rest);
+      if (toUpdate.length > 0) await supabase.from('sousprojet').upsert(toUpdate);
+      
+      const toInsert = sousProjets.filter(sp => sp.id < 0).map(({ id, created_at, ...rest }) => rest);
+      if (toInsert.length > 0) await supabase.from('sousprojet').insert(toInsert);
+      
+      await purgeCache();
+      setDeletedSpIds([]);
+      setHasUnsavedChanges(false);
+      setEditingSpId(null);
+      await fetchData(); // Rafraîchit pour récupérer les vrais IDs
+    } catch (err) {
+      console.error("Erreur de sauvegarde des détails :", err);
     }
+    setIsSavingDetails(false);
   };
 
   const requestDeleteSp = (id: number, titre: string | null) => {
@@ -222,48 +193,16 @@ export default function EditProjetPage() {
     }
   };
 
-  const executeDeleteSp = async (id: number) => {
-    setDeleteSpTarget(null);
-    const { error } = await supabase
-      .from('sousprojet')
-      .delete()
-      .eq('id', id);
-
-    if (!error) {
-      await purgeCache();
-      // On retire l'élément et on recalcule l'ordre de ceux qui restent
-      const filtered = sousProjets.filter(sp => sp.id !== id);
-      const reordered = filtered.map((sp, idx) => ({ ...sp, ordre: idx + 1 }));
-      setSousProjets(reordered);
-      
-      // On sauvegarde le nouvel ordre en DB
-      Promise.all(reordered.map(sp => 
-        supabase.from('sousprojet').update({ ordre: sp.ordre }).eq('id', sp.id)
-      )).catch(console.error);
-    }
-  };
 
   // --- LOGIQUE DRAG & DROP ---
-  const handleDragStart = (e: React.DragEvent, id: number) => {
-    setDraggedId(id);
-    e.dataTransfer.effectAllowed = 'move';
-  };
-
-  const handleDragOver = (e: React.DragEvent, id: number) => {
-    e.preventDefault(); // Indispensable pour autoriser le drop
-    if (dragOverId !== id) setDragOverId(id);
-  };
+  const handleDragStart = (e: React.DragEvent, id: number) => { setDraggedId(id); e.dataTransfer.effectAllowed = 'move'; };
+  const handleDragOver = (e: React.DragEvent, id: number) => { e.preventDefault(); if (dragOverId !== id) setDragOverId(id); };
 
   const handleDrop = async (e: React.DragEvent, targetId: number) => {
     e.preventDefault();
     setDragOverId(null);
+    if (!draggedId || draggedId === targetId) { setDraggedId(null); return; }
 
-    if (!draggedId || draggedId === targetId) {
-      setDraggedId(null);
-      return;
-    }
-
-    // Réorganisation du tableau en mémoire
     const draggedIndex = sousProjets.findIndex(sp => sp.id === draggedId);
     const targetIndex = sousProjets.findIndex(sp => sp.id === targetId);
 
@@ -271,36 +210,19 @@ export default function EditProjetPage() {
     const [draggedItem] = newItems.splice(draggedIndex, 1);
     newItems.splice(targetIndex, 0, draggedItem);
 
-    // Recalcul parfait de l'ordre (de 1 à N)
-    const updatedItems = newItems.map((sp, index) => ({
-      ...sp,
-      ordre: index + 1
-    }));
-
+    const updatedItems = newItems.map((sp, index) => ({ ...sp, ordre: index + 1 }));
     setSousProjets(updatedItems);
     setDraggedId(null);
-
-    // Persistance asynchrone sur Supabase
-    try {
-      await Promise.all(
-        updatedItems.map(sp => 
-          supabase.from('sousprojet').update({ ordre: sp.ordre }).eq('id', sp.id)
-        )
-      );
-      await purgeCache(); // Invalidation du cache pour mettre à jour la vitrine
-    } catch (err) {
-      console.error("Erreur de réorganisation :", err);
-    }
+    setHasUnsavedChanges(true);
   };
 
-  if (isLoading) {
-    return <div className="flex items-center justify-center text-z-blue h-full min-h-[50vh]">Chargement de l'éditeur...</div>;
-  }
+  if (isLoading) return <div className="flex items-center justify-center text-z-blue h-full min-h-[50vh]">Chargement de l'éditeur...</div>;
+
+  const activeSp = sousProjets.find(sp => sp.id === editingSpId);
 
   return (
     <>
       <div className="max-w-6xl mx-auto grid grid-cols-1 xl:grid-cols-3 gap-8">
-        
         <div className="xl:col-span-2 space-y-6">
           <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
             <div className="flex items-center gap-4">
@@ -308,27 +230,19 @@ export default function EditProjetPage() {
                 <ArrowLeft size={18} />
               </Link>
               <div>
-                <h1 className="font-display font-bold text-3xl uppercase tracking-wider text-white truncate max-w-sm">
-                  {titre}
-                </h1>
+                <h1 className="font-display font-bold text-3xl uppercase tracking-wider text-white truncate max-w-sm">{titre}</h1>
                 <p className="font-body text-sm text-z-muted mt-1">Édition du projet</p>
               </div>
             </div>
             <button 
-              type="button"
-              onClick={handleUpdateProjet}
-              disabled={isSubmitting}
+              type="button" onClick={handleUpdateProjet} disabled={isSubmitting}
               className="btn-blue px-6 py-3 rounded-lg flex items-center justify-center gap-2 text-xs font-bold tracking-widest shadow-lg hover:scale-105 transition-all disabled:opacity-50"
             >
               <Save size={16} /> {isSubmitting ? 'Sauvegarde...' : 'Enregistrer'}
             </button>
           </header>
 
-          {message && (
-            <div className="mb-6">
-              <Alert type={message.type}>{message.text}</Alert>
-            </div>
-          )}
+          {message && <div className="mb-6"><Alert type={message.type}>{message.text}</Alert></div>}
 
           <form onSubmit={handleUpdateProjet} className="space-y-6">
             <section className="bg-z-card border border-z-border rounded-xl p-6 shadow-xl">
@@ -366,8 +280,7 @@ export default function EditProjetPage() {
               <div className="space-y-2">
                 <label className="text-[10px] uppercase font-bold tracking-widest text-z-muted ml-1">Description du projet</label>
                 <RichTextEditor 
-                  value={description} 
-                  onChange={setDescription} 
+                  value={description} onChange={setDescription} 
                   placeholder="Présentez le contexte et les enjeux de ce projet..." 
                   minHeight="200px" 
                 />
@@ -378,16 +291,13 @@ export default function EditProjetPage() {
               <h2 className="font-sub text-xs uppercase tracking-[0.2em] text-z-blue mb-6 flex items-center gap-2">
                 <ImageIcon size={16} /> Média Principal
               </h2>
-              
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <label className="text-[10px] uppercase font-bold tracking-widest text-z-muted ml-1">URL de la miniature</label>
                   <span className="text-[9px] text-z-blue/70 italic px-2 py-0.5 bg-z-blue/5 rounded border border-z-blue/10">Drive direct</span>
                 </div>
                 <input 
-                  type="url" 
-                  value={miniatureUrl} 
-                  onChange={(e) => setMiniatureUrl(e.target.value)} 
+                  type="url" value={miniatureUrl} onChange={(e) => setMiniatureUrl(e.target.value)} 
                   className="w-full bg-z-bg border border-z-border rounded-lg p-3 text-sm focus:border-z-blue focus:outline-none placeholder:text-z-muted/30" 
                   placeholder="https://drive.google.com/uc?id=1A2b3C4d..." 
                 />
@@ -395,7 +305,6 @@ export default function EditProjetPage() {
                   Pour que l'image s'affiche, le lien doit utiliser <code className="text-emerald-400 bg-emerald-400/10 px-1 rounded mx-0.5">/uc?id=</code> au lieu de <code className="text-red-400 bg-red-400/10 px-1 rounded mx-0.5">/view</code>.
                 </p>
               </div>
-
             </section>
 
             <section className="bg-z-card border border-z-border rounded-xl p-6 shadow-xl">
@@ -415,13 +324,28 @@ export default function EditProjetPage() {
 
         <div className="xl:col-span-1 space-y-6">
           <div className="bg-z-card border border-z-border rounded-xl p-6 shadow-xl sticky top-6">
+            
             <div className="flex items-center justify-between mb-6">
-              <h2 className="font-sub text-xs uppercase tracking-[0.2em] text-white flex items-center gap-2">
-                <Video size={16} className="text-z-blue" /> Détails
-              </h2>
-              <span className="px-2 py-1 bg-z-blue/10 text-z-blue rounded-full text-[10px] font-bold">
-                {sousProjets.length}
-              </span>
+              <div className="flex items-center gap-3">
+                <h2 className="font-sub text-xs uppercase tracking-[0.2em] text-white flex items-center gap-2">
+                  <Video size={16} className="text-z-blue" /> Détails
+                </h2>
+                <span className="px-2 py-1 bg-z-blue/10 text-z-blue rounded-full text-[10px] font-bold">
+                  {sousProjets.length}
+                </span>
+              </div>
+
+              {/* LA DISQUETTE GLOBALE */}
+              {hasUnsavedChanges && (
+                <button 
+                  onClick={handleSaveDetails}
+                  disabled={isSavingDetails}
+                  className="flex items-center gap-2 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 hover:bg-emerald-500 hover:text-white px-3 py-1.5 rounded text-[10px] font-bold uppercase tracking-widest transition-colors animate-in fade-in zoom-in duration-200 cursor-pointer disabled:opacity-50 shadow-lg shadow-emerald-500/10"
+                  title="Sauvegarder l'ordre et les modifications"
+                >
+                  {isSavingDetails ? <span className="animate-pulse">Sauvegarde...</span> : <><Save size={14} /> Sauver les détails</>}
+                </button>
+              )}
             </div>
 
             <div className="space-y-3 mb-6 max-h-100 overflow-y-auto pr-2">
@@ -430,52 +354,32 @@ export default function EditProjetPage() {
               ) : (
                 sousProjets.map(sp => (
                   <div 
-                    key={sp.id} 
-                    draggable
+                    key={sp.id} draggable
                     onDragStart={(e) => handleDragStart(e, sp.id)}
                     onDragOver={(e) => handleDragOver(e, sp.id)}
                     onDrop={(e) => handleDrop(e, sp.id)}
                     onDragEnd={() => { setDraggedId(null); setDragOverId(null); }}
-                    className={`bg-z-bg border rounded-lg p-4 group transition-all duration-200 ${
-                      editingSpId === sp.id ? 'border-z-blue' : 'border-z-border'
+                    onClick={() => setEditingSpId(sp.id)}
+                    className={`bg-z-bg border rounded-lg p-4 group transition-all duration-200 cursor-pointer ${
+                      editingSpId === sp.id ? 'border-z-blue bg-z-blue/5' : 'border-z-border hover:border-z-blue/50'
                     } ${draggedId === sp.id ? 'opacity-40 scale-95 border-dashed border-z-blue' : ''} ${
                       dragOverId === sp.id && draggedId !== sp.id ? 'border-z-blue bg-z-blue/10 translate-y-1' : ''
                     }`}
                   >
                     <div className="flex justify-between items-start gap-3">
-                      
-                      {/* Poignée de déplacement (Grip) */}
                       <div className="cursor-grab active:cursor-grabbing text-z-muted/30 hover:text-white pt-1 transition-colors">
                         <GripVertical size={16} />
                       </div>
-
                       <div className="flex-1">
                         <h4 className="text-sm font-bold text-white mb-1">{sp.titre || `Séquence Média`}</h4>
                         <div className="flex items-center gap-3 text-z-muted">
-                            <span className="flex items-center gap-1 text-[10px] font-bold uppercase text-z-blue">
-                                <ListOrdered size={12}/> {sp.ordre}
-                            </span>
-                            {sp.youtube_url && (
-                                <span title="A une vidéo YouTube" className="flex items-center">
-                                <Video size={12} />
-                                </span>
-                            )}
-                            {sp.drive_url && (
-                                <span title="A un lien Drive" className="flex items-center">
-                                <HardDrive size={12} />
-                                </span>
-                            )}
+                            <span className="flex items-center gap-1 text-[10px] font-bold uppercase text-z-blue"><ListOrdered size={12}/> {sp.ordre}</span>
+                            {sp.youtube_url && <span title="Vidéo YouTube"><Video size={12} /></span>}
+                            {sp.drive_url && <span title="Lien Drive"><HardDrive size={12} /></span>}
                         </div>
                       </div>
                       <div className="flex items-center gap-1">
-                        <button type="button" onClick={() => handleEditClick(sp)} className="text-z-muted hover:text-white p-1 transition-colors cursor-pointer">
-                          <Edit3 size={14} />
-                        </button>
-                        <button 
-                          type="button" 
-                          onClick={() => requestDeleteSp(sp.id, sp.titre)}
-                          className="text-z-muted hover:text-red-400 p-1 transition-colors cursor-pointer"
-                        >
+                        <button type="button" onClick={(e) => { e.stopPropagation(); requestDeleteSp(sp.id, sp.titre); }} className="text-z-muted hover:text-red-400 p-1 transition-colors cursor-pointer">
                           <Trash2 size={14} />
                         </button>
                       </div>
@@ -485,39 +389,34 @@ export default function EditProjetPage() {
               )}
             </div>
 
-            {!showSpForm ? (
-              <button 
-                type="button"
-                onClick={() => { resetSpForm(); setShowSpForm(true); }}
-                className="w-full py-3 border border-dashed border-z-blue/50 text-z-blue rounded-lg text-xs font-bold uppercase tracking-widest hover:bg-z-blue/5 transition-colors flex items-center justify-center gap-2 cursor-pointer"
-              >
-                <Plus size={16} /> Ajouter un détail
-              </button>
-            ) : (
-              <div className="bg-z-bg border border-z-blue/30 rounded-lg p-4 space-y-4">
-                <h4 className="text-xs font-bold text-white uppercase tracking-widest">
-                  {editingSpId ? 'Modifier Sous-Projet' : 'Nouveau Sous-Projet'}
-                </h4>
-                
-                {spError && (
-                  <div className="mb-2">
-                    <Alert type="error">{spError}</Alert>
-                  </div>
-                )}
+            <button 
+              type="button" onClick={handleAddSp}
+              className="w-full py-3 border border-dashed border-z-blue/50 text-z-blue rounded-lg text-xs font-bold uppercase tracking-widest hover:bg-z-blue/5 transition-colors flex items-center justify-center gap-2 cursor-pointer mb-6"
+            >
+              <Plus size={16} /> Ajouter un détail
+            </button>
 
+            {/* FORMULAIRE RÉACTIF */}
+            {activeSp && (
+              <div className="bg-z-bg border border-z-blue/30 rounded-lg p-4 space-y-4 animate-in fade-in slide-in-from-top-4">
+                <div className="flex items-center justify-between mb-2">
+                  <h4 className="text-xs font-bold text-white uppercase tracking-widest">
+                    {activeSp.id < 0 ? 'Nouveau Détail' : 'Édition en cours'}
+                  </h4>
+                  <span className="flex items-center gap-1 text-[9px] text-emerald-400 uppercase tracking-widest"><CheckCircle2 size={12}/> Actif</span>
+                </div>
+                
                 <div className="space-y-2">
-                  <input type="text" placeholder="Titre (ex: Teaser, Making-of)" value={spTitre} onChange={e => setSpTitre(e.target.value)} className="w-full bg-z-card border border-z-border rounded p-2 text-xs" />
+                  <input type="text" placeholder="Titre (ex: Teaser, Making-of)" value={activeSp.titre || ''} onChange={e => updateActiveSp('titre', e.target.value)} className="w-full bg-z-card border border-z-border rounded p-2 text-xs" />
                 </div>
                 <div className="space-y-2">
                   <RichTextEditor 
-                    value={spDescription} 
-                    onChange={setSpDescription} 
-                    placeholder="Description optionnelle (matériel utilisé, contexte...)" 
-                    minHeight="120px" 
+                    value={activeSp.description || ''} onChange={val => updateActiveSp('description', val)} 
+                    placeholder="Description optionnelle (matériel utilisé, contexte...)" minHeight="120px" 
                   />
                 </div>
                 <div className="space-y-2">
-                  <input type="url" placeholder="URL iframe YouTube (optionnel)" value={spYoutube} onChange={e => setSpYoutube(e.target.value)} className="w-full bg-z-card border border-z-border rounded p-2 text-xs" />
+                  <input type="url" placeholder="URL iframe YouTube (optionnel)" value={activeSp.youtube_url || ''} onChange={e => updateActiveSp('youtube_url', e.target.value)} className="w-full bg-z-card border border-z-border rounded p-2 text-xs" />
                 </div>
                 
                 <div className="space-y-2">
@@ -526,23 +425,14 @@ export default function EditProjetPage() {
                     <span className="text-[9px] text-z-blue/70 italic px-2 py-0.5 bg-z-blue/5 rounded border border-z-blue/10">Drive direct</span>
                   </div>
                   <input 
-                    type="url" 
-                    placeholder="https://drive.google.com/uc?id=..." 
-                    value={spDrive} 
-                    onChange={e => setSpDrive(e.target.value)} 
+                    type="url" placeholder="https://drive.google.com/uc?id=..." value={activeSp.drive_url || ''} onChange={e => updateActiveSp('drive_url', e.target.value)} 
                     className="w-full bg-z-card border border-z-border rounded p-2 text-xs placeholder:text-z-muted/30 focus:border-z-blue focus:outline-none" 
                   />
-                  <p className="text-[9px] text-z-muted ml-1 leading-relaxed">
-                    Utilisez <code className="text-emerald-400 bg-emerald-400/10 px-1 rounded mx-0.5">/uc?id=</code> au lieu de <code className="text-red-400 bg-red-400/10 px-1 rounded mx-0.5">/view</code>.
-                  </p>
                 </div>
 
-                <div className="flex gap-2 pt-2">
-                  <button type="button" onClick={handleSaveSousProjet} className="flex-1 btn-blue py-2 rounded text-xs font-bold tracking-widest cursor-pointer">
-                    {editingSpId ? 'Mettre à jour' : 'Ajouter'}
-                  </button>
-                  <button type="button" onClick={resetSpForm} className="flex-1 bg-z-card border border-z-border text-white py-2 rounded text-xs font-bold hover:bg-white/5 cursor-pointer">
-                    Annuler
+                <div className="pt-2">
+                  <button type="button" onClick={() => setEditingSpId(null)} className="w-full bg-z-card border border-z-border text-white py-2 rounded text-xs font-bold hover:bg-white/5 cursor-pointer transition-colors">
+                    Fermer l'éditeur
                   </button>
                 </div>
               </div>
@@ -552,10 +442,8 @@ export default function EditProjetPage() {
       </div>
 
       <ConfirmModal 
-        isOpen={deleteSpTarget !== null}
-        title={deleteSpTarget?.titre || ''}
-        onConfirm={() => deleteSpTarget && executeDeleteSp(deleteSpTarget.id)}
-        onCancel={() => setDeleteSpTarget(null)}
+        isOpen={deleteSpTarget !== null} title={deleteSpTarget?.titre || ''}
+        onConfirm={() => deleteSpTarget && executeDeleteSp(deleteSpTarget.id)} onCancel={() => setDeleteSpTarget(null)}
       />
     </>
   );

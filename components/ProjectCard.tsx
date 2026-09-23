@@ -15,13 +15,10 @@ function getYoutubeId(url: string | null | undefined): string | null {
 function getDriveFileId(urlOrId: string | null | undefined): string | null {
   if (!urlOrId) return null;
   if (!urlOrId.includes('/')) return urlOrId;
-  
   const fileDMatch = urlOrId.match(/\/d\/([a-zA-Z0-9-_]+)/);
   if (fileDMatch) return fileDMatch[1];
-  
   const idParamMatch = urlOrId.match(/id=([a-zA-Z0-9-_]+)/);
   if (idParamMatch) return idParamMatch[1];
-  
   return null;
 }
 
@@ -36,17 +33,12 @@ export default function ProjectCard({ project }: { project: Projet }) {
       coverImageUrl = miniatureUrl;
     } else {
       const driveImageId = getDriveFileId(miniatureUrl);
-      coverImageUrl = driveImageId 
-        ? `https://drive.google.com/thumbnail?id=${driveImageId}&sz=w1200`
-        : miniatureUrl;
+      coverImageUrl = driveImageId ? `https://drive.google.com/thumbnail?id=${driveImageId}&sz=w1200` : miniatureUrl;
     }
   } else {
     const premierSousProjet = project.sousprojet?.[0];
     const youtubeId = getYoutubeId(premierSousProjet?.youtube_url);
-    
-    coverImageUrl = youtubeId 
-      ? `https://img.youtube.com/vi/${youtubeId}/maxresdefault.jpg` 
-      : "https://images.unsplash.com/photo-1536440136628-849c177e76a1?q=80&w=1025&auto=format&fit=cover";
+    coverImageUrl = youtubeId ? `https://img.youtube.com/vi/${youtubeId}/maxresdefault.jpg` : "https://images.unsplash.com/photo-1536440136628-849c177e76a1?q=80&w=1025&auto=format&fit=cover";
   }
 
   const hasVideos = project.sousprojet && project.sousprojet.length > 0;
@@ -69,7 +61,6 @@ export default function ProjectCard({ project }: { project: Projet }) {
           <span className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider border transition-colors duration-300 ${badgeTheme.bg} ${badgeTheme.text} ${badgeTheme.border}`}>
             {project.categorie?.name || "Général"}
           </span>
-          
           <div className="flex items-center gap-2">
             {hasVideos && <div className="text-z-muted"><Video size={14} /></div>}
             {hasDrive && <div className="text-z-muted"><ExternalLink size={14} /></div>}
@@ -82,11 +73,14 @@ export default function ProjectCard({ project }: { project: Projet }) {
           </Link>
         </h3>
         
-        <p className="font-body text-z-muted text-xs leading-relaxed mt-2 line-clamp-2">
-          {project.description}
-        </p>
+        {/* CORRECTION DU RENDU HTML SUR LA CARTE DE LA GALERIE */}
+        {project.description && (
+          <div 
+            className="font-body text-z-muted text-xs leading-relaxed mt-2 line-clamp-2 rich-text"
+            dangerouslySetInnerHTML={{ __html: project.description }}
+          />
+        )}
       </div>
     </article>
   );
 }
-
