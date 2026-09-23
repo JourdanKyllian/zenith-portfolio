@@ -10,7 +10,6 @@ import SocialLinks from '@/components/SocialLinks';
 
 export const revalidate = 3600;
 
-// --- PRÉ-GÉNÉRATION STATIQUE ---
 export async function generateStaticParams() {
   const { data: projets } = await supabase
     .from('projet')

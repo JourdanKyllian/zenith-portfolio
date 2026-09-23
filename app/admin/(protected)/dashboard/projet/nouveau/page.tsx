@@ -98,7 +98,6 @@ export default function NouveauProjetPage() {
       setErrorMessage(error.message);
       setIsSubmitting(false);
     } else if (data) {
-      // Purge globale (Accueil + Galerie potentiellement impactés)
       await purgeCache();
       router.push(`/admin/dashboard/projet/${data.id}`);
     }
@@ -195,8 +194,6 @@ export default function NouveauProjetPage() {
           <h2 className="font-sub text-xs uppercase tracking-[0.2em] text-z-blue mb-6 flex items-center gap-2">
             <ImageIcon size={16} /> Visuel
           </h2>
-          
-          {/* --- MODIFICATION UX DRIVE ICI --- */}
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <label className="text-[10px] uppercase font-bold tracking-widest text-z-muted ml-1">URL de la miniature</label>
@@ -213,7 +210,6 @@ export default function NouveauProjetPage() {
               Pour que l'image s'affiche, le lien doit utiliser <code className="text-emerald-400 bg-emerald-400/10 px-1 rounded mx-0.5">/uc?id=</code> au lieu de <code className="text-red-400 bg-red-400/10 px-1 rounded mx-0.5">/view</code>.
             </p>
           </div>
-
         </section>
 
         <section className="bg-z-card border border-z-border rounded-xl p-6 shadow-xl">
