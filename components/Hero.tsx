@@ -3,12 +3,11 @@
 import { Eye, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { useMemo, useRef, useState } from 'react';
+import { useMemo } from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
-import { Autoplay, FreeMode } from 'swiper/modules';
+import { Autoplay } from 'swiper/modules';
 
 import 'swiper/css';
-import 'swiper/css/free-mode';
 
 interface MarqueeProject {
   url: string;
@@ -34,9 +33,6 @@ function getDriveFileId(urlOrId: string | null | undefined): string | null {
 
 export default function Hero({ categoriesCount, yearsOfExperience, marqueeProjects = [] }: HeroProps) {
   
-  const swiperRef = useRef<any>(null);
-  const [isHovered, setIsHovered] = useState(false);
-
   const resolvedProjects = useMemo(() => {
     return marqueeProjects.map(p => {
       let finalUrl = p.url;
@@ -50,36 +46,10 @@ export default function Hero({ categoriesCount, yearsOfExperience, marqueeProjec
     });
   }, [marqueeProjects]);
 
-  // --- HACK SWIPER : FREINAGE PROGRESSIF ---
-  const handleMouseEnter = () => {
-    // On désactive ce hack sur mobile/tablette où le tactile fait déjà très bien le job
-    if (typeof window !== 'undefined' && window.matchMedia("(hover: none)").matches) return;
-    
-    setIsHovered(true);
-    if (swiperRef.current && swiperRef.current.swiper) {
-      const swiper = swiperRef.current.swiper;
-      swiper.autoplay.stop(); // On coupe le moteur linéaire constant
-      
-      // On force le carrousel à glisser de 150px supplémentaires sur 800ms
-      // Le changement de classe CSS (smooth-brake) va adoucir cet arrêt.
-      const currentPos = swiper.getTranslate();
-      swiper.translateTo(currentPos - 150, 800);
-    }
-  };
-
-  const handleMouseLeave = () => {
-    if (typeof window !== 'undefined' && window.matchMedia("(hover: none)").matches) return;
-    
-    setIsHovered(false);
-    if (swiperRef.current && swiperRef.current.swiper) {
-      const swiper = swiperRef.current.swiper;
-      swiper.autoplay.start(); // On relance le moteur constant
-    }
-  };
-
   return (
     <section className="relative min-h-screen flex flex-col items-center justify-center text-center px-4 pt-28 pb-8 overflow-hidden">
       
+      {/* SHOWREEL VIDEO */}
       <div className="absolute inset-0 z-0 bg-z-bg">
         <video
           autoPlay loop muted playsInline
@@ -151,31 +121,22 @@ export default function Hero({ categoriesCount, yearsOfExperience, marqueeProjec
 
       {resolvedProjects.length > 0 && (
         <div className="w-full relative z-10 flex flex-col items-center mt-4">
-          <div 
-            className="w-full max-w-7xl mask-edges py-4"
-            onMouseEnter={handleMouseEnter}
-            onMouseLeave={handleMouseLeave}
-          >
+          <div className="w-full max-w-7xl mask-edges py-4">
             <Swiper
-              ref={swiperRef}
-              modules={[Autoplay, FreeMode]}
+              modules={[Autoplay]}
               spaceBetween={16}
               slidesPerView="auto"
               loop={true}
-              freeMode={{
-                enabled: true,
-                momentum: true, 
-              }}
-              speed={4000} 
+              speed={800} /* Vitesse de transition douce avec inertie naturelle */
               autoplay={{
-                delay: 0,
+                delay: 2500, /* Temps de pause sur l'image pour la contempler */
                 disableOnInteraction: false,
-                pauseOnMouseEnter: false, // On désactive la pause native brutale pour utiliser notre système
+                pauseOnMouseEnter: true, /* Comportement natif propre */
               }}
               breakpoints={{
                 640: { spaceBetween: 24 }
               }}
-              className={`w-full ${isHovered ? 'smooth-brake' : 'continuous-scroll'}`}
+              className="w-full"
             >
               {resolvedProjects.map((p, idx) => (
                 <SwiperSlide key={idx} className="w-40! sm:w-56! lg:w-[256px]!">

@@ -6,6 +6,22 @@
   font-display: swap;
 }
 
+@layer utilities {
+  .font-martyric {
+    font-family: 'Martyric', sans-serif !important;
+    padding-left: 0.6em !important;
+    padding-right: 0.6em !important;
+    margin-left: -0.6em !important;
+    margin-right: -0.6em !important;
+    display: inline-block !important;
+    overflow: visible !important;
+  }
+
+  .text-shadow-safe {
+    text-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  }
+}
+
 @theme {
   --font-display: var(--font-rajdhani);
   --font-sub: var(--font-montserrat);
@@ -128,20 +144,6 @@
 }
 
 @layer utilities {
-  .font-martyric {
-    font-family: 'Martyric', sans-serif !important;
-    padding-left: 0.6em !important;
-    padding-right: 0.6em !important;
-    margin-left: -0.6em !important;
-    margin-right: -0.6em !important;
-    display: inline-block !important;
-    overflow: visible !important;
-  }
-
-  .text-shadow-safe {
-    text-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
-  }
-
   .text-glow {
     color: #007BFF;
     text-shadow: 0 0 20px rgba(0,123,255,0.7), 0 0 60px rgba(0,123,255,0.3);
@@ -200,17 +202,5 @@
   .mask-edges {
     mask-image: linear-gradient(to right, transparent, black 15%, black 85%, transparent);
     -webkit-mask-image: linear-gradient(to right, transparent, black 15%, black 85%, transparent);
-  }
-
-  /* --- HACK SWIPER : Moteur d'inertie sur-mesure --- */
-  
-  /* 1. Mode continu : Vitesse constante, aucune accélération/décélération */
-  .continuous-scroll .swiper-wrapper {
-    transition-timing-function: linear !important;
-  }
-  
-  /* 2. Mode freinage : Décélération douce et naturelle quand on met la souris */
-  .smooth-brake .swiper-wrapper {
-    transition-timing-function: cubic-bezier(0.25, 1, 0.5, 1) !important;
   }
 }
