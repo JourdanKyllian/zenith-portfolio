@@ -3,7 +3,7 @@
 import { Eye, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { useMemo } from 'react';
+import { useMemo, useRef, useState, useEffect } from 'react';
 
 interface MarqueeProject {
   url: string;
@@ -28,12 +28,16 @@ function getDriveFileId(urlOrId: string | null | undefined): string | null {
 }
 
 export default function Hero({ categoriesCount, yearsOfExperience, marqueeProjects = [] }: HeroProps) {
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const firstSetRef = useRef<HTMLDivElement>(null);
+  const [isInteracting, setIsInteracting] = useState(false);
+  const resumeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   
   const resolvedProjects = useMemo(() => {
     return marqueeProjects.map(p => {
       let finalUrl = p.url;
       if (finalUrl.startsWith('http') && !finalUrl.includes('drive.google.com')) {
-        // Lien classique, on ne touche à rien
+        // Classique
       } else {
         const id = getDriveFileId(finalUrl);
         if (id) finalUrl = `https://drive.google.com/thumbnail?id=${id}&sz=w600`;
@@ -42,20 +46,62 @@ export default function Hero({ categoriesCount, yearsOfExperience, marqueeProjec
     });
   }, [marqueeProjects]);
 
-  const displayProjects = resolvedProjects.length > 0 
-    ? [...resolvedProjects, ...resolvedProjects] 
-    : [];
+  // --- MOTEUR DE DÉFILEMENT FLUIDE & TACTILE ---
+  useEffect(() => {
+    const el = scrollRef.current;
+    const firstSet = firstSetRef.current;
+    if (!el || !firstSet || isInteracting || resolvedProjects.length === 0) return;
+
+    let animationFrameId: number;
+    let lastTimestamp: number;
+    const speed = 0.035; // Vitesse de défilement (pixels par milliseconde)
+
+    const scroll = (timestamp: number) => {
+      if (!lastTimestamp) lastTimestamp = timestamp;
+      const delta = timestamp - lastTimestamp;
+      lastTimestamp = timestamp;
+
+      el.scrollLeft += speed * delta;
+
+      // Calcul dynamique de la largeur de la première boucle (avec le gap)
+      // gap-4 = 16px (mobile), gap-6 = 24px (desktop)
+      const gap = window.innerWidth >= 640 ? 24 : 16;
+      const loopWidth = firstSet.offsetWidth + gap;
+
+      // Boucle parfaite invisible
+      if (el.scrollLeft >= loopWidth) {
+        el.scrollLeft -= loopWidth;
+      }
+
+      animationFrameId = requestAnimationFrame(scroll);
+    };
+
+    animationFrameId = requestAnimationFrame(scroll);
+    return () => cancelAnimationFrame(animationFrameId);
+  }, [isInteracting, resolvedProjects]);
+
+  // Gestion de la pause et de la reprise après 3 secondes
+  const handleInteractionStart = () => {
+    setIsInteracting(true);
+    if (resumeTimeoutRef.current) clearTimeout(resumeTimeoutRef.current);
+  };
+
+  const handleInteractionEnd = () => {
+    if (resumeTimeoutRef.current) clearTimeout(resumeTimeoutRef.current);
+    resumeTimeoutRef.current = setTimeout(() => {
+      setIsInteracting(false);
+    }, 3000);
+  };
 
   return (
     <section className="relative min-h-screen flex flex-col items-center justify-center text-center px-4 pt-28 pb-8 overflow-hidden">
       
-      {/* --- SHOWREEL VIDEO --- */}
+      {/* SHOWREEL VIDEO */}
       <div className="absolute inset-0 z-0 bg-z-bg">
         <video
           autoPlay loop muted playsInline
           className="absolute inset-0 w-full h-full object-cover opacity-25 grayscale-40"
         >
-          {/* Format unique WebM pour des performances optimales */}
           <source src="/showreel.webm" type="video/webm" />
         </video>
         <div className="absolute inset-0 bg-z-bg/50 mix-blend-multiply" />
@@ -120,41 +166,39 @@ export default function Hero({ categoriesCount, yearsOfExperience, marqueeProjec
         </div>
       </div>
 
-      {displayProjects.length > 0 && (
+      {/* --- PELLICULE DÉFILANTE INTERACTIVE TACTILE --- */}
+      {resolvedProjects.length > 0 && (
         <div className="w-full relative z-10 flex flex-col items-center mt-4">
           <div className="w-full max-w-7xl overflow-hidden mask-edges py-2">
-            <div className="flex w-max gap-6 group">
-              <div className="flex shrink-0 items-center gap-6 animate-marquee group-hover:[animation-play-state:paused]">
-                {displayProjects.map((p, idx) => (
+            <div 
+              ref={scrollRef}
+              onMouseEnter={handleInteractionStart}
+              onMouseLeave={handleInteractionEnd}
+              onTouchStart={handleInteractionStart}
+              onTouchEnd={handleInteractionEnd}
+              className="flex w-full overflow-x-auto gap-4 sm:gap-6 no-scrollbar cursor-grab active:cursor-grabbing"
+            >
+              {/* SET 1 */}
+              <div ref={firstSetRef} className="flex shrink-0 items-center gap-4 sm:gap-6">
+                {resolvedProjects.map((p, idx) => (
                   <Link 
                     key={`m1-${idx}`} 
                     href={`/projet/${p.slug}`}
-                    className="relative block aspect-video w-36 sm:w-48 lg:w-56 rounded-xl overflow-hidden border border-z-blue/10 shadow-xl transition-all duration-300 hover:border-z-blue hover:scale-105 cursor-pointer"
+                    className="relative block aspect-video w-40 sm:w-56 rounded-xl overflow-hidden border border-z-blue/10 shadow-xl transition-all duration-300 hover:border-z-blue hover:scale-105"
                   >
-                    <Image 
-                      src={p.url} 
-                      alt={`Aperçu du projet ${p.titre}`}
-                      fill
-                      sizes="(max-width: 1024px) 200px, 250px"
-                      className="object-cover filter saturate-50 hover:saturate-100 transition-all duration-300" 
-                    />
+                    <Image src={p.url} alt={`Aperçu ${p.titre}`} fill sizes="(max-width: 1024px) 160px, 224px" className="object-cover filter saturate-50 hover:saturate-100 transition-all duration-300" />
                   </Link>
                 ))}
               </div>
-              <div className="flex shrink-0 items-center gap-6 animate-marquee group-hover:[animation-play-state:paused]">
-                {displayProjects.map((p, idx) => (
+              {/* SET 2 (Clone pour la boucle continue) */}
+              <div className="flex shrink-0 items-center gap-4 sm:gap-6 pr-8">
+                {resolvedProjects.map((p, idx) => (
                   <Link 
                     key={`m2-${idx}`} 
                     href={`/projet/${p.slug}`}
-                    className="relative block aspect-video w-36 sm:w-48 lg:w-56 rounded-xl overflow-hidden border border-z-blue/10 shadow-xl transition-all duration-300 hover:border-z-blue hover:scale-105 cursor-pointer"
+                    className="relative block aspect-video w-40 sm:w-56 rounded-xl overflow-hidden border border-z-blue/10 shadow-xl transition-all duration-300 hover:border-z-blue hover:scale-105"
                   >
-                    <Image 
-                      src={p.url} 
-                      alt={`Aperçu du projet ${p.titre}`}
-                      fill
-                      sizes="(max-width: 1024px) 200px, 250px"
-                      className="object-cover filter saturate-50 hover:saturate-100 transition-all duration-300" 
-                    />
+                    <Image src={p.url} alt={`Aperçu ${p.titre}`} fill sizes="(max-width: 1024px) 160px, 224px" className="object-cover filter saturate-50 hover:saturate-100 transition-all duration-300" />
                   </Link>
                 ))}
               </div>

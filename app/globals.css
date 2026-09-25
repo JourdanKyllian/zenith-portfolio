@@ -249,21 +249,18 @@
   .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(142, 142, 168, 0.15); border-radius: 10px; }
   .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #007BFF; }
 
-  /* --- ANIMATIONS DU MARQUEE --- */
-  @keyframes marquee {
-    from { transform: translateX(0); }
-    /* Le décalage de -1.5rem correspond à la valeur du gap-6 Tailwind (24px) */
-    to { transform: translateX(calc(-100% - 1.5rem)); } 
-  }
-  
-  .animate-marquee {
-    /* Temps d'animation doublé pour ralentir considérablement le défilement */
-    animation: marquee 80s linear infinite;
-  }
-
-  /* L'effet "Bowling" : Masque de fondu agressif aux extrémités */
+  /* Masque en dégradé pour adoucir les bords de la pellicule (Effet Bowling) */
   .mask-edges {
     mask-image: linear-gradient(to right, transparent, black 15%, black 85%, transparent);
     -webkit-mask-image: linear-gradient(to right, transparent, black 15%, black 85%, transparent);
+  }
+
+  /* Utilitaire pour cacher les scrollbars tout en gardant le conteneur défilable au doigt/JavaScript */
+  .no-scrollbar {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none; /* Chrome, Safari and Opera */
   }
 }
