@@ -11,7 +11,6 @@
   --font-sub: var(--font-montserrat);
   --font-body: var(--font-roboto);
 
-  /* Palette de couleurs de l'application */
   --color-z-blue: #007BFF;
   --color-z-silver: #C0C0C0;
   --color-z-bg: #040407;
@@ -36,7 +35,6 @@
     overflow-x: hidden;
   }
   
-  /* Texture de grain globale superposée au DOM */
   body::before {
     content: '';
     position: fixed; 
@@ -50,7 +48,6 @@
 }
 
 @layer components {
-  /* Arrière-plans statiques */
   .hero-bg {
     background:
       radial-gradient(ellipse 80% 55% at 50% -5%, rgba(0,123,255,0.18) 0%, transparent 65%),
@@ -74,20 +71,9 @@
     transform-origin: top center;
   }
   
-  .diag-lines::before { 
-    left: 20%; 
-    transform: rotate(15deg); 
-    top: -50%; 
-  }
-  
-  .diag-lines::after { 
-    right: 25%; 
-    transform: rotate(-12deg); 
-    top: -30%; 
-    opacity: 0.5; 
-  }
+  .diag-lines::before { left: 20%; transform: rotate(15deg); top: -50%; }
+  .diag-lines::after { right: 25%; transform: rotate(-12deg); top: -30%; opacity: 0.5; }
 
-  /* Composants : Cartes */
   .project-card {
     background: #0A0A12;
     border: 1px solid #151522;
@@ -109,19 +95,15 @@
   }
   
   .thumb-wrap img {
-    width: 100%; 
-    height: 100%; 
-    object-fit: cover;
+    width: 100%; height: 100%; object-fit: cover;
     transition: transform 0.5s cubic-bezier(0.16,1,0.3,1);
     filter: saturate(0.85) brightness(0.9);
   }
   
   .project-card:hover .thumb-wrap img { 
-    transform: scale(1.06); 
-    filter: saturate(1.1) brightness(0.8); 
+    transform: scale(1.06); filter: saturate(1.1) brightness(0.8); 
   }
 
-  /* Boutons */
   .btn-blue {
     background: #007BFF;
     color: #fff;
@@ -132,12 +114,8 @@
   }
   
   .action-btn {
-    display: inline-flex; 
-    align-items: center; 
-    justify-content: center;
-    width: 32px; 
-    height: 32px; 
-    border-radius: 6px;
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 32px; height: 32px; border-radius: 6px;
     border: 1px solid #151522;
     background: rgba(0,123,255,0.04);
     color: #3D3D55;
@@ -145,17 +123,13 @@
   }
   
   .action-btn:hover { 
-    color: #007BFF; 
-    border-color: rgba(0,123,255,0.5); 
-    transform: scale(1.1); 
+    color: #007BFF; border-color: rgba(0,123,255,0.5); transform: scale(1.1); 
   }
 }
 
 @layer utilities {
-  /* Typographie personnalisée */
   .font-martyric {
     font-family: 'Martyric', sans-serif !important;
-    /* Élargissement physique agressif de la case pour Safari (Anti-clipping) */
     padding-left: 0.6em !important;
     padding-right: 0.6em !important;
     margin-left: -0.6em !important;
@@ -173,112 +147,38 @@
     text-shadow: 0 0 20px rgba(0,123,255,0.7), 0 0 60px rgba(0,123,255,0.3);
   }
 
-  /* Animations globales et Keyframes */
-  @keyframes pingCustom { 
-    0%, 100% { transform: scale(1); opacity: .8; } 
-    50% { transform: scale(1.8); opacity: 0; } 
-  }
+  @keyframes pingCustom { 0%, 100% { transform: scale(1); opacity: .8; } 50% { transform: scale(1.8); opacity: 0; } }
   .ping-dot { animation: pingCustom 1.8s ease-in-out infinite; }
 
-  @keyframes scanline-sweep {
-    0%   { transform: translateY(-100%); }
-    100% { transform: translateY(100vh); }
-  }
+  @keyframes scanline-sweep { 0% { transform: translateY(-100%); } 100% { transform: translateY(100vh); } }
   .scanline-sweep { animation: scanline-sweep 6s linear infinite; }
 
-  @keyframes crt-flicker {
-    0%, 89%, 100% { opacity: 1; }
-    90% { opacity: .3; }
-    91% { opacity: 1; }
-    93% { opacity: .5; }
-    94% { opacity: 1; }
-  }
+  @keyframes crt-flicker { 0%, 89%, 100% { opacity: 1; } 90% { opacity: .3; } 91% { opacity: 1; } 93% { opacity: .5; } 94% { opacity: 1; } }
   .crt-flicker { animation: crt-flicker 5s infinite; }
 
-  @keyframes rec-pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: .15; }
-  }
+  @keyframes rec-pulse { 0%, 100% { opacity: 1; } 50% { opacity: .15; } }
   .rec-pulse { animation: rec-pulse 1s steps(2, end) infinite; }
 
-  @keyframes bracket-hunt {
-    0%, 100% { transform: scale(1); }
-    40% { transform: scale(0.72); }
-    60% { transform: scale(1.15); }
-    80% { transform: scale(0.95); }
-  }
+  @keyframes bracket-hunt { 0%, 100% { transform: scale(1); } 40% { transform: scale(0.72); } 60% { transform: scale(1.15); } 80% { transform: scale(0.95); } }
   .bracket-hunt { animation: bracket-hunt 3.2s ease-in-out infinite; }
 
-  @keyframes af-hunt {
-    0%, 100% { filter: blur(0px); opacity: 1; }
-    45% { filter: blur(4px); opacity: .7; }
-    55% { filter: blur(1px); opacity: .9; }
-  }
+  @keyframes af-hunt { 0%, 100% { filter: blur(0px); opacity: 1; } 45% { filter: blur(4px); opacity: .7; } 55% { filter: blur(1px); opacity: .9; } }
   .af-hunt { animation: af-hunt 3.2s ease-in-out infinite; }
 
   @keyframes neon-flicker {
-    0%, 18% { opacity: 1; }
-    19% { opacity: 0.7; }
-    20% { opacity: 0.4; }
-    21% { opacity: 0.9; }
-    22% { opacity: 0.2; }
-    23% { opacity: 0.6; }
-    25% { opacity: 1; }
-    55% { opacity: 1; }
-    56% { opacity: 0.8; }
-    57% { opacity: 0.3; }
-    58% { opacity: 0.9; }
-    59% { opacity: 0.2; }
-    61% { opacity: 0.4; }
-    62% { opacity: 0.1; }
-    64% { opacity: 0.8; }
-    65% { opacity: 0.3; }
-    67% { opacity: 1; }
-    80% { opacity: 1; }
-    81% { opacity: 0.6; }
-    82% { opacity: 1; }
-    100% { opacity: 1; }
+    0%, 18% { opacity: 1; } 19% { opacity: 0.7; } 20% { opacity: 0.4; } 21% { opacity: 0.9; } 22% { opacity: 0.2; } 23% { opacity: 0.6; } 25% { opacity: 1; }
+    55% { opacity: 1; } 56% { opacity: 0.8; } 57% { opacity: 0.3; } 58% { opacity: 0.9; } 59% { opacity: 0.2; } 61% { opacity: 0.4; } 62% { opacity: 0.1; } 64% { opacity: 0.8; } 65% { opacity: 0.3; } 67% { opacity: 1; }
+    80% { opacity: 1; } 81% { opacity: 0.6; } 82% { opacity: 1; } 100% { opacity: 1; }
   }
-  .animate-neon-flicker {
-    animation: neon-flicker 5s linear infinite;
-  }
+  .animate-neon-flicker { animation: neon-flicker 5s linear infinite; }
 
   .glitch { position: relative; }
-  .glitch::before,
-  .glitch::after {
-    content: attr(data-text);
-    position: absolute;
-    inset: 0;
-    mix-blend-mode: screen;
-  }
-  .glitch::before {
-    left: 3px;
-    color: #ff2b5e;
-    animation: glitch-1 3.2s infinite linear alternate-reverse;
-  }
-  .glitch::after {
-    left: -3px;
-    color: #00e5ff;
-    animation: glitch-2 3.2s infinite linear alternate-reverse;
-  }
-  @keyframes glitch-1 {
-    0%   { clip-path: inset(15% 0 65% 0); transform: translate(-1px, 0); }
-    20%  { clip-path: inset(60% 0 5% 0);  transform: translate(2px, 0); }
-    40%  { clip-path: inset(30% 0 40% 0); transform: translate(-2px, 0); }
-    60%  { clip-path: inset(5% 0 75% 0);  transform: translate(1px, 0); }
-    80%  { clip-path: inset(45% 0 20% 0); transform: translate(-1px, 0); }
-    100% { clip-path: inset(20% 0 55% 0); transform: translate(2px, 0); }
-  }
-  @keyframes glitch-2 {
-    0%   { clip-path: inset(55% 0 10% 0); transform: translate(2px, 0); }
-    20%  { clip-path: inset(10% 0 70% 0); transform: translate(-1px, 0); }
-    40%  { clip-path: inset(65% 0 15% 0); transform: translate(1px, 0); }
-    60%  { clip-path: inset(25% 0 50% 0); transform: translate(-2px, 0); }
-    80%  { clip-path: inset(8% 0 80% 0);  transform: translate(1px, 0); }
-    100% { clip-path: inset(50% 0 25% 0); transform: translate(-1px, 0); }
-  }
+  .glitch::before, .glitch::after { content: attr(data-text); position: absolute; inset: 0; mix-blend-mode: screen; }
+  .glitch::before { left: 3px; color: #ff2b5e; animation: glitch-1 3.2s infinite linear alternate-reverse; }
+  .glitch::after { left: -3px; color: #00e5ff; animation: glitch-2 3.2s infinite linear alternate-reverse; }
+  @keyframes glitch-1 { 0% { clip-path: inset(15% 0 65% 0); transform: translate(-1px, 0); } 20% { clip-path: inset(60% 0 5% 0); transform: translate(2px, 0); } 40% { clip-path: inset(30% 0 40% 0); transform: translate(-2px, 0); } 60% { clip-path: inset(5% 0 75% 0); transform: translate(1px, 0); } 80% { clip-path: inset(45% 0 20% 0); transform: translate(-1px, 0); } 100% { clip-path: inset(20% 0 55% 0); transform: translate(2px, 0); } }
+  @keyframes glitch-2 { 0% { clip-path: inset(55% 0 10% 0); transform: translate(2px, 0); } 20% { clip-path: inset(10% 0 70% 0); transform: translate(-1px, 0); } 40% { clip-path: inset(65% 0 15% 0); transform: translate(1px, 0); } 60% { clip-path: inset(25% 0 50% 0); transform: translate(-2px, 0); } 80% { clip-path: inset(8% 0 80% 0); transform: translate(1px, 0); } 100% { clip-path: inset(50% 0 25% 0); transform: translate(-1px, 0); } }
 
-  /* Restauration des styles natifs pour les zones de texte enrichi */
   .rich-text b, .rich-text strong { font-weight: 700; color: #fff; }
   .rich-text i, .rich-text em { font-style: italic; }
   .rich-text u { text-decoration: underline; text-underline-offset: 2px; }
@@ -291,7 +191,6 @@
     display: block;
   }
 
-  /* Scrollbars personnalisées */
   .custom-scrollbar::-webkit-scrollbar { width: 6px; }
   .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
   .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(142, 142, 168, 0.15); border-radius: 10px; }
@@ -303,8 +202,15 @@
     -webkit-mask-image: linear-gradient(to right, transparent, black 15%, black 85%, transparent);
   }
 
-  /* Force la fluidité linéaire de la boucle Swiper (Annule le ralentissement CSS par défaut) */
-  .linear-swiper .swiper-wrapper {
+  /* --- HACK SWIPER : Moteur d'inertie sur-mesure --- */
+  
+  /* 1. Mode continu : Vitesse constante, aucune accélération/décélération */
+  .continuous-scroll .swiper-wrapper {
     transition-timing-function: linear !important;
+  }
+  
+  /* 2. Mode freinage : Décélération douce et naturelle quand on met la souris */
+  .smooth-brake .swiper-wrapper {
+    transition-timing-function: cubic-bezier(0.25, 1, 0.5, 1) !important;
   }
 }
