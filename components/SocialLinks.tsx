@@ -25,7 +25,7 @@ export default function SocialLinks({ variant, links }: SocialLinksProps) {
           {activeNetworks.map(net => {
             const Icon = net.icon;
             return (
-              <SocialBubble key={net.id} href={links[net.id]!} ariaLabel={net.label}>
+              <SocialBubble key={net.id} href={links[net.id]!} ariaLabel={net.label} hoverClass={net.hoverClass}>
                 <Icon size={18} />
               </SocialBubble>
             );
@@ -46,10 +46,10 @@ export default function SocialLinks({ variant, links }: SocialLinksProps) {
               href={links[net.id]!} 
               target="_blank" 
               rel="noopener noreferrer" 
-              className="group p-1.5 rounded-lg border border-z-border bg-z-card/50 hover:bg-white/10 hover:border-white/20 transition-all" 
+              className={`group p-1.5 rounded-lg border border-z-border bg-z-card/50 transition-all ${net.hoverClass || 'hover:bg-white/10 hover:border-white/20'}`} 
               title={net.label}
             >
-              <Icon size={16} className="text-z-muted group-hover:text-white transition-colors" />
+              <Icon size={16} className="text-z-muted group-hover:text-inherit transition-colors" />
             </a>
           );
         })}
@@ -60,14 +60,14 @@ export default function SocialLinks({ variant, links }: SocialLinksProps) {
   return null;
 }
 
-function SocialBubble({ href, children, ariaLabel }: { href: string, children: React.ReactNode, ariaLabel: string }) {
+function SocialBubble({ href, children, ariaLabel, hoverClass }: { href: string, children: React.ReactNode, ariaLabel: string, hoverClass?: string }) {
   return (
     <a 
       href={href} 
       target="_blank" 
       rel="noopener noreferrer"
       aria-label={ariaLabel}
-      className="w-11 h-11 rounded-full border border-z-silver/20 bg-z-card flex items-center justify-center text-z-text hover:bg-z-blue hover:text-white hover:border-z-blue transition-all duration-300 hover:scale-110 shadow-lg shadow-black/20"
+      className={`w-11 h-11 rounded-full border border-z-silver/20 bg-z-card flex items-center justify-center text-z-text transition-all duration-300 hover:scale-110 shadow-lg shadow-black/20 ${hoverClass || 'hover:bg-z-blue hover:text-white hover:border-z-blue'}`}
     >
       {children}
     </a>
