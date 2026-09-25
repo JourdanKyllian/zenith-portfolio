@@ -255,12 +255,8 @@
     -webkit-mask-image: linear-gradient(to right, transparent, black 15%, black 85%, transparent);
   }
 
-  /* Utilitaire pour cacher les scrollbars tout en gardant le conteneur défilable au doigt/JavaScript */
-  .no-scrollbar {
-    -ms-overflow-style: none;  /* IE and Edge */
-    scrollbar-width: none;  /* Firefox */
-  }
-  .no-scrollbar::-webkit-scrollbar {
-    display: none; /* Chrome, Safari and Opera */
+  /* Force la fluidité linéaire de la boucle Swiper (Annule le ralentissement CSS par défaut) */
+  .linear-swiper .swiper-wrapper {
+    transition-timing-function: linear !important;
   }
 }
