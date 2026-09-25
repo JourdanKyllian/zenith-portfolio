@@ -59,6 +59,6 @@ export const TwitterIcon = ({ size = 24, className = "" }: IconProps) => (
 
 export const KickIcon = ({ size = 24, className = "" }: IconProps) => (
   <svg viewBox="0 0 10 10" width={size} height={size} className={className} fill="currentColor">
-    <path d="M0 0h4v3h1V2h1V1h1V0h2v1h1v3H8v2h2v3H9v1H7V9H6V8H5V7H4v3H0z" />
+    <path d="M1 0h3v1h1v1h1v-1h1V0h2v1h1v2h-1v1h-1v2h1v1h1v2h-1v1H7v-1h-1v-1h-1v1h-1v1H1v-1H0V1h1V0z" />
   </svg>
 );
