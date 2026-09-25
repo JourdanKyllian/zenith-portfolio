@@ -58,8 +58,8 @@ export default function NouveauProjetPage() {
     const newProjet = {
       titre, slug, categorie_id: categorieId ? parseInt(categorieId) : null, description: description || null, en_ligne: enLigne, miniature_url: miniatureUrl || null,
       link_instagram: links.instagram || null, link_youtube: links.youtube || null, link_tiktok: links.tiktok || null, link_twitch: links.twitch || null, link_facebook: links.facebook || null,
-      // link_x: links.x || null,
-      // link_kick: links.kick || null,
+      link_x: links.x || null,
+      link_kick: links.kick || null,
       user_id: process.env.NEXT_PUBLIC_PORTFOLIO_USER_ID
     };
 

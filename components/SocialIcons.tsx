@@ -52,13 +52,13 @@ export const TwitchIcon = ({ size = 24, className = "" }: IconProps) => (
 );
 
 export const TwitterIcon = ({ size = 24, className = "" }: IconProps) => (
-  <svg viewBox="0 0 24 24" width={size} height={size} className={className} stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M4 4l11.733 16h4.267l-11.733 -16zM4 20l6.768 -6.768m2.46 -2.46L20 4" />
+  <svg viewBox="0 0 24 24" width={size} height={size} className={className} fill="currentColor">
+    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
   </svg>
 );
 
 export const KickIcon = ({ size = 24, className = "" }: IconProps) => (
-  <svg viewBox="0 0 24 24" width={size} height={size} className={className} stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M5 4h4v6h2l4 -6h4l-5 7 6 9h-4.5l-4 -6h-1.5v6h-4z" />
+  <svg viewBox="0 0 24 24" width={size} height={size} className={className} fill="currentColor">
+    <path d="M3 3h5v5h2V3h5v18h-5v-5H8v5H3V3zm13 5h5v3h-5V8zm0 5h5v3h-5v-3z" />
   </svg>
 );

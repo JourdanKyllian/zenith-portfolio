@@ -154,18 +154,18 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
                 </div>
               )}
 
-              {(project.link_instagram || project.link_youtube || project.link_tiktok || project.link_twitch || project.link_facebook) && (
-                <SocialLinks 
-                  variant="project" 
-                  links={{
-                    instagram: project.link_instagram,
-                    youtube: project.link_youtube,
-                    tiktok: project.link_tiktok,
-                    twitch: project.link_twitch,
-                    facebook: project.link_facebook
-                  }} 
-                />
-              )}
+              <SocialLinks 
+                variant="project" 
+                links={{
+                  instagram: project.link_instagram,
+                  youtube: project.link_youtube,
+                  tiktok: project.link_tiktok,
+                  twitch: project.link_twitch,
+                  facebook: project.link_facebook,
+                  x: project.link_x,
+                  kick: project.link_kick
+                }} 
+              />
             </div>
           )}
         </div>

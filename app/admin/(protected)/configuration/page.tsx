@@ -42,8 +42,8 @@ export default function ConfigurationPage() {
           facebook: dbData.facebook_url || '',
           tiktok: dbData.tiktok_url || '',
           youtube: dbData.youtube_url || '',
-          // x: dbData.x_url || '',
-          // kick: dbData.kick_url || '',
+          x: dbData.x_url || '',
+          kick: dbData.kick_url || '',
         };
         setSocials(fetchedSocials);
         setActiveNetworks(Object.keys(fetchedSocials).filter(k => fetchedSocials[k as keyof typeof fetchedSocials] !== ''));
@@ -109,8 +109,8 @@ export default function ConfigurationPage() {
         facebook_url: socials.facebook,
         tiktok_url: socials.tiktok,
         youtube_url: socials.youtube,
-        // x_url: socials.x,
-        // kick_url: socials.kick
+        x_url: socials.x,
+        kick_url: socials.kick
       }).eq('user_id', process.env.NEXT_PUBLIC_PORTFOLIO_USER_ID);
 
       if (error) throw new Error(error.message);
