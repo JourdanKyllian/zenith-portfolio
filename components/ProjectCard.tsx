@@ -1,6 +1,7 @@
 "use client";
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { FolderOpen, ExternalLink, Video } from 'lucide-react';
 import { Projet } from '@/types';
 import { getBadgeTheme } from '@/config/colors';
@@ -46,8 +47,13 @@ export default function ProjectCard({ project }: { project: Projet }) {
 
   return (
     <article className="project-card group relative">
-      <div className="thumb-wrap">
-        <img src={coverImageUrl} alt="" className="w-full h-full object-cover" />
+      <div className="thumb-wrap relative">
+        <Image 
+          src={coverImageUrl} 
+          alt={project.titre} 
+          fill
+          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+        />
         <div className="absolute inset-0 bg-z-night/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-3">
           <div className="w-12 h-12 bg-white/10 backdrop-blur-md rounded-full flex items-center justify-center border border-white/20 scale-75 group-hover:scale-100 transition-transform">
             <FolderOpen size={20} className="text-white" />
@@ -73,7 +79,6 @@ export default function ProjectCard({ project }: { project: Projet }) {
           </Link>
         </h3>
         
-        {/* CORRECTION DU RENDU HTML SUR LA CARTE DE LA GALERIE */}
         {project.description && (
           <div 
             className="font-body text-z-muted text-xs leading-relaxed mt-2 line-clamp-2 rich-text"

@@ -38,21 +38,25 @@ export default async function Home() {
     yearsOfExperience--;
   }
 
-  // Extraction intelligente des images pour la pellicule
-  const marqueeImages = (recentProjects as unknown as Projet[])?.map(p => {
-    if (p.miniature_url) return p.miniature_url;
-    const premierSousProjet = p.sousprojet?.sort((a, b) => a.ordre - b.ordre)?.[0];
-    const youtubeId = getYoutubeId(premierSousProjet?.youtube_url);
-    if (youtubeId) return `https://img.youtube.com/vi/${youtubeId}/maxresdefault.jpg`;
-    return null;
-  }).filter((url): url is string => url !== null && url.trim() !== '') || [];
+  // --- CORRECTION ICI : On crée des objets { url, slug, titre } pour le carrousel cliquable ---
+  const marqueeProjects = (recentProjects as unknown as Projet[])?.map(p => {
+    let url = p.miniature_url;
+    
+    if (!url) {
+      const premierSousProjet = p.sousprojet?.sort((a, b) => a.ordre - b.ordre)?.[0];
+      const youtubeId = getYoutubeId(premierSousProjet?.youtube_url);
+      if (youtubeId) url = `https://img.youtube.com/vi/${youtubeId}/maxresdefault.jpg`;
+    }
+    
+    return url ? { url, slug: p.slug, titre: p.titre } : null;
+  }).filter((item): item is {url: string, slug: string, titre: string} => item !== null) || [];
 
   return (
     <main className="min-h-screen bg-z-bg overflow-x-hidden flex flex-col">
       <Hero 
         categoriesCount={categoriesCount || 0} 
         yearsOfExperience={yearsOfExperience} 
-        marqueeImages={marqueeImages}
+        marqueeProjects={marqueeProjects}
       />
 
       <section className="py-32 lg:py-48 bg-linear-to-b from-z-bg to-z-night text-center px-6 relative overflow-hidden grow flex flex-col justify-center">

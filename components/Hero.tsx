@@ -2,12 +2,19 @@
 
 import { Eye, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useMemo } from 'react';
+
+interface MarqueeProject {
+  url: string;
+  slug: string;
+  titre: string;
+}
 
 interface HeroProps {
   categoriesCount: number;
   yearsOfExperience: number;
-  marqueeImages?: string[];
+  marqueeProjects?: MarqueeProject[];
 }
 
 function getDriveFileId(urlOrId: string | null | undefined): string | null {
@@ -20,15 +27,25 @@ function getDriveFileId(urlOrId: string | null | undefined): string | null {
   return null;
 }
 
-export default function Hero({ categoriesCount, yearsOfExperience, marqueeImages = [] }: HeroProps) {
+export default function Hero({ categoriesCount, yearsOfExperience, marqueeProjects = [] }: HeroProps) {
   
-  const resolvedImages = useMemo(() => {
-    return marqueeImages.map(url => {
-      if (url.startsWith('http') && !url.includes('drive.google.com')) return url;
-      const id = getDriveFileId(url);
-      return id ? `https://drive.google.com/thumbnail?id=${id}&sz=w600` : url;
+  // Résolution optimisée des images Drive
+  const resolvedProjects = useMemo(() => {
+    return marqueeProjects.map(p => {
+      let finalUrl = p.url;
+      if (finalUrl.startsWith('http') && !finalUrl.includes('drive.google.com')) {
+        // Lien classique, on ne touche à rien
+      } else {
+        const id = getDriveFileId(finalUrl);
+        if (id) finalUrl = `https://drive.google.com/thumbnail?id=${id}&sz=w600`;
+      }
+      return { ...p, url: finalUrl };
     });
-  }, [marqueeImages]);
+  }, [marqueeProjects]);
+
+  const displayProjects = resolvedProjects.length > 0 
+    ? [...resolvedProjects, ...resolvedProjects] 
+    : [];
 
   return (
     <section className="relative min-h-screen flex flex-col items-center justify-center text-center px-4 pt-28 pb-8 overflow-hidden">
@@ -40,10 +57,8 @@ export default function Hero({ categoriesCount, yearsOfExperience, marqueeImages
           className="absolute inset-0 w-full h-full object-cover opacity-25 grayscale-40"
           poster="/gabin.webp"
         >
-          {/* C'est ici que le fichier placé dans le dossier "public" est appelé */}
           <source src="/showreel.mp4" type="video/mp4" />
         </video>
-        {/* Filtres sombres pour ne pas tuer la lisibilité du texte */}
         <div className="absolute inset-0 bg-z-bg/50 mix-blend-multiply" />
         <div className="absolute inset-0 bg-radial from-transparent via-z-bg/70 to-z-bg" />
         <div className="absolute bottom-0 left-0 right-0 h-48 bg-linear-to-t from-z-bg to-transparent" />
@@ -107,23 +122,42 @@ export default function Hero({ categoriesCount, yearsOfExperience, marqueeImages
       </div>
 
       {/* --- PELLICULE DÉFILANTE (MARQUEE) --- */}
-      {resolvedImages.length > 0 && (
-        <div className="w-full relative z-10 flex flex-col items-center animate-fade-in">
-          {/* mask-edges applique le fameux effet "Bowling" d'estompage sur les côtés */}
+      {displayProjects.length > 0 && (
+        <div className="w-full relative z-10 flex flex-col items-center mt-4">
           <div className="w-full max-w-7xl overflow-hidden mask-edges py-2">
             <div className="flex w-max gap-6 group">
               <div className="flex shrink-0 items-center gap-6 animate-marquee group-hover:[animation-play-state:paused]">
-                {resolvedImages.map((src, idx) => (
-                  <div key={`m1-${idx}`} className="relative aspect-video w-36 sm:w-48 lg:w-56 rounded-xl overflow-hidden border border-z-blue/10 shadow-xl transition-all duration-300 hover:border-z-blue hover:scale-105 cursor-pointer">
-                    <img src={src} alt="" className="w-full h-full object-cover filter saturate-50 hover:saturate-100 transition-all duration-300" />
-                  </div>
+                {displayProjects.map((p, idx) => (
+                  <Link 
+                    key={`m1-${idx}`} 
+                    href={`/projet/${p.slug}`}
+                    className="relative block aspect-video w-36 sm:w-48 lg:w-56 rounded-xl overflow-hidden border border-z-blue/10 shadow-xl transition-all duration-300 hover:border-z-blue hover:scale-105 cursor-pointer"
+                  >
+                    <Image 
+                      src={p.url} 
+                      alt={`Aperçu du projet ${p.titre}`}
+                      fill
+                      sizes="(max-width: 1024px) 200px, 250px"
+                      className="object-cover filter saturate-50 hover:saturate-100 transition-all duration-300" 
+                    />
+                  </Link>
                 ))}
               </div>
               <div className="flex shrink-0 items-center gap-6 animate-marquee group-hover:[animation-play-state:paused]">
-                {resolvedImages.map((src, idx) => (
-                  <div key={`m2-${idx}`} className="relative aspect-video w-36 sm:w-48 lg:w-56 rounded-xl overflow-hidden border border-z-blue/10 shadow-xl transition-all duration-300 hover:border-z-blue hover:scale-105 cursor-pointer">
-                    <img src={src} alt="" className="w-full h-full object-cover filter saturate-50 hover:saturate-100 transition-all duration-300" />
-                  </div>
+                {displayProjects.map((p, idx) => (
+                  <Link 
+                    key={`m2-${idx}`} 
+                    href={`/projet/${p.slug}`}
+                    className="relative block aspect-video w-36 sm:w-48 lg:w-56 rounded-xl overflow-hidden border border-z-blue/10 shadow-xl transition-all duration-300 hover:border-z-blue hover:scale-105 cursor-pointer"
+                  >
+                    <Image 
+                      src={p.url} 
+                      alt={`Aperçu du projet ${p.titre}`}
+                      fill
+                      sizes="(max-width: 1024px) 200px, 250px"
+                      className="object-cover filter saturate-50 hover:saturate-100 transition-all duration-300" 
+                    />
+                  </Link>
                 ))}
               </div>
             </div>
