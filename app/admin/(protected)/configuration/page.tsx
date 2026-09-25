@@ -62,7 +62,7 @@ export default function ConfigurationPage() {
         if (authError) throw new Error(authError.message);
         setGlobalMessage({ text: "Un mail de confirmation a été envoyé à la nouvelle adresse.", type: 'warning' });
       } else {
-        await purgeCache('/');
+        await purgeCache();
         setGlobalMessage({ text: "Informations enregistrées avec succès !", type: 'success' });
         setTimeout(() => setGlobalMessage(null), 3000);
       }
@@ -96,7 +96,9 @@ export default function ConfigurationPage() {
     try {
       const { error } = await supabase.from('parametres').update(payload).eq('user_id', process.env.NEXT_PUBLIC_PORTFOLIO_USER_ID);
       if (error) throw new Error(error.message);
-      await purgeCache('/');
+      
+      await purgeCache();
+      
       setSocialMessage({ text: "Réseaux sociaux mis à jour avec succès !", type: 'success' });
       setTimeout(() => setSocialMessage(null), 3000);
     } catch (error) {
