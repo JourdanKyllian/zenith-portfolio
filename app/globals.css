@@ -9,7 +9,6 @@
 @layer utilities {
   .font-martyric {
     font-family: 'Martyric', sans-serif !important;
-    /* Élargissement physique agressif de la case pour Safari (Anti-clipping) */
     padding-left: 0.6em !important;
     padding-right: 0.6em !important;
     margin-left: -0.6em !important;
@@ -18,7 +17,6 @@
     overflow: visible !important;
   }
 
-  /* Ombre portée typographique (Remplace le drop-shadow qui fait bugger Safari) */
   .text-shadow-safe {
     text-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
   }
@@ -29,7 +27,6 @@
   --font-sub: var(--font-montserrat);
   --font-body: var(--font-roboto);
 
-  /* Palette de couleurs de l'application */
   --color-z-blue: #007BFF;
   --color-z-silver: #C0C0C0;
   --color-z-bg: #040407;
@@ -53,7 +50,6 @@
     overflow-x: hidden;
   }
   
-  /* Texture de grain globale superposée au DOM */
   body::before {
     content: '';
     position: fixed; inset: 0; z-index: 0;
@@ -64,7 +60,6 @@
 }
 
 @layer components {
-  /* Arrière-plans statiques */
   .hero-bg {
     background:
       radial-gradient(ellipse 80% 55% at 50% -5%, rgba(0,123,255,0.18) 0%, transparent 65%),
@@ -85,13 +80,11 @@
   .diag-lines::before { left: 20%; transform: rotate(15deg); top: -50%; }
   .diag-lines::after  { right: 25%; transform: rotate(-12deg); top: -30%; opacity: 0.5; }
 
-  /* Utilitaires typographiques */
   .text-glow {
     color: #007BFF;
     text-shadow: 0 0 20px rgba(0,123,255,0.7), 0 0 60px rgba(0,123,255,0.3);
   }
 
-  /* Composants : Cartes */
   .project-card {
     background: #0A0A12;
     border: 1px solid #151522;
@@ -117,7 +110,6 @@
   }
   .project-card:hover .thumb-wrap img { transform: scale(1.06); filter: saturate(1.1) brightness(0.8); }
 
-  /* Boutons */
   .btn-blue {
     background: #007BFF;
     color: #fff;
@@ -138,7 +130,6 @@
   .action-btn:hover { color: #007BFF; border-color: rgba(0,123,255,0.5); transform: scale(1.1); }
 }
 
-/* Animations globales et Keyframes */
 @layer utilities {
   @keyframes pingCustom { 0%,100%{transform:scale(1);opacity:.8} 50%{transform:scale(1.8);opacity:0} }
   .ping-dot { animation: pingCustom 1.8s ease-in-out infinite; }
@@ -187,7 +178,6 @@
     22% { opacity: 0.2; }
     23% { opacity: 0.6; }
     25% { opacity: 1; }
-    
     55% { opacity: 1; }
     56% { opacity: 0.8; }
     57% { opacity: 0.3; }
@@ -198,11 +188,9 @@
     64% { opacity: 0.8; }
     65% { opacity: 0.3; }
     67% { opacity: 1; }
-    
     80% { opacity: 1; }
     81% { opacity: 0.6; }
     82% { opacity: 1; }
-    
     100% { opacity: 1; }
   }
   .animate-neon-flicker {
@@ -244,12 +232,10 @@
     100% { clip-path: inset(50% 0 25% 0); transform: translate(-1px, 0); }
   }
 
-  /* Restauration des styles natifs pour les zones de texte enrichi */
   .rich-text b, .rich-text strong { font-weight: 700; color: #fff; }
   .rich-text i, .rich-text em { font-style: italic; }
   .rich-text u { text-decoration: underline; text-underline-offset: 2px; }
   
-  /* Placeholder pour le composant contentEditable */
   .rich-editor-content:empty:before {
     content: attr(data-placeholder);
     color: var(--color-z-muted);
@@ -258,34 +244,26 @@
     display: block;
   }
 
-  /* Scrollbar personnalisée pour les zones internes (50/50 Editor) */
-  .custom-scrollbar::-webkit-scrollbar {
-    width: 6px;
-  }
-  .custom-scrollbar::-webkit-scrollbar-track {
-    background: transparent;
-  }
-  .custom-scrollbar::-webkit-scrollbar-thumb {
-    background: rgba(142, 142, 168, 0.15);
-    border-radius: 10px;
-  }
-  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-    background: #007BFF;
-  }
+  .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+  .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+  .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(142, 142, 168, 0.15); border-radius: 10px; }
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #007BFF; }
 
-  /* --- NOUVEAU : ANIMATIONS DU MARQUEE --- */
+  /* --- ANIMATIONS DU MARQUEE --- */
   @keyframes marquee {
     from { transform: translateX(0); }
-    to { transform: translateX(calc(-100% - 1rem)); } /* -1rem = gap de 4 (16px) */
+    /* Le décalage de -1.5rem correspond à la valeur du gap-6 Tailwind (24px) */
+    to { transform: translateX(calc(-100% - 1.5rem)); } 
   }
   
   .animate-marquee {
-    animation: marquee 40s linear infinite;
+    /* Temps d'animation doublé pour ralentir considérablement le défilement */
+    animation: marquee 80s linear infinite;
   }
 
-  /* Masque en dégradé pour adoucir les bords de la pellicule */
+  /* L'effet "Bowling" : Masque de fondu agressif aux extrémités */
   .mask-edges {
-    mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
-    -webkit-mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+    mask-image: linear-gradient(to right, transparent, black 15%, black 85%, transparent);
+    -webkit-mask-image: linear-gradient(to right, transparent, black 15%, black 85%, transparent);
   }
 }
