@@ -29,7 +29,6 @@ function getDriveFileId(urlOrId: string | null | undefined): string | null {
 
 export default function Hero({ categoriesCount, yearsOfExperience, marqueeProjects = [] }: HeroProps) {
   
-  // Résolution optimisée des images Drive
   const resolvedProjects = useMemo(() => {
     return marqueeProjects.map(p => {
       let finalUrl = p.url;
@@ -55,9 +54,9 @@ export default function Hero({ categoriesCount, yearsOfExperience, marqueeProjec
         <video
           autoPlay loop muted playsInline
           className="absolute inset-0 w-full h-full object-cover opacity-25 grayscale-40"
-          poster="/gabin.webp"
         >
-          <source src="/showreel.mp4" type="video/mp4" />
+          {/* Format unique WebM pour des performances optimales */}
+          <source src="/showreel.webm" type="video/webm" />
         </video>
         <div className="absolute inset-0 bg-z-bg/50 mix-blend-multiply" />
         <div className="absolute inset-0 bg-radial from-transparent via-z-bg/70 to-z-bg" />
@@ -121,7 +120,6 @@ export default function Hero({ categoriesCount, yearsOfExperience, marqueeProjec
         </div>
       </div>
 
-      {/* --- PELLICULE DÉFILANTE (MARQUEE) --- */}
       {displayProjects.length > 0 && (
         <div className="w-full relative z-10 flex flex-col items-center mt-4">
           <div className="w-full max-w-7xl overflow-hidden mask-edges py-2">
