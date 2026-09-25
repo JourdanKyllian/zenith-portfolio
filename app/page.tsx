@@ -55,7 +55,7 @@ export default async function Home() {
         marqueeImages={marqueeImages}
       />
 
-      <section className="py-32 lg:py-48 bg-linear-to-b from-z-bg to-[#08080c] text-center px-6 relative overflow-hidden grow flex flex-col justify-center">
+      <section className="py-32 lg:py-48 bg-linear-to-b from-z-bg to-z-night text-center px-6 relative overflow-hidden grow flex flex-col justify-center">
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-125 h-125 bg-z-blue/5 blur-[120px] pointer-events-none" />
         <div className="max-w-3xl mx-auto relative z-10">
           <span className="font-sub text-z-blue text-[10px] font-bold uppercase tracking-[0.5em] mb-8 block">Collaborons</span>

@@ -21,7 +21,7 @@ export default function Footer({ socials }: FooterProps) {
   if (pathname?.startsWith('/admin')) return null;
 
   return (
-    <footer className="w-full bg-z-night border-t border-z-silver/10 pt-16 pb-8 px-6 mt-20">
+    <footer className="w-full bg-z-night border-t border-z-silver/10 pt-16 pb-8 px-6">
       <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-10">
         <div className="flex flex-col items-center md:items-start gap-1">
           <Link href="/" className="group">
