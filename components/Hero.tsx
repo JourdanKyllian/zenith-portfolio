@@ -10,7 +10,6 @@ interface HeroProps {
   marqueeImages?: string[];
 }
 
-// Utilitaire pour transformer les liens bruts Drive en miniatures
 function getDriveFileId(urlOrId: string | null | undefined): string | null {
   if (!urlOrId) return null;
   if (!urlOrId.includes('/')) return urlOrId;
@@ -23,7 +22,7 @@ function getDriveFileId(urlOrId: string | null | undefined): string | null {
 
 export default function Hero({ categoriesCount, yearsOfExperience, marqueeImages = [] }: HeroProps) {
   
-  // Résolution optimisée des images pour l'affichage
+  // Résolution optimisée des images Drive en miniatures
   const resolvedImages = useMemo(() => {
     return marqueeImages.map(url => {
       if (url.startsWith('http') && !url.includes('drive.google.com')) return url;
@@ -32,11 +31,15 @@ export default function Hero({ categoriesCount, yearsOfExperience, marqueeImages
     });
   }, [marqueeImages]);
 
+  // Duplication de la liste pour assurer la continuité de la boucle CSS
+  const displayImages = resolvedImages.length > 0 
+    ? [...resolvedImages, ...resolvedImages] 
+    : [];
+
   return (
     <section className="hero-bg relative min-h-screen flex flex-col items-center justify-center text-center px-4 pt-32 pb-16 overflow-hidden">
       <div className="diag-lines"></div>
 
-      {/* -- CONTENU CENTRAL -- */}
       <div className="animate-fade-in relative z-10 flex items-center gap-2.5 px-4 py-2 rounded-md border border-z-blue/20 bg-z-blue/5 mb-10 overflow-hidden shadow-lg backdrop-blur-sm">
         <div className="relative w-2 h-2">
           <span className="absolute inset-0 rounded-full bg-z-blue ping-dot"></span>
@@ -72,13 +75,12 @@ export default function Hero({ categoriesCount, yearsOfExperience, marqueeImages
           Explorer la galerie
         </Link>
         <Link href="/contact" className="btn-outline px-7 py-3.5 rounded-md flex items-center gap-3 text-sm bg-z-bg/50 backdrop-blur-md">
-           Démarrer un projet
+           Me contacter
           <ArrowRight size={14} />
         </Link>
       </div>
 
-      {/* -- STATISTIQUES -- */}
-      <div className="relative z-10 animate-fade-up w-full max-w-md mt-16 sm:mt-24 mb-12 sm:mb-20">
+      <div className="relative z-10 animate-fade-up w-full max-w-md mt-16 sm:mt-24 mb-12">
         <div className="flex items-center border border-z-blue/15 rounded-lg overflow-hidden bg-z-blue/5 backdrop-blur-md shadow-2xl">
           <div className="flex-1 py-4 border-r border-z-blue/15">
             <div className="font-display font-bold text-3xl text-z-text">180<span className="text-z-blue">+</span></div>
@@ -95,27 +97,23 @@ export default function Hero({ categoriesCount, yearsOfExperience, marqueeImages
         </div>
       </div>
 
-      {/* -- PELLICULE DÉFILANTE (MARQUEE) -- */}
-      {resolvedImages.length > 0 && (
-        <div className="w-full relative z-10 overflow-hidden flex flex-col items-center opacity-0 animate-[fade-in_1s_ease-out_1s_forwards]">
-          <span className="font-sub text-z-blue text-[9px] font-bold uppercase tracking-[0.4em] mb-4">
-            Aperçu visuel
-          </span>
-          
-          <div className="w-[110%] flex gap-4 mask-edges group">
-            {/* L'animation utilise deux fois la même liste pour la boucle transparente */}
+      {/* --- PELLICULE DÉFILANTE (MARQUEE) --- */}
+      {displayImages.length > 0 && (
+        <div className="w-full relative z-10 overflow-hidden flex flex-col items-center animate-fade-in mt-4">
+          <div className="w-full max-w-[100vw] flex gap-4 mask-edges group">
+            {/* Première bande */}
             <div className="flex shrink-0 items-center justify-around gap-4 animate-marquee group-hover:[animation-play-state:paused]">
-              {resolvedImages.map((src, idx) => (
-                <div key={`m1-${idx}`} className="relative aspect-4/3 w-50 sm:w-70 rounded-xl overflow-hidden border border-z-blue/10 shadow-xl transition-all duration-300 hover:border-z-blue hover:scale-105 cursor-pointer">
-                  <img src={src} alt="Aperçu de projet" className="w-full h-full object-cover filter saturate-50 hover:saturate-100 transition-all duration-300" />
+              {displayImages.map((src, idx) => (
+                <div key={`m1-${idx}`} className="relative aspect-video w-55 sm:w-[320px] rounded-xl overflow-hidden border border-z-blue/10 shadow-xl transition-all duration-300 hover:border-z-blue hover:scale-105 cursor-pointer">
+                  <img src={src} alt="" className="w-full h-full object-cover filter saturate-50 hover:saturate-100 transition-all duration-300" />
                 </div>
               ))}
             </div>
-            {/* Seconde liste identique pour fluidifier la jonction infinie */}
+            {/* Seconde bande pour assurer la jonction parfaite */}
             <div className="flex shrink-0 items-center justify-around gap-4 animate-marquee group-hover:[animation-play-state:paused]">
-              {resolvedImages.map((src, idx) => (
-                <div key={`m2-${idx}`} className="relative aspect-4/3 w-50 sm:w-70 rounded-xl overflow-hidden border border-z-blue/10 shadow-xl transition-all duration-300 hover:border-z-blue hover:scale-105 cursor-pointer">
-                  <img src={src} alt="Aperçu de projet" className="w-full h-full object-cover filter saturate-50 hover:saturate-100 transition-all duration-300" />
+              {displayImages.map((src, idx) => (
+                <div key={`m2-${idx}`} className="relative aspect-video w-55 sm:w-[320px] rounded-xl overflow-hidden border border-z-blue/10 shadow-xl transition-all duration-300 hover:border-z-blue hover:scale-105 cursor-pointer">
+                  <img src={src} alt="" className="w-full h-full object-cover filter saturate-50 hover:saturate-100 transition-all duration-300" />
                 </div>
               ))}
             </div>
