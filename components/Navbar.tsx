@@ -71,11 +71,22 @@ export default function Navbar({ cvUrl, previewUrl }: NavbarProps) {
           </Link>
 
           <nav className="hidden md:flex items-center gap-10">
-            {navLinks.map((link) => (
-              <Link key={link.name} href={link.href} className="font-sub text-[13px] font-bold uppercase tracking-[0.15em] text-z-text/60 hover:text-z-blue py-2 transition-colors">
-                {link.name}
-              </Link>
-            ))}
+            {navLinks.map((link) => {
+              // Condition d'activation : correspond exactement à '/' OU commence par '/projet' (pour inclure les fiches projets individuelles)
+              const isActive = link.href === '/' ? pathname === '/' : pathname?.startsWith(link.href);
+              
+              return (
+                <Link 
+                  key={link.name} 
+                  href={link.href} 
+                  className={`font-sub text-[13px] font-bold uppercase tracking-[0.15em] py-2 transition-colors ${
+                    isActive ? 'text-z-blue' : 'text-z-text/60 hover:text-z-blue'
+                  }`}
+                >
+                  {link.name}
+                </Link>
+              );
+            })}
           </nav>
 
           <div className="flex items-center gap-6 z-1001">
@@ -109,11 +120,23 @@ export default function Navbar({ cvUrl, previewUrl }: NavbarProps) {
           <div className="flex flex-col h-full pt-32 px-10">
             <p className="font-sub text-z-blue text-[10px] font-bold uppercase tracking-[0.4em] mb-10 opacity-50">Menu</p>
             <div className="flex flex-col gap-8">
-              {navLinks.map((link) => (
-                <Link key={link.name} href={link.href} onClick={() => setIsOpen(false)} className="font-display text-5xl font-bold uppercase tracking-tighter text-z-text hover:text-z-blue active:scale-95 transition-all">
-                  {link.name}
-                </Link>
-              ))}
+              {navLinks.map((link) => {
+                // Même logique d'activation pour le menu mobile
+                const isActive = link.href === '/' ? pathname === '/' : pathname?.startsWith(link.href);
+
+                return (
+                  <Link 
+                    key={link.name} 
+                    href={link.href} 
+                    onClick={() => setIsOpen(false)} 
+                    className={`font-display text-5xl font-bold uppercase tracking-tighter active:scale-95 transition-all ${
+                      isActive ? 'text-z-blue' : 'text-z-text hover:text-z-blue'
+                    }`}
+                  >
+                    {link.name}
+                  </Link>
+                );
+              })}
             </div>
 
             <div className="mt-auto pb-[calc(2rem+env(safe-area-inset-bottom))]">
