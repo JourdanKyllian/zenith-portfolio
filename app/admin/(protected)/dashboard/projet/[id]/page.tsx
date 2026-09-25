@@ -148,9 +148,30 @@ export default function EditProjetPage() {
     setIsSavingDetails(false); 
   };
 
-  const handleDragStart = (e: React.DragEvent, id: number) => { setDraggedId(id); e.dataTransfer.effectAllowed = 'move'; };
+  const handleDragStart = (e: React.DragEvent, id: number) => { 
+    setEditingSpId(null); // <- CORRECTION : On ferme l'éditeur pour éviter l'écrasement des données
+    setDraggedId(id); 
+    e.dataTransfer.effectAllowed = 'move'; 
+  };
+  
   const handleDragOver = (e: React.DragEvent, id: number) => { e.preventDefault(); if (dragOverId !== id) setDragOverId(id); };
-  const handleDrop = async (e: React.DragEvent, targetId: number) => { e.preventDefault(); setDragOverId(null); if (!draggedId || draggedId === targetId) { setDraggedId(null); return; } const draggedIndex = sousProjets.findIndex(sp => sp.id === draggedId); const targetIndex = sousProjets.findIndex(sp => sp.id === targetId); const newItems = [...sousProjets]; const [draggedItem] = newItems.splice(draggedIndex, 1); newItems.splice(targetIndex, 0, draggedItem); setSousProjets(newItems.map((sp, index) => ({ ...sp, ordre: index + 1 }))); setDraggedId(null); setHasUnsavedChanges(true); };
+  
+  const handleDrop = async (e: React.DragEvent, targetId: number) => { 
+    e.preventDefault(); 
+    setDragOverId(null); 
+    if (!draggedId || draggedId === targetId) { 
+      setDraggedId(null); 
+      return; 
+    } 
+    const draggedIndex = sousProjets.findIndex(sp => sp.id === draggedId); 
+    const targetIndex = sousProjets.findIndex(sp => sp.id === targetId); 
+    const newItems = [...sousProjets]; 
+    const [draggedItem] = newItems.splice(draggedIndex, 1); 
+    newItems.splice(targetIndex, 0, draggedItem); 
+    setSousProjets(newItems.map((sp, index) => ({ ...sp, ordre: index + 1 }))); 
+    setDraggedId(null); 
+    setHasUnsavedChanges(true); 
+  };
 
   if (isLoading) return <div className="flex items-center justify-center text-z-blue h-full min-h-[50vh]">Chargement de l'éditeur...</div>;
 

@@ -3,7 +3,7 @@
 import { Eye, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { useMemo } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Autoplay } from 'swiper/modules';
 
@@ -33,6 +33,22 @@ function getDriveFileId(urlOrId: string | null | undefined): string | null {
 
 export default function Hero({ categoriesCount, yearsOfExperience, marqueeProjects = [] }: HeroProps) {
   
+  // CORRECTION HYDRATATION : On prend la donnée serveur par défaut, puis on la recalcule côté client pour la précision absolue.
+  const [realYears, setRealYears] = useState(yearsOfExperience);
+
+  useEffect(() => {
+    const startDate = new Date("2017-09-01");
+    const today = new Date();
+    let y = today.getFullYear() - startDate.getFullYear();
+    const m = today.getMonth() - startDate.getMonth();
+    
+    if (m < 0 || (m === 0 && today.getDate() < startDate.getDate())) {
+      y--;
+    }
+    
+    setRealYears(y);
+  }, []);
+
   const resolvedProjects = useMemo(() => {
     return marqueeProjects.map(p => {
       let finalUrl = p.url;
@@ -109,7 +125,7 @@ export default function Hero({ categoriesCount, yearsOfExperience, marqueeProjec
             <div className="font-sub text-z-muted text-[8px] sm:text-[9px] tracking-widest uppercase mt-1">Projets</div>
           </div>
           <div className="flex-1 py-3 border-r border-z-blue/15">
-            <div className="font-display font-bold text-2xl sm:text-3xl text-z-text">{yearsOfExperience}<span className="text-z-blue">+</span></div>
+            <div className="font-display font-bold text-2xl sm:text-3xl text-z-text">{realYears}<span className="text-z-blue">+</span></div>
             <div className="font-sub text-z-muted text-[8px] sm:text-[9px] tracking-widest uppercase mt-1">Années</div>
           </div>
           <div className="flex-1 py-3">
