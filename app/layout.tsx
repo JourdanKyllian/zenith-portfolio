@@ -35,8 +35,9 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
     .eq('user_id', process.env.NEXT_PUBLIC_PORTFOLIO_USER_ID)
     .single();
 
+  // Double transtypage propre avec unknown pour contourner GenericStringError
   const socials = AVAILABLE_SOCIALS.reduce((acc, net) => {
-    acc[net.id] = paramData?.[`${net.id}_url`] || "";
+    acc[net.id] = (paramData as unknown as Record<string, string>)?.[`${net.id}_url`] || "";
     return acc;
   }, {} as Record<string, string>);
 

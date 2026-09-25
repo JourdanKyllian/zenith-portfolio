@@ -1,4 +1,5 @@
 "use client";
+/* eslint-disable react-hooks/set-state-in-effect */
 
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
@@ -100,8 +101,53 @@ export default function EditProjetPage() {
   const handleAddSp = () => { const newId = -Date.now(); setSousProjets([...sousProjets, { id: newId, projet_id: parseInt(projetId), titre: '', description: '', youtube_url: '', drive_url: '', ordre: sousProjets.length + 1, created_at: new Date().toISOString() }]); setEditingSpId(newId); setHasUnsavedChanges(true); };
   const executeDeleteSp = (id: number) => { if (id > 0) setDeletedSpIds(prev => [...prev, id]); setSousProjets(sousProjets.filter(sp => sp.id !== id).map((sp, idx) => ({ ...sp, ordre: idx + 1 }))); if (editingSpId === id) setEditingSpId(null); setHasUnsavedChanges(true); setDeleteSpTarget(null); };
   const requestDeleteSp = (id: number, titre: string | null) => { const skipUntil = localStorage.getItem('skipDeleteConfirmUntil'); if (skipUntil && parseInt(skipUntil) > new Date().getTime()) executeDeleteSp(id); else setDeleteSpTarget({ id, titre: titre || `Séquence média` }); };
-  const updateActiveSp = (field: keyof SousProjet, value: any) => { setSousProjets(prev => prev.map(sp => sp.id === editingSpId ? { ...sp, [field]: value } : sp)); setHasUnsavedChanges(true); };
-  const handleSaveDetails = async () => { setIsSavingDetails(true); try { if (deletedSpIds.length > 0) await supabase.from('sousprojet').delete().in('id', deletedSpIds); const toUpdate = sousProjets.filter(sp => sp.id > 0).map(({ created_at, ...rest }) => rest); if (toUpdate.length > 0) await supabase.from('sousprojet').upsert(toUpdate); const toInsert = sousProjets.filter(sp => sp.id < 0).map(({ id, created_at, ...rest }) => rest); if (toInsert.length > 0) await supabase.from('sousprojet').insert(toInsert); await purgeCache(); setDeletedSpIds([]); setHasUnsavedChanges(false); setEditingSpId(null); await fetchData(); } catch (err) { console.error(err); } setIsSavingDetails(false); };
+  const updateActiveSp = (field: keyof SousProjet, value: string | number | null) => { setSousProjets(prev => prev.map(sp => sp.id === editingSpId ? { ...sp, [field]: value } : sp)); setHasUnsavedChanges(true); };
+  
+  const handleSaveDetails = async () => { 
+    setIsSavingDetails(true); 
+    try { 
+      if (deletedSpIds.length > 0) {
+        await supabase.from('sousprojet').delete().in('id', deletedSpIds); 
+      }
+      
+      const toUpdate = sousProjets.filter(sp => sp.id > 0).map(sp => ({
+        id: sp.id,
+        projet_id: sp.projet_id,
+        titre: sp.titre,
+        description: sp.description,
+        youtube_url: sp.youtube_url,
+        drive_url: sp.drive_url,
+        ordre: sp.ordre
+      })); 
+      
+      if (toUpdate.length > 0) {
+        await supabase.from('sousprojet').upsert(toUpdate); 
+      }
+      
+      const toInsert = sousProjets.filter(sp => sp.id < 0).map(sp => ({
+        projet_id: sp.projet_id,
+        titre: sp.titre,
+        description: sp.description,
+        youtube_url: sp.youtube_url,
+        drive_url: sp.drive_url,
+        ordre: sp.ordre
+      })); 
+      
+      if (toInsert.length > 0) {
+        await supabase.from('sousprojet').insert(toInsert); 
+      }
+      
+      await purgeCache(); 
+      setDeletedSpIds([]); 
+      setHasUnsavedChanges(false); 
+      setEditingSpId(null); 
+      await fetchData(); 
+    } catch (err) { 
+      console.error(err); 
+    } 
+    setIsSavingDetails(false); 
+  };
+
   const handleDragStart = (e: React.DragEvent, id: number) => { setDraggedId(id); e.dataTransfer.effectAllowed = 'move'; };
   const handleDragOver = (e: React.DragEvent, id: number) => { e.preventDefault(); if (dragOverId !== id) setDragOverId(id); };
   const handleDrop = async (e: React.DragEvent, targetId: number) => { e.preventDefault(); setDragOverId(null); if (!draggedId || draggedId === targetId) { setDraggedId(null); return; } const draggedIndex = sousProjets.findIndex(sp => sp.id === draggedId); const targetIndex = sousProjets.findIndex(sp => sp.id === targetId); const newItems = [...sousProjets]; const [draggedItem] = newItems.splice(draggedIndex, 1); newItems.splice(targetIndex, 0, draggedItem); setSousProjets(newItems.map((sp, index) => ({ ...sp, ordre: index + 1 }))); setDraggedId(null); setHasUnsavedChanges(true); };

@@ -20,7 +20,7 @@ interface ProjectDetailsSidebarProps {
   draggedId: number | null;
   dragOverId: number | null;
   requestDeleteSp: (id: number, titre: string | null) => void;
-  updateActiveSp: (field: keyof SousProjet, value: any) => void;
+  updateActiveSp: (field: keyof SousProjet, value: string | number | null) => void;
 }
 
 export default function ProjectDetailsSidebar({

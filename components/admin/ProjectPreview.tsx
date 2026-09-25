@@ -4,13 +4,29 @@ import { useState } from 'react';
 import { Monitor, Smartphone, Eye } from 'lucide-react';
 import ProjectMediaContent from '@/components/ProjectMediaContent';
 import { getBadgeTheme } from '@/config/colors';
+import { Categorie } from '@/types';
+
+// Alignement strict de l'interface avec ce qu'attend le composant ProjectMediaContent
+interface PreviewSousProjet {
+  id: number;
+  projet_id: number;
+  titre: string | null;
+  description: string | null;
+  drive_url: string | null;
+  ordre: number;
+  created_at: string;
+  finalYoutubeUrl: string | null;
+  driveImages: string[];
+  pdf: { id: string; name: string; previewUrl: string; thumbnailUrl: string; } | null;
+  driveVideoUrl: string | null;
+}
 
 interface ProjectPreviewProps {
   titre: string;
   description: string;
   miniatureUrl: string;
-  activeCategory: any;
-  previewSousProjets: any[];
+  activeCategory: Categorie | null | undefined;
+  previewSousProjets: PreviewSousProjet[];
 }
 
 function getDriveFileId(urlOrId: string | null | undefined): string | null {
@@ -105,6 +121,7 @@ export default function ProjectPreview({
                 <div className="text-[10px] text-z-blue font-bold uppercase tracking-widest mb-6 flex items-center justify-center gap-2">
                   <Eye size={14} /> Séquençage des détails
                 </div>
+                {/* L'erreur est résolue, on peut passer les variables directement */}
                 <ProjectMediaContent sousProjets={previewSousProjets} coverImageUrl="" projectTitle={titre} />
               </div>
             </section>
