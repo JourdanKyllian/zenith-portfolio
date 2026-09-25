@@ -154,23 +154,21 @@ export default function DashboardPage() {
                     </td>
                     <td className="p-4">
                       <div className="flex items-center justify-end gap-2">
-                        <div className="flex items-center justify-end gap-2">
-                          <Link 
-                              href={`/admin/dashboard/projet/${projet.id}`}
-                              className="p-2 text-z-muted hover:text-white hover:bg-z-blue/20 rounded transition-colors cursor-pointer" 
-                              title="Modifier"
-                          >
-                              <Edit3 size={16} />
-                          </Link>
-                          
-                          <button 
-                              onClick={() => requestDelete(projet.id, projet.titre)} 
-                              className="p-2 text-z-muted hover:text-red-400 hover:bg-red-400/10 rounded transition-colors cursor-pointer" 
-                              title="Supprimer"
-                          >
-                              <Trash2 size={16} />
-                          </button>
-                          </div>
+                        <Link 
+                            href={`/admin/dashboard/projet/${projet.id}`}
+                            className="p-2 text-z-muted hover:text-white hover:bg-z-blue/20 rounded transition-colors cursor-pointer" 
+                            title="Modifier"
+                        >
+                            <Edit3 size={16} />
+                        </Link>
+                        
+                        <button 
+                            onClick={() => requestDelete(projet.id, projet.titre)} 
+                            className="p-2 text-z-muted hover:text-red-400 hover:bg-red-400/10 rounded transition-colors cursor-pointer" 
+                            title="Supprimer"
+                        >
+                            <Trash2 size={16} />
+                        </button>
                       </div>
                     </td>
                   </tr>

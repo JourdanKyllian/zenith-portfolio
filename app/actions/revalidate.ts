@@ -13,5 +13,7 @@ export async function purgeCache(path?: string) {
   } else {
     // Purge absolue de tout le site (reconstruit le layout global, navbar, footer)
     revalidatePath('/', 'layout');
+    // Sécurité supplémentaire pour Vercel : force l'invalidation des sous-routes dynamiques
+    revalidatePath('/projet/[slug]', 'page');
   }
 }
