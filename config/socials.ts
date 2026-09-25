@@ -7,7 +7,7 @@ import {
   TwitchIcon, 
   TwitterIcon, 
   KickIcon,
-  SoundcloudIcon
+  SoundCloudIcon
 } from '@/components/SocialIcons';
 
 export const AVAILABLE_SOCIALS = [
@@ -70,7 +70,7 @@ export const AVAILABLE_SOCIALS = [
   { 
     id: 'soundcloud', 
     label: 'SoundCloud', 
-    icon: SoundcloudIcon, 
+    icon: SoundCloudIcon, 
     placeholder: 'https://soundcloud.com/...', 
     hoverClass: 'hover:bg-orange-500 hover:text-white hover:border-orange-500' 
   },
