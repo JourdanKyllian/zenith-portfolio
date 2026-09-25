@@ -1,24 +1,15 @@
 import React from 'react';
-import { LinkedinIcon, InstagramIcon, FacebookIcon, YoutubeIcon, TiktokIcon, TwitchIcon, TwitterIcon, KickIcon } from './SocialIcons';
+import { AVAILABLE_SOCIALS } from '@/config/socials';
 
 interface SocialLinksProps {
   variant: 'footer' | 'project';
-  links: {
-    linkedin?: string | null;
-    instagram?: string | null;
-    facebook?: string | null;
-    tiktok?: string | null;
-    youtube?: string | null;
-    twitch?: string | null;
-    x?: string | null;
-    kick?: string | null;
-  };
+  links: Record<string, string | null | undefined>;
 }
 
 export default function SocialLinks({ variant, links }: SocialLinksProps) {
-  const hasLinks = Object.values(links).some(url => url && url.trim() !== '');
+  const activeNetworks = AVAILABLE_SOCIALS.filter(net => links[net.id] && links[net.id]?.trim() !== '');
 
-  if (!hasLinks) return null;
+  if (activeNetworks.length === 0) return null;
 
   if (variant === 'footer') {
     return (
@@ -31,14 +22,14 @@ export default function SocialLinks({ variant, links }: SocialLinksProps) {
         </div>
         
         <div className="flex items-center justify-center md:justify-start gap-3 w-full flex-wrap">
-          {links.linkedin && <SocialBubble href={links.linkedin} ariaLabel="LinkedIn"><LinkedinIcon size={18} /></SocialBubble>}
-          {links.instagram && <SocialBubble href={links.instagram} ariaLabel="Instagram"><InstagramIcon size={18} /></SocialBubble>}
-          {links.facebook && <SocialBubble href={links.facebook} ariaLabel="Facebook"><FacebookIcon size={18} /></SocialBubble>}
-          {links.tiktok && <SocialBubble href={links.tiktok} ariaLabel="TikTok"><TiktokIcon size={18} /></SocialBubble>}
-          {links.youtube && <SocialBubble href={links.youtube} ariaLabel="YouTube"><YoutubeIcon size={18} /></SocialBubble>}
-          {links.twitch && <SocialBubble href={links.twitch} ariaLabel="Twitch"><TwitchIcon size={18} /></SocialBubble>}
-          {links.x && <SocialBubble href={links.x} ariaLabel="X"><TwitterIcon size={16} /></SocialBubble>}
-          {links.kick && <SocialBubble href={links.kick} ariaLabel="Kick"><KickIcon size={16} /></SocialBubble>}
+          {activeNetworks.map(net => {
+            const Icon = net.icon;
+            return (
+              <SocialBubble key={net.id} href={links[net.id]!} ariaLabel={net.label}>
+                <Icon size={18} />
+              </SocialBubble>
+            );
+          })}
         </div>
       </div>
     );
@@ -47,41 +38,21 @@ export default function SocialLinks({ variant, links }: SocialLinksProps) {
   if (variant === 'project') {
     return (
       <div className="flex items-center gap-2 border-l border-z-border pl-4 md:flex flex-wrap">
-        {links.instagram && (
-          <a href={links.instagram} target="_blank" rel="noopener noreferrer" className="group p-1.5 rounded-lg border border-z-border bg-z-card/50 hover:bg-pink-500/10 hover:border-pink-500/20 transition-all" title="Instagram">
-            <InstagramIcon size={16} className="text-z-muted group-hover:text-pink-500 transition-colors" />
-          </a>
-        )}
-        {links.youtube && (
-          <a href={links.youtube} target="_blank" rel="noopener noreferrer" className="group p-1.5 rounded-lg border border-z-border bg-z-card/50 hover:bg-red-500/10 hover:border-red-500/20 transition-all" title="Youtube">
-            <YoutubeIcon size={16} className="text-z-muted group-hover:text-red-500 transition-colors" />
-          </a>
-        )}
-        {links.tiktok && (
-          <a href={links.tiktok} target="_blank" rel="noopener noreferrer" className="group p-1.5 rounded-lg border border-z-border bg-z-card/50 hover:bg-cyan-400/10 hover:border-cyan-400/20 transition-all" title="TikTok">
-            <TiktokIcon size={16} className="text-z-muted group-hover:text-cyan-400 transition-colors" />
-          </a>
-        )}
-        {links.twitch && (
-          <a href={links.twitch} target="_blank" rel="noopener noreferrer" className="group p-1.5 rounded-lg border border-z-border bg-z-card/50 hover:bg-purple-500/10 hover:border-purple-500/20 transition-all" title="Twitch">
-            <TwitchIcon size={16} className="text-z-muted group-hover:text-purple-500 transition-colors" />
-          </a>
-        )}
-        {links.facebook && (
-          <a href={links.facebook} target="_blank" rel="noopener noreferrer" className="group p-1.5 rounded-lg border border-z-border bg-z-card/50 hover:bg-blue-500/10 hover:border-blue-500/20 transition-all" title="Facebook">
-            <FacebookIcon size={16} className="text-z-muted group-hover:text-blue-500 transition-colors" />
-          </a>
-        )}
-        {links.x && (
-          <a href={links.x} target="_blank" rel="noopener noreferrer" className="group p-1.5 rounded-lg border border-z-border bg-z-card/50 hover:bg-white/10 hover:border-white/20 transition-all" title="X">
-            <TwitterIcon size={14} className="text-z-muted group-hover:text-white transition-colors" />
-          </a>
-        )}
-        {links.kick && (
-          <a href={links.kick} target="_blank" rel="noopener noreferrer" className="group p-1.5 rounded-lg border border-z-border bg-z-card/50 hover:bg-emerald-500/10 hover:border-emerald-500/20 transition-all" title="Kick">
-            <KickIcon size={14} className="text-z-muted group-hover:text-emerald-400 transition-colors" />
-          </a>
-        )}
+        {activeNetworks.map(net => {
+          const Icon = net.icon;
+          return (
+            <a 
+              key={net.id} 
+              href={links[net.id]!} 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="group p-1.5 rounded-lg border border-z-border bg-z-card/50 hover:bg-white/10 hover:border-white/20 transition-all" 
+              title={net.label}
+            >
+              <Icon size={16} className="text-z-muted group-hover:text-white transition-colors" />
+            </a>
+          );
+        })}
       </div>
     );
   }

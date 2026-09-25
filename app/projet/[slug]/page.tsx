@@ -7,70 +7,40 @@ import { SousProjet, Projet } from '@/types';
 import ProjectMediaContent from '@/components/ProjectMediaContent';
 import { getBadgeTheme } from '@/config/colors';
 import SocialLinks from '@/components/SocialLinks';
+import { AVAILABLE_SOCIALS } from '@/config/socials';
 
 export const revalidate = 3600;
 
 export async function generateStaticParams() {
-  const { data: projets } = await supabase
-    .from('projet')
-    .select('slug')
-    .eq('en_ligne', true)
-    .eq('user_id', process.env.NEXT_PUBLIC_PORTFOLIO_USER_ID);
-
+  const { data: projets } = await supabase.from('projet').select('slug').eq('en_ligne', true).eq('user_id', process.env.NEXT_PUBLIC_PORTFOLIO_USER_ID);
   if (!projets) return [];
-
-  return projets.map((projet) => ({
-    slug: projet.slug,
-  }));
+  return projets.map((projet) => ({ slug: projet.slug }));
 }
 
 interface ProcessedSousProjet extends SousProjet {
   finalYoutubeUrl: string | null;
   driveImages: string[];
-  pdf: {
-    id: string;
-    name: string;
-    previewUrl: string;
-    thumbnailUrl: string;
-  } | null;
+  pdf: { id: string; name: string; previewUrl: string; thumbnailUrl: string; } | null;
   driveVideoUrl: string | null;
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-
-  const { data } = await supabase
-    .from('projet')
-    .select('*, categorie(*)')
-    .eq('slug', slug)
-    .eq('user_id', process.env.NEXT_PUBLIC_PORTFOLIO_USER_ID)
-    .single();
-
-  if (!data) {
-    return { title: 'Projet — ZENITH PRODUCTION' };
-  }
-
+  const { data } = await supabase.from('projet').select('*, categorie(*)').eq('slug', slug).eq('user_id', process.env.NEXT_PUBLIC_PORTFOLIO_USER_ID).single();
+  if (!data) return { title: 'Projet — ZENITH PRODUCTION' };
   const project = data as unknown as Projet;
-  const categoryName = project.categorie?.name || 'Général';
-
-  return {
-    title: `${project.titre} — ${categoryName} | ZENITH PRODUCTION`,
-  };
+  return { title: `${project.titre} — ${project.categorie?.name || 'Général'} | ZENITH PRODUCTION` };
 }
 
 function getDriveFileId(urlOrId: string | null | undefined): string | null {
   if (!urlOrId) return null;
   if (!urlOrId.includes('/')) return urlOrId;
-  
   const fileDMatch = urlOrId.match(/\/d\/([a-zA-Z0-9-_]+)/);
   if (fileDMatch) return fileDMatch[1];
-  
   const idParamMatch = urlOrId.match(/id=([a-zA-Z0-9-_]+)/);
   if (idParamMatch) return idParamMatch[1];
-
   const driveViewerMatch = urlOrId.match(/\/drive-viewer\/([a-zA-Z0-9-_]+)/);
   if (driveViewerMatch) return driveViewerMatch[1];
-  
   return null;
 }
 
@@ -88,8 +58,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
 
   const project = data as unknown as Projet;
 
-  const sousProjets: SousProjet[] = (project.sousprojet || [])
-    .sort((a: SousProjet, b: SousProjet) => (a.ordre || 0) - (b.ordre || 0));
+  const sousProjets: SousProjet[] = (project.sousprojet || []).sort((a: SousProjet, b: SousProjet) => (a.ordre || 0) - (b.ordre || 0));
 
   const sousProjetsAvecMedias: ProcessedSousProjet[] = await Promise.all(
     sousProjets.map(async (sp) => {
@@ -97,45 +66,35 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
         ? await getProjectAssetsFromDrive(sp.drive_url)
         : { images: [], youtubeUrl: null, pdf: null, videoUrl: null }; 
       
-      return {
-        ...sp,
-        finalYoutubeUrl: driveAssets.youtubeUrl || sp.youtube_url,
-        driveImages: driveAssets.images,
-        pdf: driveAssets.pdf,
-        driveVideoUrl: driveAssets.videoUrl
-      };
+      return { ...sp, finalYoutubeUrl: driveAssets.youtubeUrl || sp.youtube_url, driveImages: driveAssets.images, pdf: driveAssets.pdf, driveVideoUrl: driveAssets.videoUrl };
     })
   );
 
   const hasAnyVideo = sousProjetsAvecMedias.some(sp => sp.finalYoutubeUrl || sp.driveVideoUrl);
-
   const badgeTheme = getBadgeTheme(project.categorie?.color);
 
-  const miniatureUrl = project.miniature_url;
-  let coverImageUrl = "";
-
-  if (miniatureUrl) {
-    if (miniatureUrl.startsWith('http') && !miniatureUrl.includes('drive.google.com')) {
-      coverImageUrl = miniatureUrl;
+  let coverImageUrl = "https://images.unsplash.com/photo-1536440136628-849c177e76a1?q=80&w=1025&auto=format&fit=cover";
+  if (project.miniature_url) {
+    if (project.miniature_url.startsWith('http') && !project.miniature_url.includes('drive.google.com')) {
+      coverImageUrl = project.miniature_url;
     } else {
-      const driveImageId = getDriveFileId(miniatureUrl);
-      coverImageUrl = driveImageId 
-        ? `https://drive.google.com/thumbnail?id=${driveImageId}&sz=w2048`
-        : miniatureUrl;
+      const driveImageId = getDriveFileId(project.miniature_url);
+      if (driveImageId) coverImageUrl = `https://drive.google.com/thumbnail?id=${driveImageId}&sz=w2048`;
     }
-  } else {
-    coverImageUrl = "https://images.unsplash.com/photo-1536440136628-849c177e76a1?q=80&w=1025&auto=format&fit=cover";
   }
+
+  // GÉNÉRATION DYNAMIQUE DES LIENS SOCIAUX DU PROJET
+  const projectLinks = AVAILABLE_SOCIALS.reduce((acc, net) => {
+    acc[net.id] = project[`link_${net.id}` as keyof typeof project] as string | null;
+    return acc;
+  }, {} as Record<string, string | null>);
+
+  const hasSocials = Object.values(projectLinks).some(val => val !== null && val !== '');
 
   return (
     <main className="min-h-screen bg-z-bg text-z-text pb-20">
       <section className="relative h-[60vh] w-full overflow-hidden">
-        <img 
-          src={coverImageUrl} 
-          alt={project.titre} 
-          className="w-full h-full object-cover opacity-30" 
-          loading="eager"
-        />
+        <img src={coverImageUrl} alt={project.titre} className="w-full h-full object-cover opacity-30" loading="eager" />
         <div className="absolute inset-0 bg-linear-to-t from-z-bg to-transparent" />
         <div className="absolute bottom-0 left-0 w-full p-8 sm:p-16 max-w-7xl mx-auto z-10">
           <Link href="/projet" className="flex items-center gap-2 text-z-blue text-[13px] font-bold uppercase tracking-widest mb-6 hover:translate-x-2 transition-transform">
@@ -145,27 +104,14 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
             {project.titre}
           </h1>
           
-          {(project.categorie?.name || project.link_instagram || project.link_youtube || project.link_tiktok || project.link_twitch || project.link_facebook) && (
+          {(project.categorie || hasSocials) && (
             <div className="flex flex-wrap items-center gap-4 animate-fade-in" style={{ animationDelay: '0.1s' }}>
-              
               {project.categorie && (
                 <div className={`px-3 py-1 rounded border transition-colors duration-300 ${badgeTheme.border} ${badgeTheme.bg} ${badgeTheme.text} text-[9px] font-bold uppercase tracking-widest`}>
-                  {project.categorie?.name || "Général"}
+                  {project.categorie.name}
                 </div>
               )}
-
-              <SocialLinks 
-                variant="project" 
-                links={{
-                  instagram: project.link_instagram,
-                  youtube: project.link_youtube,
-                  tiktok: project.link_tiktok,
-                  twitch: project.link_twitch,
-                  facebook: project.link_facebook,
-                  x: project.link_x,
-                  kick: project.link_kick
-                }} 
-              />
+              {hasSocials && <SocialLinks variant="project" links={projectLinks} />}
             </div>
           )}
         </div>
@@ -176,13 +122,9 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
           <div>
             <h3 className="text-z-muted font-sub text-[10px] font-bold uppercase tracking-widest mb-6">Introduction</h3>
             {project.description && (
-              <div 
-                className="font-body text-z-text/80 leading-relaxed whitespace-pre-wrap rich-text" 
-                dangerouslySetInnerHTML={{ __html: project.description }} 
-              />
+              <div className="font-body text-z-text/80 leading-relaxed whitespace-pre-wrap rich-text" dangerouslySetInnerHTML={{ __html: project.description }} />
             )}
           </div>
-          
           {hasAnyVideo && (
             <div className="flex flex-col gap-4">
               <div className="btn-blue p-4 rounded-lg flex items-center justify-center gap-3 text-[10px] font-bold uppercase tracking-widest opacity-80 cursor-default">
@@ -191,12 +133,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
             </div>
           )}
         </div>
-
-        <ProjectMediaContent 
-          sousProjets={sousProjetsAvecMedias} 
-          coverImageUrl={coverImageUrl}
-          projectTitle={project.titre} 
-        />
+        <ProjectMediaContent sousProjets={sousProjetsAvecMedias} coverImageUrl={coverImageUrl} projectTitle={project.titre} />
       </section>
     </main>
   );

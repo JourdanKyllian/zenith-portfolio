@@ -6,7 +6,8 @@ import {
   TiktokIcon, 
   TwitchIcon, 
   TwitterIcon, 
-  KickIcon 
+  KickIcon,
+  SoundcloudIcon
 } from '@/components/SocialIcons';
 
 export const AVAILABLE_SOCIALS = [
@@ -18,4 +19,5 @@ export const AVAILABLE_SOCIALS = [
   { id: 'linkedin', label: 'LinkedIn', icon: LinkedinIcon, placeholder: 'https://linkedin.com/in/...' },
   { id: 'x', label: 'X (Twitter)', icon: TwitterIcon, placeholder: 'https://x.com/...' },
   { id: 'kick', label: 'Kick', icon: KickIcon, placeholder: 'https://kick.com/...' },
+  { id: 'soundcloud', label: 'SoundCloud', icon: SoundcloudIcon, placeholder: 'https://soundcloud.com/...' },
 ];

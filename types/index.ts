@@ -27,6 +27,7 @@ export interface Projet {
   link_facebook: string | null;
   link_x: string | null;
   link_kick: string | null;
+  link_soundcloud: string | null;
   user_id: string;
   categorie?: Categorie;
   sousprojet?: SousProjet[];

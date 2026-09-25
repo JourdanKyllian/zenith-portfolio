@@ -10,6 +10,7 @@ import Alert from '@/components/ui/Alert';
 import { purgeCache } from '@/app/actions/revalidate';
 import RichTextEditor from '@/components/ui/RichTextEditor';
 import DynamicSocialLinks from '@/components/admin/DynamicSocialLinks';
+import { AVAILABLE_SOCIALS } from '@/config/socials';
 
 export default function NouveauProjetPage() {
   const router = useRouter();
@@ -24,9 +25,8 @@ export default function NouveauProjetPage() {
   const [enLigne, setEnLigne] = useState(false);
   const [miniatureUrl, setMiniatureUrl] = useState('');
   
-  const [links, setLinks] = useState<Record<string, string>>({ 
-    youtube: '', instagram: '', tiktok: '', twitch: '', facebook: '', x: '', kick: '' 
-  });
+  const initialLinks = AVAILABLE_SOCIALS.reduce((acc, net) => ({ ...acc, [net.id]: '' }), {});
+  const [links, setLinks] = useState<Record<string, string>>(initialLinks);
   const [activeLinks, setActiveLinks] = useState<string[]>([]);
 
   useEffect(() => {
@@ -55,22 +55,21 @@ export default function NouveauProjetPage() {
       setIsSubmitting(false); return; 
     }
 
+    const socialPayload = AVAILABLE_SOCIALS.reduce((acc, net) => {
+      acc[`link_${net.id}`] = links[net.id] || null;
+      return acc;
+    }, {} as Record<string, string | null>);
+
     const newProjet = {
       titre, slug, categorie_id: categorieId ? parseInt(categorieId) : null, description: description || null, en_ligne: enLigne, miniature_url: miniatureUrl || null,
-      link_instagram: links.instagram || null, link_youtube: links.youtube || null, link_tiktok: links.tiktok || null, link_twitch: links.twitch || null, link_facebook: links.facebook || null,
-      link_x: links.x || null,
-      link_kick: links.kick || null,
+      ...socialPayload,
       user_id: process.env.NEXT_PUBLIC_PORTFOLIO_USER_ID
     };
 
     const { data, error } = await supabase.from('projet').insert([newProjet]).select('id').single();
 
-    if (error) {
-      setErrorMessage(error.message); setIsSubmitting(false);
-    } else if (data) {
-      await purgeCache();
-      router.push(`/admin/dashboard/projet/${data.id}`);
-    }
+    if (error) { setErrorMessage(error.message); setIsSubmitting(false); } 
+    else if (data) { await purgeCache(); router.push(`/admin/dashboard/projet/${data.id}`); }
   };
 
   return (
@@ -78,9 +77,7 @@ export default function NouveauProjetPage() {
       <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-10">
         <div className="flex items-center gap-4">
           <Link href="/admin/dashboard" className="w-10 h-10 rounded-lg bg-z-card border border-z-border flex items-center justify-center text-z-muted hover:text-white hover:border-z-blue transition-all"><ArrowLeft size={18} /></Link>
-          <div>
-            <h1 className="font-display font-bold text-3xl uppercase tracking-wider text-white">Nouveau Projet</h1>
-          </div>
+          <div><h1 className="font-display font-bold text-3xl uppercase tracking-wider text-white">Nouveau Projet</h1></div>
         </div>
         <button type="button" onClick={handleSubmit} disabled={isSubmitting} className="btn-blue px-6 py-3 rounded-lg flex items-center justify-center gap-2 text-xs font-bold tracking-widest shadow-lg hover:scale-105 transition-all disabled:opacity-50">
           <Save size={16} /> {isSubmitting ? 'Création...' : 'Créer et continuer'}
@@ -93,10 +90,8 @@ export default function NouveauProjetPage() {
         <section className="bg-z-card border border-z-border rounded-xl p-6 shadow-xl">
           <h2 className="font-sub text-xs uppercase tracking-[0.2em] text-z-blue mb-6 flex items-center gap-2"><FileText size={16} /> Informations</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-            <div className="space-y-2"><label className="text-[10px] uppercase font-bold tracking-widest text-z-muted ml-1">Titre du projet *</label>
-            <input required type="text" value={titre} onChange={handleTitreChange} className="w-full bg-z-bg border border-z-border rounded-lg p-3 text-sm focus:border-z-blue focus:outline-none" /></div>
-            <div className="space-y-2"><label className="text-[10px] uppercase font-bold tracking-widest text-z-muted ml-1">Slug (URL) *</label>
-            <input required type="text" value={slug} onChange={(e) => { setSlug(e.target.value); setErrorMessage(null); }} className="w-full bg-z-bg border border-z-border rounded-lg p-3 text-sm text-z-muted focus:border-z-blue focus:outline-none" /></div>
+            <div className="space-y-2"><label className="text-[10px] uppercase font-bold tracking-widest text-z-muted ml-1">Titre du projet *</label><input required type="text" value={titre} onChange={handleTitreChange} className="w-full bg-z-bg border border-z-border rounded-lg p-3 text-sm focus:border-z-blue focus:outline-none" /></div>
+            <div className="space-y-2"><label className="text-[10px] uppercase font-bold tracking-widest text-z-muted ml-1">Slug (URL) *</label><input required type="text" value={slug} onChange={(e) => { setSlug(e.target.value); setErrorMessage(null); }} className="w-full bg-z-bg border border-z-border rounded-lg p-3 text-sm text-z-muted focus:border-z-blue focus:outline-none" /></div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
             <div className="space-y-2"><label className="text-[10px] uppercase font-bold tracking-widest text-z-muted ml-1">Catégorie</label>
@@ -121,9 +116,7 @@ export default function NouveauProjetPage() {
 
         <section className="bg-z-card border border-z-border rounded-xl p-6 shadow-xl">
           <h2 className="font-sub text-xs uppercase tracking-[0.2em] text-z-blue mb-6 flex items-center gap-2"><Link2 size={16} /> Réseaux liés au projet</h2>
-          
           <DynamicSocialLinks links={links} setLinks={setLinks} activeLinks={activeLinks} setActiveLinks={setActiveLinks} />
-
         </section>
       </form>
     </div>

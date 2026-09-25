@@ -7,6 +7,7 @@ import PasswordInput from '@/components/ui/PasswordInput';
 import Alert from '@/components/ui/Alert';
 import { purgeCache } from '@/app/actions/revalidate';
 import DynamicSocialLinks from '@/components/admin/DynamicSocialLinks';
+import { AVAILABLE_SOCIALS } from '@/config/socials';
 
 export default function ConfigurationPage() {
   const [isLoading, setIsLoading] = useState(true);
@@ -20,9 +21,8 @@ export default function ConfigurationPage() {
   const [passMessage, setPassMessage] = useState<{ text: string, type: 'success' | 'error' } | null>(null);
   const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
 
-  const [socials, setSocials] = useState<Record<string, string>>({
-    linkedin: '', instagram: '', facebook: '', tiktok: '', youtube: '', x: '', kick: ''
-  });
+  const initialSocials = AVAILABLE_SOCIALS.reduce((acc, net) => ({ ...acc, [net.id]: '' }), {});
+  const [socials, setSocials] = useState<Record<string, string>>(initialSocials);
   const [activeNetworks, setActiveNetworks] = useState<string[]>([]);
   const [isSavingSocials, setIsSavingSocials] = useState(false);
   const [socialMessage, setSocialMessage] = useState<{ text: string, type: 'success' | 'error' } | null>(null);
@@ -36,17 +36,13 @@ export default function ConfigurationPage() {
       if (dbData) {
         setCvUrl(dbData.cv_url || '');
         
-        const fetchedSocials = {
-          linkedin: dbData.linkedin_url || '',
-          instagram: dbData.instagram_url || '',
-          facebook: dbData.facebook_url || '',
-          tiktok: dbData.tiktok_url || '',
-          youtube: dbData.youtube_url || '',
-          x: dbData.x_url || '',
-          kick: dbData.kick_url || '',
-        };
+        const fetchedSocials = AVAILABLE_SOCIALS.reduce((acc, net) => {
+          acc[net.id] = dbData[`${net.id}_url`] || '';
+          return acc;
+        }, {} as Record<string, string>);
+        
         setSocials(fetchedSocials);
-        setActiveNetworks(Object.keys(fetchedSocials).filter(k => fetchedSocials[k as keyof typeof fetchedSocials] !== ''));
+        setActiveNetworks(Object.keys(fetchedSocials).filter(k => fetchedSocials[k] !== ''));
       }
       setIsLoading(false);
     };
@@ -56,13 +52,10 @@ export default function ConfigurationPage() {
 
   const handleSaveSettings = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSavingSettings(true);
-    setGlobalMessage(null);
-
+    setIsSavingSettings(true); setGlobalMessage(null);
     try {
       const { error: dbError } = await supabase.from('parametres').update({ cv_url: cvUrl }).eq('user_id', process.env.NEXT_PUBLIC_PORTFOLIO_USER_ID);
       if (dbError) throw new Error(dbError.message);
-
       const { data: currentUser } = await supabase.auth.getUser();
       if (currentUser.user && currentUser.user.email !== authEmail) {
         const { error: authError } = await supabase.auth.updateUser({ email: authEmail });
@@ -74,8 +67,7 @@ export default function ConfigurationPage() {
         setTimeout(() => setGlobalMessage(null), 3000);
       }
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Une erreur est survenue";
-      setGlobalMessage({ text: message, type: 'error' });
+      setGlobalMessage({ text: error instanceof Error ? error.message : "Erreur", type: 'error' });
     }
     setIsSavingSettings(false);
   };
@@ -87,39 +79,28 @@ export default function ConfigurationPage() {
     if (newPassword.length < 6) return setPassMessage({ text: "Au moins 6 caractères requis.", type: 'error' });
     setIsUpdatingPassword(true);
     const { error } = await supabase.auth.updateUser({ password: newPassword });
-    if (error) {
-      setPassMessage({ text: "Erreur : " + error.message, type: 'error' });
-    } else {
-      setPassMessage({ text: "Mot de passe mis à jour !", type: 'success' });
-      setNewPassword(''); setConfirmPassword('');
-      setTimeout(() => setPassMessage(null), 3000);
-    }
+    if (error) setPassMessage({ text: "Erreur : " + error.message, type: 'error' });
+    else { setPassMessage({ text: "Mot de passe mis à jour !", type: 'success' }); setNewPassword(''); setConfirmPassword(''); setTimeout(() => setPassMessage(null), 3000); }
     setIsUpdatingPassword(false);
   };
 
   const handleSaveSocials = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSavingSocials(true);
-    setSocialMessage(null);
+    setIsSavingSocials(true); setSocialMessage(null);
+
+    const payload = AVAILABLE_SOCIALS.reduce((acc, net) => {
+      acc[`${net.id}_url`] = socials[net.id] || null;
+      return acc;
+    }, {} as Record<string, string | null>);
 
     try {
-      const { error } = await supabase.from('parametres').update({
-        linkedin_url: socials.linkedin,
-        instagram_url: socials.instagram,
-        facebook_url: socials.facebook,
-        tiktok_url: socials.tiktok,
-        youtube_url: socials.youtube,
-        x_url: socials.x,
-        kick_url: socials.kick
-      }).eq('user_id', process.env.NEXT_PUBLIC_PORTFOLIO_USER_ID);
-
+      const { error } = await supabase.from('parametres').update(payload).eq('user_id', process.env.NEXT_PUBLIC_PORTFOLIO_USER_ID);
       if (error) throw new Error(error.message);
       await purgeCache('/');
       setSocialMessage({ text: "Réseaux sociaux mis à jour avec succès !", type: 'success' });
       setTimeout(() => setSocialMessage(null), 3000);
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Une erreur est survenue";
-      setSocialMessage({ text: message, type: 'error' });
+      setSocialMessage({ text: error instanceof Error ? error.message : "Erreur", type: 'error' });
     }
     setIsSavingSocials(false);
   };
@@ -174,10 +155,7 @@ export default function ConfigurationPage() {
             </div>
           </div>
           <form onSubmit={handleSaveSocials} className="space-y-6">
-            
-            {/* L'appel au composant DRY */}
             <DynamicSocialLinks links={socials} setLinks={setSocials} activeLinks={activeNetworks} setActiveLinks={setActiveNetworks} />
-
             {socialMessage && <Alert type={socialMessage.type}>{socialMessage.text}</Alert>}
             <div className="pt-4 border-t border-z-border">
               <button type="submit" disabled={isSavingSocials} className="btn-blue w-full py-3 rounded-lg text-xs font-bold tracking-widest hover:scale-[1.02] transition-all disabled:opacity-50">

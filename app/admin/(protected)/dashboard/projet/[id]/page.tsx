@@ -13,6 +13,7 @@ import RichTextEditor from '@/components/ui/RichTextEditor';
 import ProjectPreview from '@/components/admin/ProjectPreview';
 import ProjectDetailsSidebar from '@/components/admin/ProjectDetailsSidebar';
 import DynamicSocialLinks from '@/components/admin/DynamicSocialLinks';
+import { AVAILABLE_SOCIALS } from '@/config/socials';
 
 export default function EditProjetPage() {
   const router = useRouter();
@@ -31,9 +32,8 @@ export default function EditProjetPage() {
   const [miniatureUrl, setMiniatureUrl] = useState('');
   const [categories, setCategories] = useState<Categorie[]>([]);
   
-  const [links, setLinks] = useState<Record<string, string>>({ 
-    youtube: '', instagram: '', tiktok: '', twitch: '', facebook: '', x: '', kick: '' 
-  });
+  const initialLinks = AVAILABLE_SOCIALS.reduce((acc, net) => ({ ...acc, [net.id]: '' }), {});
+  const [links, setLinks] = useState<Record<string, string>>(initialLinks);
   const [activeLinks, setActiveLinks] = useState<string[]>([]);
   
   const [sousProjets, setSousProjets] = useState<SousProjet[]>([]);
@@ -52,27 +52,19 @@ export default function EditProjetPage() {
     if (catData) setCategories(catData as Categorie[]);
 
     const { data: projetData, error } = await supabase.from('projet').select('*, sousprojet(*)').eq('id', projetId).eq('user_id', process.env.NEXT_PUBLIC_PORTFOLIO_USER_ID).single();
-
-    if (error || !projetData) {
-      router.push('/admin/dashboard'); return;
-    }
+    if (error || !projetData) { router.push('/admin/dashboard'); return; }
 
     const p = projetData as Projet;
     setTitre(p.titre || ''); setSlug(p.slug || ''); setCategorieId(p.categorie_id ? p.categorie_id.toString() : '');
     setDescription(p.description || ''); setEnLigne(p.en_ligne || false); setMiniatureUrl(p.miniature_url || '');
     
-    const fetchedLinks = {
-      youtube: p.link_youtube || '',
-      instagram: p.link_instagram || '',
-      tiktok: p.link_tiktok || '',
-      twitch: p.link_twitch || '',
-      facebook: p.link_facebook || '',
-      x: p.link_x || '',
-      kick: p.link_kick || ''
-    };
-    setLinks(prev => ({ ...prev, ...fetchedLinks }));
-    setActiveLinks(Object.keys(fetchedLinks).filter(k => fetchedLinks[k as keyof typeof fetchedLinks] !== ''));
-    
+    const fetchedLinks = AVAILABLE_SOCIALS.reduce((acc, net) => {
+      acc[net.id] = (p[`link_${net.id}` as keyof Projet] as string) || '';
+      return acc;
+    }, {} as Record<string, string>);
+
+    setLinks(fetchedLinks);
+    setActiveLinks(Object.keys(fetchedLinks).filter(k => fetchedLinks[k] !== ''));
     setSousProjets(p.sousprojet ? p.sousprojet.sort((a, b) => a.ordre - b.ordre) : []);
     setIsLoading(false);
   }, [projetId, router]);
@@ -86,30 +78,25 @@ export default function EditProjetPage() {
     const safeTitre = titre.replace(/"/g, '""');
     const { data: existingData } = await supabase.from('projet').select('id').eq('user_id', process.env.NEXT_PUBLIC_PORTFOLIO_USER_ID).neq('id', projetId).or(`titre.eq."${safeTitre}",slug.eq."${slug}"`);
 
-    if (existingData && existingData.length > 0) {
-      setMessage({ text: "Impossible d'enregistrer : un projet avec ce titre/slug existe déjà.", type: 'error' });
-      setIsSubmitting(false); return; 
-    }
+    if (existingData && existingData.length > 0) { setMessage({ text: "Impossible d'enregistrer : un projet avec ce titre/slug existe déjà.", type: 'error' }); setIsSubmitting(false); return; }
+
+    const socialPayload = AVAILABLE_SOCIALS.reduce((acc, net) => {
+      acc[`link_${net.id}`] = links[net.id] || null;
+      return acc;
+    }, {} as Record<string, string | null>);
 
     const updatedProjet = {
       titre, slug, categorie_id: categorieId ? parseInt(categorieId) : null, description: description || null, en_ligne: enLigne, miniature_url: miniatureUrl || null,
-      link_instagram: links.instagram || null, link_youtube: links.youtube || null, link_tiktok: links.tiktok || null, link_twitch: links.twitch || null, link_facebook: links.facebook || null,
-      link_x: links.x || null,
-      link_kick: links.kick || null
+      ...socialPayload
     };
 
     const { error } = await supabase.from('projet').update(updatedProjet).eq('id', projetId).eq('user_id', process.env.NEXT_PUBLIC_PORTFOLIO_USER_ID);
 
     if (error) setMessage({ text: "Erreur : " + error.message, type: 'error' });
-    else {
-      await purgeCache();
-      setMessage({ text: "Projet mis à jour avec succès !", type: 'success' });
-      setTimeout(() => setMessage(null), 3000);
-    }
+    else { await purgeCache(); setMessage({ text: "Projet mis à jour avec succès !", type: 'success' }); setTimeout(() => setMessage(null), 3000); }
     setIsSubmitting(false);
   };
   
-  // Fonctions des détails (inchangées)
   const handleAddSp = () => { const newId = -Date.now(); setSousProjets([...sousProjets, { id: newId, projet_id: parseInt(projetId), titre: '', description: '', youtube_url: '', drive_url: '', ordre: sousProjets.length + 1, created_at: new Date().toISOString() }]); setEditingSpId(newId); setHasUnsavedChanges(true); };
   const executeDeleteSp = (id: number) => { if (id > 0) setDeletedSpIds(prev => [...prev, id]); setSousProjets(sousProjets.filter(sp => sp.id !== id).map((sp, idx) => ({ ...sp, ordre: idx + 1 }))); if (editingSpId === id) setEditingSpId(null); setHasUnsavedChanges(true); setDeleteSpTarget(null); };
   const requestDeleteSp = (id: number, titre: string | null) => { const skipUntil = localStorage.getItem('skipDeleteConfirmUntil'); if (skipUntil && parseInt(skipUntil) > new Date().getTime()) executeDeleteSp(id); else setDeleteSpTarget({ id, titre: titre || `Séquence média` }); };
@@ -128,7 +115,6 @@ export default function EditProjetPage() {
     <>
       <div className="w-full flex flex-col lg:flex-row gap-4 xl:gap-6 h-auto lg:h-[calc(100vh-4rem)]">
         <div className="flex-[1.2] flex flex-col min-w-0 bg-z-card/80 border border-z-border rounded-xl shadow-xl overflow-hidden relative z-10">
-          
           <header className="shrink-0 p-3 sm:p-4 border-b border-z-border flex items-center justify-between gap-4 bg-z-card/50 backdrop-blur-md">
             <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
               <Link href="/admin/dashboard" className="shrink-0 w-9 h-9 sm:w-10 sm:h-10 rounded-lg bg-z-bg border border-z-border flex items-center justify-center text-z-muted hover:text-white hover:border-z-blue transition-all"><ArrowLeft size={18} /></Link>
@@ -139,16 +125,13 @@ export default function EditProjetPage() {
                 <button type="button" onClick={() => setLeftPanelMode('edit')} className={`flex items-center justify-center gap-2 h-7 sm:h-8 px-2.5 2xl:px-4 rounded-md transition-all ${leftPanelMode === 'edit' ? 'bg-z-card text-white shadow-sm' : 'text-z-muted hover:text-white'}`}><PenTool size={14} /> <span className="hidden 2xl:block text-[10px] font-bold uppercase tracking-widest">Édition</span></button>
                 <button type="button" onClick={() => setLeftPanelMode('preview')} className={`flex items-center justify-center gap-2 h-7 sm:h-8 px-2.5 2xl:px-4 rounded-md transition-all ${leftPanelMode === 'preview' ? 'bg-z-card text-z-blue shadow-sm' : 'text-z-muted hover:text-white'}`}><Eye size={14} /> <span className="hidden 2xl:block text-[10px] font-bold uppercase tracking-widest">Aperçu</span></button>
               </div>
-              {leftPanelMode === 'edit' && (
-                <button type="button" onClick={() => handleUpdateProjet()} disabled={isSubmitting} className="shrink-0 btn-blue h-9 sm:h-10 px-3 2xl:px-5 rounded-lg flex items-center justify-center gap-2 shadow-lg hover:scale-105 transition-all disabled:opacity-50"><Save size={16} /> <span className="hidden 2xl:block text-[10px] font-bold uppercase tracking-widest">{isSubmitting ? '...' : 'Enregistrer'}</span></button>
-              )}
+              {leftPanelMode === 'edit' && <button type="button" onClick={() => handleUpdateProjet()} disabled={isSubmitting} className="shrink-0 btn-blue h-9 sm:h-10 px-3 2xl:px-5 rounded-lg flex items-center justify-center gap-2 shadow-lg hover:scale-105 transition-all disabled:opacity-50"><Save size={16} /> <span className="hidden 2xl:block text-[10px] font-bold uppercase tracking-widest">{isSubmitting ? '...' : 'Enregistrer'}</span></button>}
             </div>
           </header>
 
           <div className="flex-1 overflow-y-auto custom-scrollbar relative">
             <div className={`p-4 sm:p-6 space-y-6 ${leftPanelMode === 'edit' ? 'block' : 'hidden'}`}>
               {message && <Alert type={message.type}>{message.text}</Alert>}
-
               <form onSubmit={handleUpdateProjet} className="space-y-6">
                 <section className="bg-z-bg border border-z-border rounded-xl p-4 sm:p-6">
                   <h2 className="font-sub text-xs uppercase tracking-[0.2em] text-z-blue mb-6 flex items-center gap-2"><FileText size={16} /> Informations</h2>
@@ -157,40 +140,24 @@ export default function EditProjetPage() {
                     <div className="space-y-2"><label className="text-[10px] uppercase font-bold tracking-widest text-z-muted ml-1">Slug (URL)</label><input required type="text" value={slug} onChange={(e) => {setSlug(e.target.value); setMessage(null);}} className="w-full bg-z-card border border-z-border rounded-lg p-3 text-sm text-z-muted focus:border-z-blue focus:outline-none" /></div>
                   </div>
                   <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 mb-6">
-                    <div className="space-y-2">
-                      <label className="text-[10px] uppercase font-bold tracking-widest text-z-muted ml-1">Catégorie</label>
-                      <select value={categorieId} onChange={(e) => setCategorieId(e.target.value)} className="w-full bg-z-card border border-z-border rounded-lg p-3 text-sm text-white focus:border-z-blue focus:outline-none appearance-none">
-                        <option value="">-- Sans catégorie --</option>
-                        {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-                      </select>
-                    </div>
-                    <div className="space-y-2 flex flex-col justify-center">
-                      <label className="text-[10px] uppercase font-bold tracking-widest text-z-muted ml-1 mb-2">Visibilité</label>
-                      <button type="button" onClick={() => setEnLigne(!enLigne)} className={`flex items-center gap-3 w-fit px-4 py-2 rounded-lg font-bold text-xs uppercase tracking-widest transition-colors ${enLigne ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-z-card border border-z-border text-z-muted'}`}>
-                        {enLigne ? <ToggleRight size={20} /> : <ToggleLeft size={20} />} {enLigne ? 'Public' : 'Brouillon'}
-                      </button>
-                    </div>
+                    <div className="space-y-2"><label className="text-[10px] uppercase font-bold tracking-widest text-z-muted ml-1">Catégorie</label><select value={categorieId} onChange={(e) => setCategorieId(e.target.value)} className="w-full bg-z-card border border-z-border rounded-lg p-3 text-sm text-white focus:border-z-blue focus:outline-none appearance-none"><option value="">-- Sans catégorie --</option>{categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}</select></div>
+                    <div className="space-y-2 flex flex-col justify-center"><label className="text-[10px] uppercase font-bold tracking-widest text-z-muted ml-1 mb-2">Visibilité</label><button type="button" onClick={() => setEnLigne(!enLigne)} className={`flex items-center gap-3 w-fit px-4 py-2 rounded-lg font-bold text-xs uppercase tracking-widest transition-colors ${enLigne ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-z-card border border-z-border text-z-muted'}`}>{enLigne ? <ToggleRight size={20} /> : <ToggleLeft size={20} />} {enLigne ? 'Public' : 'Brouillon'}</button></div>
                   </div>
                   <div className="space-y-2"><label className="text-[10px] uppercase font-bold tracking-widest text-z-muted ml-1">Description</label><RichTextEditor value={description} onChange={setDescription} minHeight="200px" /></div>
                 </section>
-
                 <section className="bg-z-bg border border-z-border rounded-xl p-4 sm:p-6">
                   <h2 className="font-sub text-xs uppercase tracking-[0.2em] text-z-blue mb-6 flex items-center gap-2"><ImageIcon size={16} /> Média Principal</h2>
                   <input type="url" value={miniatureUrl} onChange={(e) => setMiniatureUrl(e.target.value)} className="w-full bg-z-card border border-z-border rounded-lg p-3 text-sm focus:border-z-blue focus:outline-none placeholder:text-z-muted/30" placeholder="https://drive.google.com/uc?id=..." />
                 </section>
-
-                {/* --- SECTION RÉSEAUX DYNAMIQUE --- */}
                 <section className="bg-z-bg border border-z-border rounded-xl p-4 sm:p-6">
                   <h2 className="font-sub text-xs uppercase tracking-[0.2em] text-z-blue mb-6 flex items-center gap-2"><Link2 size={16} /> Réseaux liés</h2>
                   <DynamicSocialLinks links={links} setLinks={setLinks} activeLinks={activeLinks} setActiveLinks={setActiveLinks} />
                 </section>
               </form>
             </div>
-
             <div className={`w-full h-full ${leftPanelMode === 'preview' ? 'block' : 'hidden'}`}>
                <ProjectPreview titre={titre} description={description} miniatureUrl={miniatureUrl} activeCategory={activeCategory} previewSousProjets={previewSousProjets} />
             </div>
-
           </div>
         </div>
 

@@ -5,13 +5,7 @@ import { usePathname } from 'next/navigation';
 import SocialLinks from './SocialLinks';
 
 interface FooterProps {
-  socials: {
-    linkedin: string;
-    instagram: string;
-    facebook: string;
-    tiktok: string;
-    youtube: string;
-  }
+  socials: Record<string, string | null | undefined>;
 }
 
 export default function Footer({ socials }: FooterProps) {
@@ -31,7 +25,6 @@ export default function Footer({ socials }: FooterProps) {
           </Link>
         </div>
 
-        {/* --- INJECTION DU NOUVEAU COMPOSANT --- */}
         <SocialLinks variant="footer" links={socials} />
       </div>
 
