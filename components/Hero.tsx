@@ -5,11 +5,10 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useMemo } from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
-import { Autoplay, FreeMode } from 'swiper/modules';
+import { Autoplay } from 'swiper/modules';
 
-// Import des styles vitaux de Swiper
+// Import des styles vitaux de Swiper (plus de free-mode)
 import 'swiper/css';
-import 'swiper/css/free-mode';
 
 interface MarqueeProject {
   url: string;
@@ -55,7 +54,7 @@ export default function Hero({ categoriesCount, yearsOfExperience, marqueeProjec
       <div className="absolute inset-0 z-0 bg-z-bg">
         <video
           autoPlay loop muted playsInline
-          className="absolute inset-0 w-full h-full object-cover opacity-25 grayscale-40"
+          className="absolute inset-0 w-full h-full object-cover opacity-25 grayscale-[40%]"
         >
           <source src="/showreel.webm" type="video/webm" />
         </video>
@@ -126,12 +125,12 @@ export default function Hero({ categoriesCount, yearsOfExperience, marqueeProjec
         <div className="w-full relative z-10 flex flex-col items-center mt-4">
           <div className="w-full max-w-7xl mask-edges py-4">
             <Swiper
-              modules={[Autoplay, FreeMode]}
+              modules={[Autoplay]}
               spaceBetween={16}
               slidesPerView="auto"
               loop={true}
-              freeMode={true}
               speed={4000} // Vitesse constante du défilement linéaire
+              allowTouchMove={true} // Préserve le drag sur PC et le swipe sur Mobile
               autoplay={{
                 delay: 0,
                 disableOnInteraction: false, // Reprend après avoir touché l'écran
@@ -143,7 +142,7 @@ export default function Hero({ categoriesCount, yearsOfExperience, marqueeProjec
               className="w-full linear-swiper"
             >
               {resolvedProjects.map((p, idx) => (
-                <SwiperSlide key={idx} className="w-40! sm:w-56! lg:w-[256px]!">
+                <SwiperSlide key={idx} className="!w-[160px] sm:!w-[224px] lg:!w-[256px]">
                   <Link 
                     href={`/projet/${p.slug}`}
                     className="relative block aspect-video w-full rounded-xl overflow-hidden border border-z-blue/10 shadow-xl transition-all duration-300 hover:border-z-blue hover:scale-105 cursor-pointer"
