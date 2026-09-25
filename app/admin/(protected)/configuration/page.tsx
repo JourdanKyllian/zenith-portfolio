@@ -2,11 +2,11 @@
 
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
-import { Link as LinkIcon, Mail, ShieldCheck, User, Share2, Edit3, X, ExternalLink } from 'lucide-react';
-import { LinkedinIcon, InstagramIcon, FacebookIcon, YoutubeIcon, TiktokIcon } from '@/components/SocialIcons';
+import { Link as LinkIcon, Mail, ShieldCheck, User, Share2 } from 'lucide-react';
 import PasswordInput from '@/components/ui/PasswordInput';
 import Alert from '@/components/ui/Alert';
 import { purgeCache } from '@/app/actions/revalidate';
+import DynamicSocialLinks from '@/components/admin/DynamicSocialLinks';
 
 export default function ConfigurationPage() {
   const [isLoading, setIsLoading] = useState(true);
@@ -20,15 +20,10 @@ export default function ConfigurationPage() {
   const [passMessage, setPassMessage] = useState<{ text: string, type: 'success' | 'error' } | null>(null);
   const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
 
-  const [socials, setSocials] = useState({
-    linkedin_url: '',
-    instagram_url: '',
-    facebook_url: '',
-    tiktok_url: '',
-    youtube_url: ''
+  const [socials, setSocials] = useState<Record<string, string>>({
+    linkedin: '', instagram: '', facebook: '', tiktok: '', youtube: '', x: '', kick: ''
   });
-  
-  const [editingSocials, setEditingSocials] = useState<Record<string, boolean>>({});
+  const [activeNetworks, setActiveNetworks] = useState<string[]>([]);
   const [isSavingSocials, setIsSavingSocials] = useState(false);
   const [socialMessage, setSocialMessage] = useState<{ text: string, type: 'success' | 'error' } | null>(null);
 
@@ -40,13 +35,18 @@ export default function ConfigurationPage() {
       const { data: dbData } = await supabase.from('parametres').select('*').eq('user_id', process.env.NEXT_PUBLIC_PORTFOLIO_USER_ID).single();
       if (dbData) {
         setCvUrl(dbData.cv_url || '');
-        setSocials({
-          linkedin_url: dbData.linkedin_url || '',
-          instagram_url: dbData.instagram_url || '',
-          facebook_url: dbData.facebook_url || '',
-          tiktok_url: dbData.tiktok_url || '',
-          youtube_url: dbData.youtube_url || ''
-        });
+        
+        const fetchedSocials = {
+          linkedin: dbData.linkedin_url || '',
+          instagram: dbData.instagram_url || '',
+          facebook: dbData.facebook_url || '',
+          tiktok: dbData.tiktok_url || '',
+          youtube: dbData.youtube_url || '',
+          // x: dbData.x_url || '',
+          // kick: dbData.kick_url || '',
+        };
+        setSocials(fetchedSocials);
+        setActiveNetworks(Object.keys(fetchedSocials).filter(k => fetchedSocials[k as keyof typeof fetchedSocials] !== ''));
       }
       setIsLoading(false);
     };
@@ -83,26 +83,18 @@ export default function ConfigurationPage() {
   const handlePasswordUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
     setPassMessage(null);
-
     if (newPassword !== confirmPassword) return setPassMessage({ text: "Les mots de passe ne correspondent pas.", type: 'error' });
     if (newPassword.length < 6) return setPassMessage({ text: "Au moins 6 caractères requis.", type: 'error' });
-
     setIsUpdatingPassword(true);
     const { error } = await supabase.auth.updateUser({ password: newPassword });
-
     if (error) {
       setPassMessage({ text: "Erreur : " + error.message, type: 'error' });
-      setIsUpdatingPassword(false);
     } else {
       setPassMessage({ text: "Mot de passe mis à jour !", type: 'success' });
-      setNewPassword(''); 
-      setConfirmPassword('');
+      setNewPassword(''); setConfirmPassword('');
       setTimeout(() => setPassMessage(null), 3000);
     }
-  };
-
-  const toggleSocialEdit = (key: string) => {
-    setEditingSocials(prev => ({ ...prev, [key]: !prev[key] }));
+    setIsUpdatingPassword(false);
   };
 
   const handleSaveSocials = async (e: React.FormEvent) => {
@@ -111,22 +103,19 @@ export default function ConfigurationPage() {
     setSocialMessage(null);
 
     try {
-      const { error } = await supabase
-        .from('parametres')
-        .update({
-          linkedin_url: socials.linkedin_url,
-          instagram_url: socials.instagram_url,
-          facebook_url: socials.facebook_url,
-          tiktok_url: socials.tiktok_url,
-          youtube_url: socials.youtube_url,
-        })
-        .eq('user_id', process.env.NEXT_PUBLIC_PORTFOLIO_USER_ID);
+      const { error } = await supabase.from('parametres').update({
+        linkedin_url: socials.linkedin,
+        instagram_url: socials.instagram,
+        facebook_url: socials.facebook,
+        tiktok_url: socials.tiktok,
+        youtube_url: socials.youtube,
+        // x_url: socials.x,
+        // kick_url: socials.kick
+      }).eq('user_id', process.env.NEXT_PUBLIC_PORTFOLIO_USER_ID);
 
       if (error) throw new Error(error.message);
-      
       await purgeCache('/');
       setSocialMessage({ text: "Réseaux sociaux mis à jour avec succès !", type: 'success' });
-      setEditingSocials({});
       setTimeout(() => setSocialMessage(null), 3000);
     } catch (error) {
       const message = error instanceof Error ? error.message : "Une erreur est survenue";
@@ -135,65 +124,7 @@ export default function ConfigurationPage() {
     setIsSavingSocials(false);
   };
 
-  const socialFields: { id: keyof typeof socials; label: string; icon: React.ElementType; placeholder: string }[] = [
-    { id: 'linkedin_url', label: 'LinkedIn', icon: LinkedinIcon, placeholder: 'https://linkedin.com/in/...' },
-    { id: 'instagram_url', label: 'Instagram', icon: InstagramIcon, placeholder: 'https://instagram.com/...' },
-    { id: 'facebook_url', label: 'Facebook', icon: FacebookIcon, placeholder: 'https://facebook.com/...' },
-    { id: 'tiktok_url', label: 'TikTok', icon: TiktokIcon, placeholder: 'https://tiktok.com/...' },
-    { id: 'youtube_url', label: 'YouTube', icon: YoutubeIcon, placeholder: 'https://youtube.com/...' },
-  ];
-
-  if (isLoading) {
-    return (
-      <>
-        <header className="mb-10 relative z-10">
-          <h1 className="font-display font-bold text-3xl uppercase tracking-wider text-white">Configuration</h1>
-          <p className="font-body text-sm text-z-muted mt-1">Gérez les identifiants de votre compte.</p>
-        </header>
-        
-        <div className="relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
-          {/* Skeleton Carte 1 */}
-          <section className="bg-z-card border border-z-border rounded-xl p-6 shadow-2xl animate-pulse">
-            <div className="h-4 w-32 bg-white/10 rounded mb-2"></div>
-            <div className="h-3 w-48 bg-white/5 rounded mb-8"></div>
-            <div className="space-y-6">
-              <div><div className="h-3 w-24 bg-white/10 rounded mb-2"></div><div className="h-11 bg-white/5 rounded-lg border border-z-border"></div></div>
-              <div><div className="h-3 w-24 bg-white/10 rounded mb-2"></div><div className="h-11 bg-white/5 rounded-lg border border-z-border"></div></div>
-              <div className="h-11 w-40 bg-z-blue/20 rounded-lg mt-2"></div>
-            </div>
-          </section>
-
-          {/* Skeleton Carte 2 */}
-          <section className="bg-z-card border border-z-border rounded-xl p-6 shadow-2xl animate-pulse">
-            <div className="h-4 w-32 bg-white/10 rounded mb-2"></div>
-            <div className="h-3 w-48 bg-white/5 rounded mb-8"></div>
-            <div className="space-y-6">
-              <div><div className="h-3 w-24 bg-white/10 rounded mb-2"></div><div className="h-11 bg-white/5 rounded-lg border border-z-border"></div></div>
-              <div><div className="h-3 w-24 bg-white/10 rounded mb-2"></div><div className="h-11 bg-white/5 rounded-lg border border-z-border"></div></div>
-              <div className="h-11 w-48 bg-white/5 border border-z-border rounded-lg mt-2"></div>
-            </div>
-          </section>
-
-          {/* Skeleton Carte 3 (Réseaux) */}
-          <section className="bg-z-card border border-z-border rounded-xl p-6 shadow-2xl lg:col-span-2 animate-pulse">
-            <div className="h-4 w-32 bg-white/10 rounded mb-2"></div>
-            <div className="h-3 w-48 bg-white/5 rounded mb-8"></div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6 mb-6">
-              {Array.from({ length: 5 }).map((_, i) => (
-                <div key={i}>
-                  <div className="h-3 w-20 bg-white/10 rounded mb-2"></div>
-                  <div className="h-11.5 bg-white/5 rounded-lg border border-z-border"></div>
-                </div>
-              ))}
-            </div>
-            <div className="pt-4 border-t border-z-border">
-              <div className="h-11 w-48 bg-z-blue/20 rounded-lg mt-2"></div>
-            </div>
-          </section>
-        </div>
-      </>
-    );
-  }
+  if (isLoading) return <div className="flex items-center justify-center min-h-[50vh] text-z-blue">Chargement de la configuration...</div>;
 
   return (
     <>
@@ -203,163 +134,58 @@ export default function ConfigurationPage() {
       </header>
 
       <div className="relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
-        <section className="bg-z-card border border-z-border rounded-xl p-6 shadow-2xl">
-          <div className="mb-6">
-            <h2 className="font-sub text-xs uppercase tracking-[0.2em] text-z-blue mb-1 flex items-center gap-2">
-              <User size={16} /> Connexion & CV
-            </h2>
-            <p className="text-xs text-z-muted">Modifiez votre identifiant d'accès et votre CV public.</p>
-          </div>
-
-          <form onSubmit={handleSaveSettings} className="space-y-6">
-            <div className="space-y-2">
-              <label className="text-[10px] uppercase font-bold tracking-widest text-z-muted ml-1">Email de connexion (Auth)</label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-z-muted"><Mail size={16} /></div>
-                <input type="email" value={authEmail} onChange={(e) => setAuthEmail(e.target.value)} className="w-full bg-z-bg border border-z-border rounded-lg py-3 pl-12 pr-4 text-sm text-z-text focus:border-z-blue focus:outline-none" />
+        <div className="space-y-8">
+          <section className="bg-z-card border border-z-border rounded-xl p-6 shadow-2xl">
+            <div className="mb-6"><h2 className="font-sub text-xs uppercase tracking-[0.2em] text-z-blue mb-1 flex items-center gap-2"><User size={16} /> Connexion & CV</h2></div>
+            <form onSubmit={handleSaveSettings} className="space-y-6">
+              <div className="space-y-2"><label className="text-[10px] uppercase font-bold tracking-widest text-z-muted ml-1">Email de connexion</label>
+                <div className="relative"><div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-z-muted"><Mail size={16} /></div>
+                <input type="email" value={authEmail} onChange={(e) => setAuthEmail(e.target.value)} className="w-full bg-z-bg border border-z-border rounded-lg py-3 pl-12 pr-4 text-sm text-z-text focus:border-z-blue focus:outline-none" /></div>
               </div>
-            </div>
-            
-            <div className="space-y-2">
-              <label className="text-[10px] uppercase font-bold tracking-widest text-z-muted ml-1">Lien du CV (Google Drive PDF)</label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-z-muted"><LinkIcon size={16} /></div>
-                <input type="url" value={cvUrl} onChange={(e) => setCvUrl(e.target.value)} className="w-full bg-z-bg border border-z-border rounded-lg py-3 pl-12 pr-4 text-sm text-z-text focus:border-z-blue focus:outline-none" />
+              <div className="space-y-2"><label className="text-[10px] uppercase font-bold tracking-widest text-z-muted ml-1">Lien du CV (Drive PDF)</label>
+                <div className="relative"><div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-z-muted"><LinkIcon size={16} /></div>
+                <input type="url" value={cvUrl} onChange={(e) => setCvUrl(e.target.value)} className="w-full bg-z-bg border border-z-border rounded-lg py-3 pl-12 pr-4 text-sm text-z-text focus:border-z-blue focus:outline-none" /></div>
               </div>
-            </div>
-
-            {globalMessage && (
-              <div className="pt-2">
-                <Alert type={globalMessage.type}>{globalMessage.text}</Alert>
-              </div>
-            )}
-
-            <div className="pt-2">
-              <button type="submit" disabled={isSavingSettings} className="btn-blue px-6 py-3 rounded-lg text-xs font-bold tracking-widest hover:scale-105 transition-all disabled:opacity-50">
+              {globalMessage && <Alert type={globalMessage.type}>{globalMessage.text}</Alert>}
+              <button type="submit" disabled={isSavingSettings} className="btn-blue w-full py-3 rounded-lg text-xs font-bold tracking-widest hover:scale-[1.02] transition-all disabled:opacity-50">
                 {isSavingSettings ? 'Enregistrement...' : 'Enregistrer les infos'}
               </button>
-            </div>
-          </form>
-        </section>
+            </form>
+          </section>
 
-        <section className="bg-z-card border border-z-border rounded-xl p-6 shadow-2xl">
-          <div className="mb-6">
-            <h2 className="font-sub text-xs uppercase tracking-[0.2em] text-z-blue mb-1 flex items-center gap-2">
-              <ShieldCheck size={16} /> Sécurité du compte
-            </h2>
-            <p className="text-xs text-z-muted">Modifiez votre mot de passe d'accès à l'administration.</p>
-          </div>
-          
-          <form onSubmit={handlePasswordUpdate} className="space-y-6">
-            <PasswordInput label="Nouveau mot de passe" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} required />
-            <PasswordInput label="Confirmer le mot de passe" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required />
-            
-            {passMessage && (
-              <div className="pt-2">
-                <Alert type={passMessage.type}>{passMessage.text}</Alert>
-              </div>
-            )}
-
-            <div className="pt-2">
-              <button type="submit" disabled={isUpdatingPassword} className="bg-z-bg border border-z-border text-white px-6 py-3 rounded-lg text-xs font-bold tracking-widest hover:bg-white/5 transition-colors disabled:opacity-50">
+          <section className="bg-z-card border border-z-border rounded-xl p-6 shadow-2xl">
+            <div className="mb-6"><h2 className="font-sub text-xs uppercase tracking-[0.2em] text-z-blue mb-1 flex items-center gap-2"><ShieldCheck size={16} /> Sécurité</h2></div>
+            <form onSubmit={handlePasswordUpdate} className="space-y-6">
+              <PasswordInput label="Nouveau mot de passe" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} required />
+              <PasswordInput label="Confirmer le mot de passe" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required />
+              {passMessage && <Alert type={passMessage.type}>{passMessage.text}</Alert>}
+              <button type="submit" disabled={isUpdatingPassword} className="bg-z-bg border border-z-border text-white w-full py-3 rounded-lg text-xs font-bold tracking-widest hover:bg-white/5 transition-colors disabled:opacity-50">
                 {isUpdatingPassword ? 'Mise à jour...' : 'Modifier le mot de passe'}
               </button>
-            </div>
-          </form>
-        </section>
+            </form>
+          </section>
+        </div>
 
-        <section className="bg-z-card border border-z-border rounded-xl p-6 shadow-2xl lg:col-span-2">
-          <div className="mb-8">
-            <h2 className="font-sub text-xs uppercase tracking-[0.2em] text-z-blue mb-1 flex items-center gap-2">
-              <Share2 size={16} /> Réseaux Sociaux
-            </h2>
-            <p className="text-xs text-z-muted">Gérez les liens de vos réseaux sociaux affichés dans le pied de page du site public.</p>
+        <section className="bg-z-card border border-z-border rounded-xl p-6 shadow-2xl">
+          <div className="mb-6 flex items-center justify-between">
+            <div>
+              <h2 className="font-sub text-xs uppercase tracking-[0.2em] text-z-blue mb-1 flex items-center gap-2"><Share2 size={16} /> Réseaux Sociaux</h2>
+              <p className="text-[10px] text-z-muted uppercase tracking-widest mt-1">Pied de page public</p>
+            </div>
           </div>
-
           <form onSubmit={handleSaveSocials} className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
-              
-              {socialFields.map((field) => {
-                const isEditing = editingSocials[field.id];
-                const value = socials[field.id];
-                const Icon = field.icon;
+            
+            {/* L'appel au composant DRY */}
+            <DynamicSocialLinks links={socials} setLinks={setSocials} activeLinks={activeNetworks} setActiveLinks={setActiveNetworks} />
 
-                return (
-                  <div key={field.id} className="space-y-2">
-                    <label className="text-[10px] uppercase font-bold tracking-widest text-z-muted ml-1 flex items-center gap-2">
-                      <Icon size={12} className="opacity-70" /> {field.label}
-                    </label>
-
-                    {!isEditing ? (
-                      <div className="flex items-center justify-between p-3 bg-white/5 border border-z-border rounded-lg group h-11.5 transition-colors hover:bg-white/10">
-                        <div className="flex items-center gap-3 overflow-hidden pr-2">
-                          {value ? (
-                            <a 
-                              href={value} 
-                              target="_blank" 
-                              rel="noopener noreferrer" 
-                              className="text-sm text-z-text hover:text-z-blue truncate transition-colors flex items-center gap-2"
-                              title={value}
-                            >
-                              {value} <ExternalLink size={12} className="opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
-                            </a>
-                          ) : (
-                            <span className="text-sm text-z-muted italic">Non renseigné</span>
-                          )}
-                        </div>
-                        <button 
-                          type="button" 
-                          onClick={() => toggleSocialEdit(field.id)}
-                          className="text-z-muted hover:text-white p-1.5 bg-z-bg rounded border border-transparent hover:border-z-border transition-all shrink-0 cursor-pointer"
-                          title="Modifier le lien"
-                        >
-                          <Edit3 size={14} />
-                        </button>
-                      </div>
-                    ) : (
-                      <div className="flex items-center gap-2 h-11.5 animate-in fade-in slide-in-from-right-2 duration-200">
-                        <input 
-                          type="url" 
-                          autoFocus
-                          value={value} 
-                          onChange={(e) => setSocials({ ...socials, [field.id]: e.target.value })} 
-                          className="w-full bg-z-bg border border-z-blue shadow-[0_0_10px_rgba(0,123,255,0.1)] rounded-lg px-3 h-full text-sm text-z-text focus:outline-none" 
-                          placeholder={field.placeholder} 
-                        />
-                        <button 
-                          type="button" 
-                          onClick={() => toggleSocialEdit(field.id)}
-                          className="h-full px-3.5 bg-z-card border border-z-border rounded-lg text-z-muted hover:text-white hover:bg-white/5 transition-colors shrink-0 flex items-center justify-center cursor-pointer"
-                          title="Fermer l'édition"
-                        >
-                          <X size={16} />
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-
-            </div>
-
-            {socialMessage && (
-              <div className="pt-2">
-                <Alert type={socialMessage.type}>{socialMessage.text}</Alert>
-              </div>
-            )}
-
+            {socialMessage && <Alert type={socialMessage.type}>{socialMessage.text}</Alert>}
             <div className="pt-4 border-t border-z-border">
-              <button 
-                type="submit" 
-                disabled={isSavingSocials} 
-                className="btn-blue px-6 py-3 rounded-lg text-xs font-bold tracking-widest hover:scale-105 transition-all disabled:opacity-50"
-              >
-                {isSavingSocials ? 'Enregistrement...' : 'Mettre à jour les réseaux'}
+              <button type="submit" disabled={isSavingSocials} className="btn-blue w-full py-3 rounded-lg text-xs font-bold tracking-widest hover:scale-[1.02] transition-all disabled:opacity-50">
+                {isSavingSocials ? 'Enregistrement...' : 'Sauvegarder les réseaux'}
               </button>
             </div>
           </form>
         </section>
-
       </div>
     </>
   );

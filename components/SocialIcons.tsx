@@ -50,3 +50,15 @@ export const TwitchIcon = ({ size = 24, className = "" }: IconProps) => (
     <path d="M21 2H3v16h5v4l4-4h5l4-4V2zm-10 9V7m5 4V7" />
   </svg>
 );
+
+export const TwitterIcon = ({ size = 24, className = "" }: IconProps) => (
+  <svg viewBox="0 0 24 24" width={size} height={size} className={className} stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M4 4l11.733 16h4.267l-11.733 -16zM4 20l6.768 -6.768m2.46 -2.46L20 4" />
+  </svg>
+);
+
+export const KickIcon = ({ size = 24, className = "" }: IconProps) => (
+  <svg viewBox="0 0 24 24" width={size} height={size} className={className} stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M5 4h4v6h2l4 -6h4l-5 7 6 9h-4.5l-4 -6h-1.5v6h-4z" />
+  </svg>
+);
