@@ -6,27 +6,12 @@
   font-display: swap;
 }
 
-@layer utilities {
-  .font-martyric {
-    font-family: 'Martyric', sans-serif !important;
-    padding-left: 0.6em !important;
-    padding-right: 0.6em !important;
-    margin-left: -0.6em !important;
-    margin-right: -0.6em !important;
-    display: inline-block !important;
-    overflow: visible !important;
-  }
-
-  .text-shadow-safe {
-    text-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
-  }
-}
-
 @theme {
   --font-display: var(--font-rajdhani);
   --font-sub: var(--font-montserrat);
   --font-body: var(--font-roboto);
 
+  /* Palette de couleurs de l'application */
   --color-z-blue: #007BFF;
   --color-z-silver: #C0C0C0;
   --color-z-bg: #040407;
@@ -42,6 +27,7 @@
     background: #040407;
     scroll-behavior: smooth;
   }
+  
   body {
     font-family: var(--font-body);
     background: #040407;
@@ -50,16 +36,21 @@
     overflow-x: hidden;
   }
   
+  /* Texture de grain globale superposée au DOM */
   body::before {
     content: '';
-    position: fixed; inset: 0; z-index: 0;
-    pointer-events: none; opacity: 0.03;
+    position: fixed; 
+    inset: 0; 
+    z-index: 0;
+    pointer-events: none; 
+    opacity: 0.03;
     background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
     background-size: 180px 180px;
   }
 }
 
 @layer components {
+  /* Arrière-plans statiques */
   .hero-bg {
     background:
       radial-gradient(ellipse 80% 55% at 50% -5%, rgba(0,123,255,0.18) 0%, transparent 65%),
@@ -68,23 +59,35 @@
   }
 
   .diag-lines {
-    position: absolute; inset: 0; pointer-events: none; overflow: hidden;
+    position: absolute; 
+    inset: 0; 
+    pointer-events: none; 
+    overflow: hidden;
   }
+  
   .diag-lines::before, .diag-lines::after {
     content: '';
     position: absolute;
-    width: 1px; height: 200%;
+    width: 1px; 
+    height: 200%;
     background: linear-gradient(to bottom, transparent, rgba(0,123,255,0.25), transparent);
     transform-origin: top center;
   }
-  .diag-lines::before { left: 20%; transform: rotate(15deg); top: -50%; }
-  .diag-lines::after  { right: 25%; transform: rotate(-12deg); top: -30%; opacity: 0.5; }
-
-  .text-glow {
-    color: #007BFF;
-    text-shadow: 0 0 20px rgba(0,123,255,0.7), 0 0 60px rgba(0,123,255,0.3);
+  
+  .diag-lines::before { 
+    left: 20%; 
+    transform: rotate(15deg); 
+    top: -50%; 
+  }
+  
+  .diag-lines::after { 
+    right: 25%; 
+    transform: rotate(-12deg); 
+    top: -30%; 
+    opacity: 0.5; 
   }
 
+  /* Composants : Cartes */
   .project-card {
     background: #0A0A12;
     border: 1px solid #151522;
@@ -92,6 +95,7 @@
     overflow: hidden;
     transition: all 0.35s cubic-bezier(0.16,1,0.3,1);
   }
+  
   .project-card:hover {
     transform: translateY(-6px) scale(1.01);
     border-color: rgba(0,123,255,0.4);
@@ -103,13 +107,21 @@
     aspect-ratio: 16/9;
     overflow: hidden;
   }
+  
   .thumb-wrap img {
-    width: 100%; height: 100%; object-fit: cover;
+    width: 100%; 
+    height: 100%; 
+    object-fit: cover;
     transition: transform 0.5s cubic-bezier(0.16,1,0.3,1);
     filter: saturate(0.85) brightness(0.9);
   }
-  .project-card:hover .thumb-wrap img { transform: scale(1.06); filter: saturate(1.1) brightness(0.8); }
+  
+  .project-card:hover .thumb-wrap img { 
+    transform: scale(1.06); 
+    filter: saturate(1.1) brightness(0.8); 
+  }
 
+  /* Boutons */
   .btn-blue {
     background: #007BFF;
     color: #fff;
@@ -120,18 +132,52 @@
   }
   
   .action-btn {
-    display: inline-flex; align-items: center; justify-content: center;
-    width: 32px; height: 32px; border-radius: 6px;
+    display: inline-flex; 
+    align-items: center; 
+    justify-content: center;
+    width: 32px; 
+    height: 32px; 
+    border-radius: 6px;
     border: 1px solid #151522;
     background: rgba(0,123,255,0.04);
     color: #3D3D55;
     transition: all 0.2s;
   }
-  .action-btn:hover { color: #007BFF; border-color: rgba(0,123,255,0.5); transform: scale(1.1); }
+  
+  .action-btn:hover { 
+    color: #007BFF; 
+    border-color: rgba(0,123,255,0.5); 
+    transform: scale(1.1); 
+  }
 }
 
 @layer utilities {
-  @keyframes pingCustom { 0%,100%{transform:scale(1);opacity:.8} 50%{transform:scale(1.8);opacity:0} }
+  /* Typographie personnalisée */
+  .font-martyric {
+    font-family: 'Martyric', sans-serif !important;
+    /* Élargissement physique agressif de la case pour Safari (Anti-clipping) */
+    padding-left: 0.6em !important;
+    padding-right: 0.6em !important;
+    margin-left: -0.6em !important;
+    margin-right: -0.6em !important;
+    display: inline-block !important;
+    overflow: visible !important;
+  }
+
+  .text-shadow-safe {
+    text-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  }
+
+  .text-glow {
+    color: #007BFF;
+    text-shadow: 0 0 20px rgba(0,123,255,0.7), 0 0 60px rgba(0,123,255,0.3);
+  }
+
+  /* Animations globales et Keyframes */
+  @keyframes pingCustom { 
+    0%, 100% { transform: scale(1); opacity: .8; } 
+    50% { transform: scale(1.8); opacity: 0; } 
+  }
   .ping-dot { animation: pingCustom 1.8s ease-in-out infinite; }
 
   @keyframes scanline-sweep {
@@ -232,6 +278,7 @@
     100% { clip-path: inset(50% 0 25% 0); transform: translate(-1px, 0); }
   }
 
+  /* Restauration des styles natifs pour les zones de texte enrichi */
   .rich-text b, .rich-text strong { font-weight: 700; color: #fff; }
   .rich-text i, .rich-text em { font-style: italic; }
   .rich-text u { text-decoration: underline; text-underline-offset: 2px; }
@@ -244,6 +291,7 @@
     display: block;
   }
 
+  /* Scrollbars personnalisées */
   .custom-scrollbar::-webkit-scrollbar { width: 6px; }
   .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
   .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(142, 142, 168, 0.15); border-radius: 10px; }

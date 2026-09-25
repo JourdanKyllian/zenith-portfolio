@@ -5,10 +5,11 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useMemo } from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
-import { Autoplay } from 'swiper/modules';
+import { Autoplay, FreeMode } from 'swiper/modules';
 
-// Import des styles vitaux de Swiper (plus de free-mode)
+// Import des styles vitaux de Swiper et du module FreeMode
 import 'swiper/css';
+import 'swiper/css/free-mode';
 
 interface MarqueeProject {
   url: string;
@@ -54,7 +55,7 @@ export default function Hero({ categoriesCount, yearsOfExperience, marqueeProjec
       <div className="absolute inset-0 z-0 bg-z-bg">
         <video
           autoPlay loop muted playsInline
-          className="absolute inset-0 w-full h-full object-cover opacity-25 grayscale-[40%]"
+          className="absolute inset-0 w-full h-full object-cover opacity-25 grayscale-40"
         >
           <source src="/showreel.webm" type="video/webm" />
         </video>
@@ -125,24 +126,27 @@ export default function Hero({ categoriesCount, yearsOfExperience, marqueeProjec
         <div className="w-full relative z-10 flex flex-col items-center mt-4">
           <div className="w-full max-w-7xl mask-edges py-4">
             <Swiper
-              modules={[Autoplay]}
+              modules={[Autoplay, FreeMode]}
               spaceBetween={16}
               slidesPerView="auto"
               loop={true}
+              freeMode={{
+                enabled: true,
+                momentum: true, // Restaure l'inertie fluide (arrêt lent) au glissement
+              }}
               speed={4000} // Vitesse constante du défilement linéaire
-              allowTouchMove={true} // Préserve le drag sur PC et le swipe sur Mobile
               autoplay={{
                 delay: 0,
-                disableOnInteraction: false, // Reprend après avoir touché l'écran
-                pauseOnMouseEnter: true, // Pause au survol sur PC
+                disableOnInteraction: false,
+                pauseOnMouseEnter: true, // Swiper appliquera un arrêt strict au survol (comportement natif)
               }}
               breakpoints={{
-                640: { spaceBetween: 24 } // Écart plus grand sur PC
+                640: { spaceBetween: 24 }
               }}
               className="w-full linear-swiper"
             >
               {resolvedProjects.map((p, idx) => (
-                <SwiperSlide key={idx} className="!w-[160px] sm:!w-[224px] lg:!w-[256px]">
+                <SwiperSlide key={idx} className="w-40! sm:w-56! lg:w-[256px]!">
                   <Link 
                     href={`/projet/${p.slug}`}
                     className="relative block aspect-video w-full rounded-xl overflow-hidden border border-z-blue/10 shadow-xl transition-all duration-300 hover:border-z-blue hover:scale-105 cursor-pointer"
