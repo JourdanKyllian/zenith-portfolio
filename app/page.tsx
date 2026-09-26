@@ -1,5 +1,5 @@
 import { supabase } from '@/lib/supabase';
-import Hero from '../components/Hero';
+import Hero from '@/components/Hero';
 import ProjectCard from '@/components/project/ProjectCard';
 import Link from 'next/link';
 import { Projet } from '@/types';

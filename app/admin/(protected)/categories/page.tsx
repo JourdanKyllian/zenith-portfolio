@@ -21,8 +21,8 @@ export default function CategoriesPage() {
   const [globalMessage, setGlobalMessage] = useState<{ text: string, type: 'success' | 'error' } | null>(null);
 
   // Modals de suppression
-  const [deleteTarget, setDeleteTarget] = useState<{ id: string, name: string } | null>(null);
-  const [blockerTarget, setBlockerTarget] = useState<{ id: string, name: string, count: number } | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<{ id: number, name: string } | null>(null);
+  const [blockerTarget, setBlockerTarget] = useState<{ id: number, name: string, count: number } | null>(null);
   const [isForceDeleting, setIsForceDeleting] = useState(false);
 
   useEffect(() => {
@@ -65,22 +65,22 @@ export default function CategoriesPage() {
   const requestDelete = (cat: Categorie) => {
     const linkedProjectsCount = cat.projet?.length || 0;
     if (linkedProjectsCount > 0) {
-      setBlockerTarget({ id: cat.id, name: cat.name, count: linkedProjectsCount });
+      setBlockerTarget({ id: Number(cat.id), name: cat.name, count: linkedProjectsCount });
       return;
     }
 
     const skipUntil = localStorage.getItem('skipDeleteConfirmUntil');
-    if (skipUntil && parseInt(skipUntil) > new Date().getTime()) executeDelete(cat.id);
-    else setDeleteTarget({ id: cat.id, name: cat.name });
+    if (skipUntil && parseInt(skipUntil) > new Date().getTime()) executeDelete(Number(cat.id));
+    else setDeleteTarget({ id: Number(cat.id), name: cat.name });
   };
 
-  const executeDelete = async (id: string) => {
+  const executeDelete = async (id: number) => {
     setDeleteTarget(null);
-    const target = categories.find(c => c.id === id);
+    const target = categories.find(c => Number(c.id) === id);
     const { error } = await supabase.from('categorie').delete().eq('id', id);
     if (!error) {
       await purgeCache(); 
-      setCategories(categories.filter(c => c.id !== id));
+      setCategories(categories.filter(c => Number(c.id) !== id));
       setGlobalMessage({
         text: `La catégorie "${target?.name ?? ''}" a été supprimée.`,
         type: 'success',
@@ -101,7 +101,7 @@ export default function CategoriesPage() {
 
     if (!error) {
       await purgeCache();
-      setCategories(categories.filter(c => c.id !== blockerTarget.id));
+      setCategories(categories.filter(c => Number(c.id) !== blockerTarget.id));
       setGlobalMessage({
         text: `"${blockerTarget.name}" a été détachée de ${blockerTarget.count} projet(s) puis supprimée.`,
         type: 'success',
@@ -141,6 +141,7 @@ export default function CategoriesPage() {
 
       {showForm && (
         <CategoryForm 
+          key={editingCategory?.id ?? 'new'}
           initialData={editingCategory}
           onSuccess={handleFormSuccess}
           onCancel={() => { setShowForm(false); setEditingCategory(null); }}

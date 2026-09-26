@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { Mail, MessageSquare, Send, CheckCircle2, AlertCircle } from 'lucide-react';
-import { sendEmail } from '../actions/sendEmail';
+import { sendEmail } from '@/app/actions/sendEmail';
 
 export default function ContactPage() {
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
