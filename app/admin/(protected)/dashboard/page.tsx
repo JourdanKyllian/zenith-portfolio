@@ -18,24 +18,32 @@ export default function DashboardPage() {
   const [blockerTarget, setBlockerTarget] = useState<{ id: number, titre: string, count: number } | null>(null);
   const [isForceDeleting, setIsForceDeleting] = useState(false);
 
-  const fetchProjets = async () => {
-    // CORRECTION : On demande spécifiquement la liste des sous-projets pour vérifier s'il y a des dépendances
-    const { data, error } = await supabase
-      .from('projet')
-      .select('*, categorie(*), sousprojet(id)')
-      .eq('user_id', process.env.NEXT_PUBLIC_PORTFOLIO_USER_ID)
-      .order('created_at', { ascending: false });
-
-    if (!error && data) {
-      setProjets(data as unknown as Projet[]);
-    } else {
-      console.error("Erreur lors de la récupération des projets :", error);
-    }
-    setIsLoading(false);
-  };
-
+  // Conformité React 19 : encapsulation stricte de l'appel asynchrone dans le hook
   useEffect(() => {
-    fetchProjets();
+    let isMounted = true;
+
+    const loadProjets = async () => {
+      const { data, error } = await supabase
+        .from('projet')
+        .select('*, categorie(*), sousprojet(id)')
+        .eq('user_id', process.env.NEXT_PUBLIC_PORTFOLIO_USER_ID)
+        .order('created_at', { ascending: false });
+
+      if (!isMounted) return;
+
+      if (!error && data) {
+        setProjets(data as unknown as Projet[]);
+      } else {
+        console.error("Erreur lors de la récupération des projets :", error);
+      }
+      setIsLoading(false);
+    };
+
+    loadProjets();
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   const requestDelete = (projet: Projet) => {
