@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { Monitor, Smartphone, Eye } from 'lucide-react';
-import ProjectMediaContent from '@/components/ProjectMediaContent';
+import ProjectMediaContent from '@/components/project/ProjectMediaContent';
 import { CategoryBadge } from '@/components/CategoryBadge';
 import { Categorie } from '@/types';
 

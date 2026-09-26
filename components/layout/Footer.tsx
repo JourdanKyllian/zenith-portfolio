@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import SocialLinks from './SocialLinks';
+import SocialLinks from '@/components/SocialLinks';
 
 interface FooterProps {
   socials: Record<string, string | null | undefined>;

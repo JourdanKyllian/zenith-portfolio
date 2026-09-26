@@ -29,7 +29,7 @@ export default function DeleteBlockerModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
+    <div className="fixed inset-0 z-9999 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
       <div className="bg-z-card border border-amber-500/30 rounded-xl shadow-[0_0_40px_rgba(245,158,11,0.15)] max-w-lg w-full overflow-hidden animate-in fade-in zoom-in-95 duration-200">
         <div className="flex items-center justify-between p-5 border-b border-z-border bg-amber-500/5">
           <div className="flex items-center gap-3 text-amber-400">

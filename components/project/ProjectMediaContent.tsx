@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 import { ChevronLeft, ChevronRight, X, Maximize2, Loader2 } from 'lucide-react';
-import PdfPreview from '@/components/PdfPreview';
+import PdfPreview from '@/components/project/PdfPreview';
 
 interface DrivePdf {
   id: string;

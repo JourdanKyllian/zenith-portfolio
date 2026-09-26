@@ -4,7 +4,7 @@ import { ArrowLeft, PlayCircle } from 'lucide-react';
 import Link from 'next/link';
 import { getProjectAssetsFromDrive, DriveAssets } from '@/lib/googleDrive';
 import { SousProjet, Projet } from '@/types';
-import ProjectMediaContent from '@/components/ProjectMediaContent';
+import ProjectMediaContent from '@/components/project/ProjectMediaContent';
 import { CategoryBadge } from '@/components/CategoryBadge';
 import SocialLinks from '@/components/SocialLinks';
 import { AVAILABLE_SOCIALS } from '@/config/socials';
