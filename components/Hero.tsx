@@ -3,7 +3,7 @@
 import { Eye, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { useMemo, useState, useEffect } from 'react';
+import { useMemo } from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Autoplay } from 'swiper/modules';
 
@@ -17,7 +17,9 @@ interface MarqueeProject {
 
 interface HeroProps {
   categoriesCount: number;
-  yearsOfExperience: number;
+  // Conservé dans l'interface pour ne pas casser app/page.tsx,
+  // mais retiré de la déstructuration du composant pour satisfaire ESLint.
+  yearsOfExperience: number; 
   marqueeProjects?: MarqueeProject[];
 }
 
@@ -31,23 +33,19 @@ function getDriveFileId(urlOrId: string | null | undefined): string | null {
   return null;
 }
 
-export default function Hero({ categoriesCount, yearsOfExperience, marqueeProjects = [] }: HeroProps) {
+// On retire 'yearsOfExperience' des arguments pour corriger le warning @typescript-eslint/no-unused-vars
+export default function Hero({ categoriesCount, marqueeProjects = [] }: HeroProps) {
   
-  // CORRECTION HYDRATATION : On prend la donnée serveur par défaut, puis on la recalcule côté client pour la précision absolue.
-  const [realYears, setRealYears] = useState(yearsOfExperience);
-
-  useEffect(() => {
-    const startDate = new Date("2017-09-01");
-    const today = new Date();
-    let y = today.getFullYear() - startDate.getFullYear();
-    const m = today.getMonth() - startDate.getMonth();
-    
-    if (m < 0 || (m === 0 && today.getDate() < startDate.getDate())) {
-      y--;
-    }
-    
-    setRealYears(y);
-  }, []);
+  // Conformément aux recommandations React "You Might Not Need an Effect" :
+  // On calcule l'état dérivé directement pendant le rendu.
+  const startDate = new Date("2017-09-01");
+  const today = new Date();
+  let realYears = today.getFullYear() - startDate.getFullYear();
+  const m = today.getMonth() - startDate.getMonth();
+  
+  if (m < 0 || (m === 0 && today.getDate() < startDate.getDate())) {
+    realYears--;
+  }
 
   const resolvedProjects = useMemo(() => {
     return marqueeProjects.map(p => {
@@ -125,7 +123,10 @@ export default function Hero({ categoriesCount, yearsOfExperience, marqueeProjec
             <div className="font-sub text-z-muted text-[8px] sm:text-[9px] tracking-widest uppercase mt-1">Projets</div>
           </div>
           <div className="flex-1 py-3 border-r border-z-blue/15">
-            <div className="font-display font-bold text-2xl sm:text-3xl text-z-text">{realYears}<span className="text-z-blue">+</span></div>
+            <div className="font-display font-bold text-2xl sm:text-3xl text-z-text">
+              <span suppressHydrationWarning>{realYears}</span>
+              <span className="text-z-blue">+</span>
+            </div>
             <div className="font-sub text-z-muted text-[8px] sm:text-[9px] tracking-widest uppercase mt-1">Années</div>
           </div>
           <div className="flex-1 py-3">

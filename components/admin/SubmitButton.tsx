@@ -12,7 +12,8 @@ interface SubmitButtonProps {
   successText?: string;
   errorText?: string;
   icon?: React.ReactNode;
-  onClick?: (e?: any) => void;
+  // CORRECTION LINTER: Le type 'any' est remplacé par le type React officiel
+  onClick?: (e?: React.SyntheticEvent) => void; 
   type?: 'button' | 'submit';
   className?: string;
   textClassName?: string;

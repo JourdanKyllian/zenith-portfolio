@@ -145,10 +145,10 @@ export default function EditProjetPage() {
       setDetailsStatus('success');
       setDetailsMessage({ text: "Séquençage mis à jour avec succès !", type: 'success' });
       setTimeout(() => { setDetailsStatus('idle'); setDetailsMessage(null); }, 3000);
-    } catch (err: any) { 
+    } catch (err) { 
       console.error(err); 
       setDetailsStatus('error');
-      setDetailsMessage({ text: err.message || "Erreur lors de la sauvegarde.", type: 'error' });
+      setDetailsMessage({ text: err instanceof Error ? err.message : "Erreur lors de la sauvegarde.", type: 'error' });
       setTimeout(() => { setDetailsStatus('idle'); setDetailsMessage(null); }, 3000);
     } 
   };
