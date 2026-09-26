@@ -9,6 +9,7 @@ import Alert from '@/components/ui/Alert';
 import { purgeCache } from '@/app/actions/revalidate';
 import { CategoryBadge } from '@/components/CategoryBadge';
 import ColorPicker from '@/components/ui/ColorPicker';
+import { getCategoryStyle } from '@/config/colors';
 
 interface Categorie {
   id: string;
@@ -17,6 +18,18 @@ interface Categorie {
   color: string | null;
   projet: { id: string }[];
 }
+
+// Raccourcis rapides (les anciennes couleurs principales)
+const PRESET_COLORS = [
+  { name: 'Bleu', hex: '#3B82F6' },
+  { name: 'Rose', hex: '#EC4899' },
+  { name: 'Violet', hex: '#A855F7' },
+  { name: 'Vert', hex: '#10B981' },
+  { name: 'Jaune', hex: '#F59E0B' },
+  { name: 'Orange', hex: '#F97316' },
+  { name: 'Rouge', hex: '#EF4444' },
+  { name: 'Blanc', hex: '#E8E8F8' },
+];
 
 export default function CategoriesPage() {
   const [categories, setCategories] = useState<Categorie[]>([]);
@@ -231,9 +244,9 @@ export default function CategoriesPage() {
               </div>
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-4 pt-2">
               <div className="flex items-center justify-between mb-1">
-                <label className="text-[10px] uppercase font-bold tracking-widest text-z-muted ml-1">Couleur (Hexadécimal)</label>
+                <label className="text-[10px] uppercase font-bold tracking-widest text-z-muted ml-1">Couleur visuelle</label>
                 {newName && (
                   <CategoryBadge 
                     category={{ name: newName, color: newColor }} 
@@ -241,6 +254,44 @@ export default function CategoriesPage() {
                   />
                 )}
               </div>
+
+              {/* Raccourcis rapides (Presets) */}
+              <div className="flex flex-wrap gap-2 mb-2">
+                <button
+                  type="button"
+                  onClick={() => setNewColor('')}
+                  className={`px-3 py-1.5 rounded text-[10px] font-bold uppercase tracking-widest border transition-all ${
+                    !newColor 
+                      ? 'bg-z-card text-white border-z-blue ring-1 ring-z-blue/50 scale-105 shadow-md' 
+                      : 'bg-z-bg text-z-muted border-z-border hover:border-z-blue/30'
+                  }`}
+                >
+                  Gris par défaut
+                </button>
+                
+                {PRESET_COLORS.map(preset => {
+                  const isSelected = newColor.toUpperCase() === preset.hex.toUpperCase();
+                  const style = getCategoryStyle(preset.hex);
+                  
+                  return (
+                    <button
+                      key={preset.hex}
+                      type="button"
+                      onClick={() => setNewColor(preset.hex)}
+                      style={style}
+                      className={`px-3 py-1.5 rounded text-[10px] font-bold uppercase tracking-widest border transition-all ${
+                        isSelected 
+                          ? 'scale-105 shadow-md opacity-100 ring-1' 
+                          : 'opacity-50 hover:opacity-100 hover:scale-105'
+                      }`}
+                    >
+                      {preset.name}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Sélecteur libre Hexadécimal */}
               <ColorPicker value={newColor} onChange={setNewColor} />
             </div>
 
@@ -289,6 +340,7 @@ export default function CategoriesPage() {
                 categories.map((cat) => (
                   <tr key={cat.id} className="hover:bg-white/2 transition-colors">
                     <td className="p-4">
+                      {/* Affichage DRY du badge avec ses vraies couleurs (Hex ou Legacy) */}
                       <CategoryBadge category={{ name: cat.name, color: cat.color }} />
                     </td>
                     <td className="p-4 text-center">
