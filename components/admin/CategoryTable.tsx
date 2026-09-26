@@ -2,12 +2,13 @@
 
 import { FolderOpen, Edit3, Trash2 } from 'lucide-react';
 import { CategoryBadge } from '@/components/CategoryBadge';
+import { Categorie } from '@/types';
 
 interface CategoryTableProps {
-  categories: any[];
+  categories: Categorie[];
   isLoading: boolean;
-  onEdit: (cat: any) => void;
-  onDelete: (cat: any) => void;
+  onEdit: (cat: Categorie) => void;
+  onDelete: (cat: Categorie) => void;
 }
 
 export default function CategoryTable({ categories, isLoading, onEdit, onDelete }: CategoryTableProps) {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { X } from "lucide-react";
 import Alert from "@/components/ui/Alert";
@@ -9,6 +9,7 @@ import { CategoryBadge } from "@/components/CategoryBadge";
 import ColorPicker from "@/components/ui/ColorPicker";
 import { getCategoryStyle } from "@/config/colors";
 import SubmitButton, { SubmitStatus } from "@/components/ui/SubmitButton";
+import { Categorie } from "@/types";
 
 const PRESET_COLORS = [
   { name: "Bleu", hex: "#3B82F6" },
@@ -22,8 +23,8 @@ const PRESET_COLORS = [
 ];
 
 interface CategoryFormProps {
-  initialData: any | null; // Les données de la catégorie si on est en mode "Édition"
-  onSuccess: (cat: any, isNew: boolean) => void;
+  initialData: Categorie | null; // Les données de la catégorie si on est en mode "Édition"
+  onSuccess: (cat: Categorie, isNew: boolean) => void;
   onCancel: () => void;
 }
 
@@ -32,9 +33,10 @@ export default function CategoryForm({
   onSuccess,
   onCancel,
 }: CategoryFormProps) {
-  const [newName, setNewName] = useState("");
-  const [newSlug, setNewSlug] = useState("");
-  const [newColor, setNewColor] = useState("");
+  const [prevInitialData, setPrevInitialData] = useState(initialData);
+  const [newName, setNewName] = useState(initialData?.name ?? "");
+  const [newSlug, setNewSlug] = useState(initialData?.slug ?? "");
+  const [newColor, setNewColor] = useState(initialData?.color ?? "");
 
   const [formMessage, setFormMessage] = useState<{
     text: string;
@@ -42,14 +44,14 @@ export default function CategoryForm({
   } | null>(null);
   const [status, setStatus] = useState<SubmitStatus>("idle");
 
-  // Remplissage auto si on est en mode Édition
-  useEffect(() => {
-    if (initialData) {
-      setNewName(initialData.name);
-      setNewSlug(initialData.slug);
-      setNewColor(initialData.color || "");
-    }
-  }, [initialData]);
+  // Remplissage auto si on est en mode Édition (ajustement pendant le rendu,
+  // recommandé par React à la place d'un useEffect + setState)
+  if (initialData !== prevInitialData) {
+    setPrevInitialData(initialData);
+    setNewName(initialData?.name ?? "");
+    setNewSlug(initialData?.slug ?? "");
+    setNewColor(initialData?.color ?? "");
+  }
 
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
@@ -94,7 +96,7 @@ export default function CategoryForm({
       name: newName,
       slug: newSlug,
       color: newColor || null,
-      user_id: process.env.NEXT_PUBLIC_PORTFOLIO_USER_ID,
+      user_id: process.env.NEXT_PUBLIC_PORTFOLIO_USER_ID as string,
     };
 
     if (initialData) {

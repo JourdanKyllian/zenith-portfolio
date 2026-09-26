@@ -3,12 +3,13 @@
  */
 
 export interface Categorie {
-  id: number;
+  id: string;
   created_at: string;
   name: string;
   slug: string;
   color: string | null;
   user_id: string;
+  projet: { id: string }[];
 }
 
 export interface Projet {

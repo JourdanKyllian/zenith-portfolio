@@ -1,5 +1,4 @@
 "use client";
-/* eslint-disable react-hooks/set-state-in-effect */
 
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
@@ -10,19 +9,12 @@ import Alert from '@/components/ui/Alert';
 import { purgeCache } from '@/app/actions/revalidate';
 import CategoryForm from '@/components/admin/CategoryForm';
 import CategoryTable from '@/components/admin/CategoryTable';
-
-interface Categorie {
-  id: string;
-  name: string;
-  slug: string;
-  color: string | null;
-  projet: { id: string }[];
-}
+import { Categorie } from '@/types';
 
 export default function CategoriesPage() {
   const [categories, setCategories] = useState<Categorie[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  
+
   // États de l'interface
   const [showForm, setShowForm] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Categorie | null>(null);
@@ -46,6 +38,13 @@ export default function CategoriesPage() {
     };
     fetchCategories();
   }, []);
+
+  // Le message global disparaît tout seul après quelques secondes
+  useEffect(() => {
+    if (!globalMessage) return;
+    const timer = setTimeout(() => setGlobalMessage(null), 4000);
+    return () => clearTimeout(timer);
+  }, [globalMessage]);
 
   const handleFormSuccess = (cat: Categorie, isNew: boolean) => {
     if (isNew) {
@@ -77,10 +76,20 @@ export default function CategoriesPage() {
 
   const executeDelete = async (id: string) => {
     setDeleteTarget(null);
+    const target = categories.find(c => c.id === id);
     const { error } = await supabase.from('categorie').delete().eq('id', id);
     if (!error) {
       await purgeCache(); 
       setCategories(categories.filter(c => c.id !== id));
+      setGlobalMessage({
+        text: `La catégorie "${target?.name ?? ''}" a été supprimée.`,
+        type: 'success',
+      });
+    } else {
+      setGlobalMessage({
+        text: error.message || "Impossible de supprimer cette catégorie.",
+        type: 'error',
+      });
     }
   };
 
@@ -89,11 +98,20 @@ export default function CategoriesPage() {
     setIsForceDeleting(true);
     await supabase.from('projet').update({ categorie_id: null }).eq('categorie_id', blockerTarget.id);
     const { error } = await supabase.from('categorie').delete().eq('id', blockerTarget.id);
-    
+
     if (!error) {
       await purgeCache();
       setCategories(categories.filter(c => c.id !== blockerTarget.id));
+      setGlobalMessage({
+        text: `"${blockerTarget.name}" a été détachée de ${blockerTarget.count} projet(s) puis supprimée.`,
+        type: 'success',
+      });
       setBlockerTarget(null);
+    } else {
+      setGlobalMessage({
+        text: error.message || "La suppression forcée a échoué.",
+        type: 'error',
+      });
     }
     setIsForceDeleting(false);
   };

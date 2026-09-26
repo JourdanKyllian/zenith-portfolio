@@ -56,7 +56,7 @@ export default function DeleteBlockerModal({
               <p className="text-sm font-body text-white mb-1">
                 Impossible de supprimer{" "}
                 <strong className="font-display tracking-wide">
-                  "{title}"
+                  &quot;{title}&quot;
                 </strong>{" "}
                 de manière classique.
               </p>
@@ -66,7 +66,7 @@ export default function DeleteBlockerModal({
                   {dependencyCount} {dependencyName}
                 </strong>
                 . Les bases de données relationnelles interdisent la suppression
-                d'un élément parent s'il possède encore des enfants.
+                d&apos;un élément parent s&apos;il possède encore des enfants.
               </p>
             </div>
           </div>
