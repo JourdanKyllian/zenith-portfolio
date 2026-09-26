@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { Menu, X, FileText } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import CvModal from './CvModal';
+import CvModal from './layout/CvModal';
 
 interface NavbarProps {
   cvUrl: string | null;
