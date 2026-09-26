@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { Plus, Trash2, FolderOpen, Edit3, X } from 'lucide-react';
 import ConfirmModal from '@/components/ui/ConfirmModal';
+import DeleteBlockerModal from '@/components/ui/DeleteBlockerModal';
 import Alert from '@/components/ui/Alert';
 import { purgeCache } from '@/app/actions/revalidate';
 import { CategoryBadge } from '@/components/CategoryBadge';
@@ -44,7 +45,10 @@ export default function CategoriesPage() {
   const [formMessage, setFormMessage] = useState<{ text: string, type: 'success' | 'error' } | null>(null);
   const [status, setStatus] = useState<SubmitStatus>('idle');
 
+  // Modals de suppression
   const [deleteTarget, setDeleteTarget] = useState<{ id: string, name: string } | null>(null);
+  const [blockerTarget, setBlockerTarget] = useState<{ id: string, name: string, count: number } | null>(null);
+  const [isForceDeleting, setIsForceDeleting] = useState(false);
 
   const fetchCategories = async () => {
     const { data, error } = await supabase
@@ -66,110 +70,74 @@ export default function CategoriesPage() {
   }, []);
 
   const resetForm = () => {
-    setNewName('');
-    setNewSlug('');
-    setNewColor('');
-    setEditingId(null);
-    setShowForm(false);
-    setFormMessage(null);
+    setNewName(''); setNewSlug(''); setNewColor('');
+    setEditingId(null); setShowForm(false); setFormMessage(null);
   };
 
   const handleEditClick = (cat: Categorie) => {
-    setNewName(cat.name);
-    setNewSlug(cat.slug);
-    setNewColor(cat.color || '');
-    setEditingId(cat.id);
-    setShowForm(true);
+    setNewName(cat.name); setNewSlug(cat.slug); setNewColor(cat.color || '');
+    setEditingId(cat.id); setShowForm(true);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
-    setNewName(val);
-    setFormMessage(null);
-    setNewSlug(
-      val
-        .toLowerCase()
-        .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
-        .replace(/[^a-z0-9\s-]/g, '')
-        .trim()
-        .replace(/\s+/g, '-')
-    );
+    setNewName(val); setFormMessage(null);
+    setNewSlug(val.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9\s-]/g, '').trim().replace(/\s+/g, '-'));
   };
 
   const handleSaveCategorie = async () => {
     if (!newName || !newSlug) return;
-    
-    setStatus('loading');
-    setFormMessage(null);
-
+    setStatus('loading'); setFormMessage(null);
     const safeName = newName.replace(/"/g, '""');
-    
-    let query = supabase
-      .from('categorie')
-      .select('id')
-      .eq('user_id', process.env.NEXT_PUBLIC_PORTFOLIO_USER_ID)
-      .or(`name.eq."${safeName}",slug.eq."${newSlug}"`);
-      
+    let query = supabase.from('categorie').select('id').eq('user_id', process.env.NEXT_PUBLIC_PORTFOLIO_USER_ID).or(`name.eq."${safeName}",slug.eq."${newSlug}"`);
     if (editingId) query = query.neq('id', editingId);
 
     const { data: existingData } = await query;
-
     if (existingData && existingData.length > 0) {
-      setStatus('error');
-      setFormMessage({ text: "Cette catégorie (nom ou slug) existe déjà.", type: 'error' });
+      setStatus('error'); setFormMessage({ text: "Cette catégorie (nom ou slug) existe déjà.", type: 'error' });
       document.getElementById('category-form')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      setTimeout(() => setStatus('idle'), 3000);
-      return; 
+      setTimeout(() => setStatus('idle'), 3000); return; 
     }
 
-    const catData = { 
-      name: newName, 
-      slug: newSlug, 
-      color: newColor || null,
-      user_id: process.env.NEXT_PUBLIC_PORTFOLIO_USER_ID 
-    };
+    const catData = { name: newName, slug: newSlug, color: newColor || null, user_id: process.env.NEXT_PUBLIC_PORTFOLIO_USER_ID };
 
     if (editingId) {
       const { error } = await supabase.from('categorie').update(catData).eq('id', editingId);
-
       if (!error) {
         await purgeCache(); 
         setCategories(categories.map(c => c.id === editingId ? { ...c, ...catData } : c).sort((a, b) => a.name.localeCompare(b.name)));
-        setStatus('success');
-        setFormMessage({ text: "Catégorie mise à jour avec succès !", type: 'success' });
+        setStatus('success'); setFormMessage({ text: "Catégorie mise à jour avec succès !", type: 'success' });
         setTimeout(() => { setStatus('idle'); resetForm(); }, 1500);
       } else {
-        setStatus('error');
-        setFormMessage({ text: error.message, type: 'error' });
-        document.getElementById('category-form')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        setStatus('error'); setFormMessage({ text: error.message, type: 'error' });
         setTimeout(() => setStatus('idle'), 3000);
       }
     } else {
       const { data, error } = await supabase.from('categorie').insert([catData]).select('*, projet(id)').single();
-
       if (!error && data) {
         await purgeCache(); 
         setCategories([...categories, data as Categorie].sort((a, b) => a.name.localeCompare(b.name)));
-        setStatus('success');
-        setFormMessage({ text: "Catégorie créée avec succès !", type: 'success' });
+        setStatus('success'); setFormMessage({ text: "Catégorie créée avec succès !", type: 'success' });
         setTimeout(() => { setStatus('idle'); resetForm(); }, 1500);
       } else {
-        setStatus('error');
-        setFormMessage({ text: error?.message || "Erreur d'insertion", type: 'error' });
-        document.getElementById('category-form')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        setStatus('error'); setFormMessage({ text: error?.message || "Erreur d'insertion", type: 'error' });
         setTimeout(() => setStatus('idle'), 3000);
       }
     }
   };
 
-  const requestDelete = (id: string, name: string) => {
-    const skipUntil = localStorage.getItem('skipDeleteConfirmUntil');
-    if (skipUntil && parseInt(skipUntil) > new Date().getTime()) {
-      executeDelete(id);
-    } else {
-      setDeleteTarget({ id, name });
+  const requestDelete = (cat: Categorie) => {
+    const linkedProjectsCount = cat.projet?.length || 0;
+    
+    if (linkedProjectsCount > 0) {
+      setBlockerTarget({ id: cat.id, name: cat.name, count: linkedProjectsCount });
+      return;
     }
+
+    const skipUntil = localStorage.getItem('skipDeleteConfirmUntil');
+    if (skipUntil && parseInt(skipUntil) > new Date().getTime()) executeDelete(cat.id);
+    else setDeleteTarget({ id: cat.id, name: cat.name });
   };
 
   const executeDelete = async (id: string) => {
@@ -181,9 +149,30 @@ export default function CategoriesPage() {
     }
   };
 
+  const handleForceDeleteCategory = async () => {
+    if (!blockerTarget) return;
+    setIsForceDeleting(true);
+    
+    // 1. On "détache" la catégorie des projets en passant la valeur à null
+    await supabase.from('projet').update({ categorie_id: null }).eq('categorie_id', blockerTarget.id);
+    
+    // 2. On supprime la catégorie qui est désormais isolée
+    const { error } = await supabase.from('categorie').delete().eq('id', blockerTarget.id);
+    
+    if (!error) {
+      await purgeCache();
+      setCategories(categories.filter(c => c.id !== blockerTarget.id));
+      setBlockerTarget(null);
+    } else {
+      console.error("Erreur lors de la suppression forcée :", error);
+    }
+    
+    setIsForceDeleting(false);
+  };
+
   return (
     <>
-      <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-10 relative z-10">
+      <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 relative z-10">
         <div>
           <h1 className="font-display font-bold text-3xl uppercase tracking-wider text-white">Catégories</h1>
           <p className="font-body text-sm text-z-muted mt-1">Organisez vos projets par type de prestation.</p>
@@ -198,9 +187,7 @@ export default function CategoriesPage() {
       {showForm && (
         <div id="category-form" className="bg-z-card border border-z-blue/30 rounded-xl p-6 mb-8 shadow-[0_0_20px_rgba(0,123,255,0.1)] relative z-10 animate-in fade-in slide-in-from-top-4 duration-300">
           <div className="flex items-center justify-between mb-6">
-            <h3 className="font-sub text-xs uppercase tracking-widest text-z-blue">
-              {editingId ? 'Modifier la catégorie' : 'Créer une catégorie'}
-            </h3>
+            <h3 className="font-sub text-xs uppercase tracking-widest text-z-blue">{editingId ? 'Modifier la catégorie' : 'Créer une catégorie'}</h3>
             <button onClick={resetForm} className="text-z-muted hover:text-white transition-colors"><X size={18} /></button>
           </div>
           
@@ -234,13 +221,7 @@ export default function CategoriesPage() {
             </div>
 
             <div className="pt-4 border-t border-z-border flex justify-end">
-              <SubmitButton 
-                status={status}
-                onClick={handleSaveCategorie}
-                disabled={!newName}
-                idleText={editingId ? 'Mettre à jour' : 'Enregistrer'}
-                className="py-3 px-6 text-xs"
-              />
+              <SubmitButton status={status} onClick={handleSaveCategorie} disabled={!newName} idleText={editingId ? 'Mettre à jour' : 'Enregistrer'} className="py-3 px-6 text-xs" />
             </div>
           </div>
         </div>
@@ -273,18 +254,33 @@ export default function CategoriesPage() {
                   </td>
                 </tr>
               ) : (
-                categories.map((cat) => (
-                  <tr key={cat.id} className="hover:bg-white/2 transition-colors">
-                    <td className="p-4"><CategoryBadge category={{ name: cat.name, color: cat.color }} /></td>
-                    <td className="p-4 text-center"><span className="px-3 py-1 bg-z-blue/10 text-z-blue border border-z-blue/20 rounded-full text-[10px] font-bold">{cat.projet?.length || 0}</span></td>
-                    <td className="p-4">
-                      <div className="flex items-center justify-end gap-2">
-                        <button onClick={() => handleEditClick(cat)} className="p-2 text-z-muted hover:text-white hover:bg-white/5 rounded transition-colors cursor-pointer" title="Modifier"><Edit3 size={16} /></button>
-                        <button onClick={() => requestDelete(cat.id, cat.name)} className="p-2 text-z-muted hover:text-red-400 hover:bg-red-400/10 rounded transition-colors cursor-pointer" title="Supprimer"><Trash2 size={16} /></button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
+                categories.map((cat) => {
+                  const linkedProjectsCount = cat.projet?.length || 0;
+                  const canDelete = linkedProjectsCount === 0;
+
+                  return (
+                    <tr key={cat.id} className="hover:bg-white/2 transition-colors">
+                      <td className="p-4"><CategoryBadge category={{ name: cat.name, color: cat.color }} /></td>
+                      <td className="p-4 text-center"><span className="px-3 py-1 bg-z-blue/10 text-z-blue border border-z-blue/20 rounded-full text-[10px] font-bold">{linkedProjectsCount}</span></td>
+                      <td className="p-4">
+                        <div className="flex items-center justify-end gap-2">
+                          <button onClick={() => handleEditClick(cat)} className="p-2 text-z-muted hover:text-white hover:bg-white/5 rounded transition-colors cursor-pointer" title="Modifier"><Edit3 size={16} /></button>
+                          <button 
+                            onClick={() => requestDelete(cat)} 
+                            className={`p-2 rounded transition-colors cursor-pointer ${
+                              canDelete 
+                                ? 'text-z-muted hover:text-red-400 hover:bg-red-400/10' 
+                                : 'text-z-muted/50 hover:text-amber-400 hover:bg-amber-400/10'
+                            }`} 
+                            title={canDelete ? "Supprimer" : "Détacher et supprimer"}
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>
@@ -292,6 +288,18 @@ export default function CategoriesPage() {
       </section>
 
       <ConfirmModal isOpen={deleteTarget !== null} title={deleteTarget?.name || ''} onConfirm={() => deleteTarget && executeDelete(deleteTarget.id)} onCancel={() => setDeleteTarget(null)} />
+      
+      <DeleteBlockerModal 
+        isOpen={blockerTarget !== null}
+        title={blockerTarget?.name || ''}
+        dependencyCount={blockerTarget?.count || 0}
+        dependencyName="projet(s)"
+        explanation="En forçant la suppression, tous les projets liés perdront cette catégorie et passeront au statut 'Général'. Cette action est irréversible, mais aucun de vos projets ne sera supprimé."
+        forceDeleteLabel="Détacher et supprimer"
+        isForceDeleting={isForceDeleting}
+        onClose={() => setBlockerTarget(null)}
+        onForceDelete={handleForceDeleteCategory}
+      />
     </>
   );
 }
