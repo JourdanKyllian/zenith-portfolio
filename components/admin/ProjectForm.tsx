@@ -28,6 +28,13 @@ interface ProjectFormProps {
   onSubmit: (e?: React.FormEvent) => void;
 }
 
+/**
+ * Formulaire principal d'édition des métadonnées d'un projet.
+ * Isole la gestion des champs textuels, de la visibilité et des réseaux sociaux
+ * de l'orchestration globale de la page.
+ *
+ * @param {ProjectFormProps} props - Les états et mutateurs injectés par le composant parent.
+ */
 export default function ProjectForm({
   titre, setTitre, slug, setSlug, categorieId, setCategorieId, categories,
   enLigne, setEnLigne, description, setDescription, miniatureUrl, setMiniatureUrl,

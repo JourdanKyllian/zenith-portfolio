@@ -6,6 +6,9 @@ import ProjectMediaContent from '@/components/project/ProjectMediaContent';
 import { CategoryBadge } from '@/components/CategoryBadge';
 import { Categorie } from '@/types';
 
+/**
+ * Interface étendue pour la prévisualisation asynchrone des sous-projets.
+ */
 interface PreviewSousProjet {
   id: number;
   projet_id: number;
@@ -28,6 +31,12 @@ interface ProjectPreviewProps {
   previewSousProjets: PreviewSousProjet[];
 }
 
+/**
+ * Extrait l'identifiant unique d'une ressource Google Drive à partir d'une URL publique.
+ * 
+ * @param {string | null | undefined} urlOrId - L'URL source ou l'identifiant brut.
+ * @returns {string | null} L'identifiant extrait ou null si la chaîne est invalide.
+ */
 function getDriveFileId(urlOrId: string | null | undefined): string | null {
   if (!urlOrId) return null;
   if (!urlOrId.includes('/')) return urlOrId;
@@ -38,6 +47,16 @@ function getDriveFileId(urlOrId: string | null | undefined): string | null {
   return null;
 }
 
+/**
+ * Composant d'aperçu en temps réel pour l'éditeur de projets.
+ * Simule le rendu client de la fiche projet avec prise en charge du responsive design (Bureau/Mobile).
+ *
+ * @param {string} titre - Titre du projet.
+ * @param {string} description - Description au format HTML.
+ * @param {string} miniatureUrl - URL de couverture (Drive ou lien direct).
+ * @param {Categorie | null | undefined} activeCategory - Catégorie active pour le badge.
+ * @param {PreviewSousProjet[]} previewSousProjets - Collection des séquences médias formatées.
+ */
 export default function ProjectPreview({
   titre, description, miniatureUrl, activeCategory, previewSousProjets
 }: ProjectPreviewProps) {

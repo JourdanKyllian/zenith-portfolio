@@ -32,6 +32,12 @@ interface ProjectMediaContentProps {
   projectTitle: string;
 }
 
+/**
+ * Extrait l'identifiant d'une vidéo YouTube à partir de son URL.
+ * 
+ * @param {string | null | undefined} url - L'URL de la vidéo.
+ * @returns {string | null} L'identifiant vidéo ou null.
+ */
 function getYoutubeId(url: string | null | undefined): string | null {
   if (!url) return null;
   const regExp = /^.*(youtu\.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=|shorts\/)([^#&?]*).*/;
@@ -39,6 +45,13 @@ function getYoutubeId(url: string | null | undefined): string | null {
   return match && match[2].length === 11 ? match[2] : null;
 }
 
+/**
+ * Moteur de rendu dynamique des séquences médias d'un projet.
+ * Affiche séquentiellement les intégrations YouTube, les vidéos natives Google Drive,
+ * les documents PDF et génère une Lightbox (galerie plein écran) pour les collections d'images.
+ *
+ * @param {ProjectMediaContentProps} props - Liste des séquences et métadonnées du projet parent.
+ */
 export default function ProjectMediaContent({ sousProjets, coverImageUrl, projectTitle }: ProjectMediaContentProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -46,6 +59,12 @@ export default function ProjectMediaContent({ sousProjets, coverImageUrl, projec
 
   const allImages = sousProjets.flatMap(sp => sp.driveImages);
 
+  /**
+   * Modifie dynamiquement les paramètres de l'URL Google Drive pour charger la résolution haute définition.
+   * 
+   * @param {string} url - L'URL de la miniature Drive (`w1200`).
+   * @returns {string} L'URL modifiée pour la haute résolution (`w2048`).
+   */
   const getHdUrl = (url: string) => {
     return url.includes('drive.google.com/thumbnail')
       ? url.replace('sz=w1200', 'sz=w2048')

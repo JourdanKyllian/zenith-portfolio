@@ -15,6 +15,12 @@ interface DeleteBlockerModalProps {
   isForceDeleting: boolean;
 }
 
+/**
+ * Boîte de dialogue bloquante intervenant lors d'un conflit de contraintes d'intégrité relationnelle (Clés étrangères).
+ * Offre à l'utilisateur la possibilité de procéder à une suppression en cascade sécurisée (Force Delete).
+ *
+ * @param {DeleteBlockerModalProps} props - Paramètres contextuels du conflit (nombre de dépendances, entité parente, explication).
+ */
 export default function DeleteBlockerModal({
   isOpen,
   title,
@@ -29,7 +35,7 @@ export default function DeleteBlockerModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-9999 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
       <div className="bg-z-card border border-amber-500/30 rounded-xl shadow-[0_0_40px_rgba(245,158,11,0.15)] max-w-lg w-full overflow-hidden animate-in fade-in zoom-in-95 duration-200">
         <div className="flex items-center justify-between p-5 border-b border-z-border bg-amber-500/5">
           <div className="flex items-center gap-3 text-amber-400">
@@ -66,7 +72,7 @@ export default function DeleteBlockerModal({
                   {dependencyCount} {dependencyName}
                 </strong>
                 . Les bases de données relationnelles interdisent la suppression
-                d&apos;un élément parent s&apos;il possède encore des enfants.
+                d'un élément parent s'il possède encore des enfants.
               </p>
             </div>
           </div>

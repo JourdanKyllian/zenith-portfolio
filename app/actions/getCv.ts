@@ -5,9 +5,9 @@ import { createClient } from '@supabase/supabase-js';
 import { getCvAssetsFromDrive } from '@/lib/googleDrive';
 
 /**
- * Server Action : Récupère le lien de prévisualisation et de téléchargement du CV.
- * Utilise la clé Service Role si disponible pour contourner les règles RLS de Supabase,
- * sinon se replie de manière sécurisée sur le client public anonyme.
+ * Server Action : Récupère les liens de prévisualisation et de téléchargement du CV.
+ * Initialise un client administrateur si les droits d'infrastructure sont présents 
+ * pour contourner les politiques RLS, ou se replie dynamiquement sur le client public.
  *
  * @returns {Promise<{ cvUrl: string | null; previewUrl: string | null }>}
  */
@@ -30,7 +30,6 @@ export async function fetchCvData() {
       .from('parametres')
       .select('valeur')
       .eq('cle', 'cv_drive_folder_id')
-      // --- BOUCLIER MULTI-TENANT ---
       .eq('user_id', process.env.NEXT_PUBLIC_PORTFOLIO_USER_ID)
       .single();
 

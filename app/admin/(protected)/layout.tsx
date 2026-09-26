@@ -6,6 +6,13 @@ import { supabase } from '@/lib/supabase';
 import { LogOut, FolderKanban, Tags, Settings, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
 import Link from 'next/link';
 
+/**
+ * Layout de sécurisation global englobant toutes les routes d'administration.
+ * Vérifie activement la validité de la session d'authentification Supabase.
+ * Fournit l'interface de navigation adaptative (Sidebar Desktop / Bottom Bar Mobile).
+ *
+ * @param {React.ReactNode} children - Les pages imbriquées dans le module protégé.
+ */
 export default function AdminProtectedLayout({
   children,
 }: {
@@ -62,7 +69,6 @@ export default function AdminProtectedLayout({
   return (
     <div className="min-h-screen bg-z-bg text-z-text flex flex-col md:flex-row overflow-hidden">
       
-      {/* SIDEBAR DESKTOP RÉCRACTABLE */}
       <aside className={`hidden md:flex h-screen sticky top-0 bg-z-card border-r border-z-border flex-col z-20 shadow-2xl transition-all duration-300 ${
         isSidebarCollapsed ? 'w-20 p-4 items-center' : 'w-64 p-6'
       }`}>
@@ -120,19 +126,16 @@ export default function AdminProtectedLayout({
         </div>
       </aside>
 
-      {/* HEADER MOBILE SEULEMENT */}
       <header className="md:hidden flex items-center justify-between px-6 py-4 bg-z-card/90 backdrop-blur-md border-b border-z-border sticky top-0 z-40">
         <Link href="/" className="font-martyric text-2xl text-white">ZENITH</Link>
         <span className="font-sub text-[9px] uppercase tracking-widest text-z-blue bg-z-blue/10 px-2 py-1 rounded">Admin</span>
       </header>
 
-      {/* CONTENEUR PRINCIPAL */}
       <main className="flex-1 p-4 md:p-6 lg:p-8 pb-28 md:pb-8 relative h-screen overflow-y-auto custom-scrollbar">
         <div className="absolute top-0 right-0 w-125 h-125 bg-z-blue/5 blur-[120px] pointer-events-none" />
         {children} 
       </main>
 
-      {/* BOTTOM NAV MOBILE */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-z-card/90 backdrop-blur-xl border-t border-z-border z-50">
         <div className="flex items-center justify-around px-2 pt-2 pb-[calc(env(safe-area-inset-bottom)+0.5rem)]">
           {navLinks.map((link) => {

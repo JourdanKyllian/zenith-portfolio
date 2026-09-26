@@ -6,6 +6,12 @@ import { FolderOpen, ExternalLink, Video } from 'lucide-react';
 import { Projet } from '@/types';
 import { CategoryBadge } from '@/components/CategoryBadge';
 
+/**
+ * Extrait de manière sécurisée l'identifiant d'une vidéo YouTube depuis une URL.
+ * 
+ * @param {string | null | undefined} url - L'URL source.
+ * @returns {string | null} L'identifiant alphanumérique de 11 caractères ou null.
+ */
 function getYoutubeId(url: string | null | undefined): string | null {
   if (!url) return null;
   const regExp = /^.*(youtu\.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=|shorts\/)([^#&?]*).*/;
@@ -13,6 +19,12 @@ function getYoutubeId(url: string | null | undefined): string | null {
   return match && match[2].length === 11 ? match[2] : null;
 }
 
+/**
+ * Extrait l'identifiant d'une ressource Google Drive depuis une URL publique.
+ * 
+ * @param {string | null | undefined} urlOrId - L'URL source ou l'identifiant brut.
+ * @returns {string | null} L'identifiant Drive extrait ou null.
+ */
 function getDriveFileId(urlOrId: string | null | undefined): string | null {
   if (!urlOrId) return null;
   if (!urlOrId.includes('/')) return urlOrId;
@@ -23,6 +35,13 @@ function getDriveFileId(urlOrId: string | null | undefined): string | null {
   return null;
 }
 
+/**
+ * Carte de présentation individuelle d'un projet.
+ * Gère dynamiquement le fallback de la miniature (Image Drive -> Image YouTube -> Placeholder).
+ *
+ * @param {Object} props - Propriétés du composant.
+ * @param {Projet} props.project - L'entité projet à afficher.
+ */
 export default function ProjectCard({ project }: { project: Projet }) {
   const miniatureUrl = project.miniature_url;
   let coverImageUrl = "";

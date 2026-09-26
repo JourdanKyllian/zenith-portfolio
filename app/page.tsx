@@ -6,7 +6,12 @@ import { Projet } from '@/types';
 
 export const revalidate = 3600;
 
-// Utilitaire pour extraire l'ID YouTube si pas d'image Drive
+/**
+ * Extrait l'identifiant d'une vidéo YouTube à partir de son URL.
+ * 
+ * @param {string | null | undefined} url - L'URL source.
+ * @returns {string | null} L'identifiant alphanumérique de 11 caractères ou null.
+ */
 function getYoutubeId(url: string | null | undefined): string | null {
   if (!url) return null;
   const regExp = /^.*(youtu\.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=|shorts\/)([^#&?]*).*/;
@@ -14,8 +19,12 @@ function getYoutubeId(url: string | null | undefined): string | null {
   return match && match[2].length === 11 ? match[2] : null;
 }
 
+/**
+ * Point d'entrée principal du site (Page d'accueil).
+ * Composant serveur récupérant les données des projets récents et les statistiques
+ * de l'entreprise pour alimenter le Hero Banner et la grille des réalisations.
+ */
 export default async function Home() {
-  // On récupère une sélection de 10 projets maximum pour alimenter la pellicule et la grille
   const { data: recentProjects } = await supabase
     .from('projet') 
     .select('*, categorie(*), sousprojet(*)')
@@ -39,10 +48,8 @@ export default async function Home() {
     yearsOfExperience--;
   }
 
-  // Les 3 projets mis en avant pour la section "Dernières créations"
   const highlights = recentProjects?.slice(0, 3) || [];
 
-  // Extraction intelligente des images pour la pellicule du Hero
   const marqueeProjects = (recentProjects as unknown as Projet[])?.map(p => {
     let url = p.miniature_url;
     
@@ -63,7 +70,6 @@ export default async function Home() {
         marqueeProjects={marqueeProjects}
       />
 
-      {/* --- SECTION "DERNIÈRES CRÉATIONS" --- */}
       <section className="max-w-7xl mx-auto px-6 py-16 w-full">
         <div className="flex flex-col md:flex-row justify-between items-end mb-16 gap-8">
           <div className="max-w-xl">

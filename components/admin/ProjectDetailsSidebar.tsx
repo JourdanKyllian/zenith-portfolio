@@ -16,11 +16,17 @@ interface ProjectDetailsSidebarProps {
   onUpdatePreview: (sousProjets: SousProjet[]) => void;
 }
 
+/**
+ * Panneau latéral gérant l'arborescence des séquences médias (sous-projets).
+ * Implémente le glisser-déposer (Drag & Drop) pour réordonner le contenu 
+ * et gère les opérations CRUD (Création, Lecture, Mise à jour, Suppression) en cascade.
+ */
 export default function ProjectDetailsSidebar({ projetId, initialSousProjets, onUpdatePreview }: ProjectDetailsSidebarProps) {
-  // L'état dérivé ("Derived state") qui remplace le classique useEffect pour éviter les "cascading renders"
+  
   const [prevInitial, setPrevInitial] = useState(initialSousProjets);
   const [sousProjets, setSousProjets] = useState<SousProjet[]>(initialSousProjets);
 
+  // État dérivé : synchronise l'état local si les propriétés parentes changent.
   if (initialSousProjets !== prevInitial) {
     setPrevInitial(initialSousProjets);
     setSousProjets(initialSousProjets);
@@ -40,6 +46,11 @@ export default function ProjectDetailsSidebar({ projetId, initialSousProjets, on
     onUpdatePreview(sousProjets);
   }, [sousProjets, onUpdatePreview]);
 
+  /**
+   * Instancie une nouvelle séquence média locale avant persistance.
+   * L'utilisation d'un identifiant négatif temporaire permet de la distinguer
+   * des entités déjà enregistrées en base de données.
+   */
   const handleAddSp = () => {
     const newId = -Date.now();
     setSousProjets([...sousProjets, { id: newId, projet_id: parseInt(projetId), titre: "", description: "", youtube_url: "", drive_url: "", ordre: sousProjets.length + 1, created_at: new Date().toISOString() }]);
@@ -47,12 +58,25 @@ export default function ProjectDetailsSidebar({ projetId, initialSousProjets, on
     setHasUnsavedChanges(true);
   };
 
+  /**
+   * Intercepte la demande de suppression pour vérifier si une modale 
+   * de confirmation doit être affichée (vérification du cache localStorage).
+   * 
+   * @param {number} id - Identifiant de la séquence.
+   * @param {string | null} titre - Titre de la séquence pour affichage contextuel.
+   */
   const requestDeleteSp = (id: number, titre: string | null) => {
     const skipUntil = localStorage.getItem("skipDeleteConfirmUntil");
     if (skipUntil && parseInt(skipUntil) > new Date().getTime()) executeDeleteSp(id);
     else setDeleteSpTarget({ id, titre: titre || `Séquence média` });
   };
 
+  /**
+   * Exécute la suppression locale de la séquence. 
+   * Marque l'élément pour suppression distante lors de la prochaine sauvegarde.
+   * 
+   * @param {number} id - Identifiant de la séquence.
+   */
   const executeDeleteSp = (id: number) => {
     if (id > 0) setDeletedSpIds((prev) => [...prev, id]);
     setSousProjets(sousProjets.filter((sp) => sp.id !== id).map((sp, idx) => ({ ...sp, ordre: idx + 1 })));
@@ -61,11 +85,21 @@ export default function ProjectDetailsSidebar({ projetId, initialSousProjets, on
     setDeleteSpTarget(null);
   };
 
+  /**
+   * Met à jour dynamiquement une propriété spécifique de la séquence en cours d'édition.
+   * 
+   * @param {keyof SousProjet} field - Le champ de l'entité à mettre à jour.
+   * @param {string | number | null} value - La nouvelle valeur.
+   */
   const updateActiveSp = (field: keyof SousProjet, value: string | number | null) => {
     setSousProjets((prev) => prev.map((sp) => sp.id === editingSpId ? { ...sp, [field]: value } : sp));
     setHasUnsavedChanges(true);
   };
 
+  /**
+   * Traite les modifications par lots (Batch) de la collection de sous-projets.
+   * Effectue séquentiellement : suppressions, mises à jour et insertions sur Supabase.
+   */
   const handleSaveDetails = async () => {
     setDetailsStatus("loading"); setDetailsMessage(null);
     try {
@@ -99,18 +133,26 @@ export default function ProjectDetailsSidebar({ projetId, initialSousProjets, on
     }
   };
 
+  /**
+   * Événements relatifs au système de Drag & Drop (Réarrangement des séquences)
+   */
   const handleDragStart = (e: React.DragEvent, id: number) => { setEditingSpId(null); setDraggedId(id); e.dataTransfer.effectAllowed = "move"; };
   const handleDragOver = (e: React.DragEvent, id: number) => { e.preventDefault(); if (dragOverId !== id) setDragOverId(id); };
+  
   const handleDrop = (e: React.DragEvent, targetId: number) => {
     e.preventDefault(); setDragOverId(null);
     if (!draggedId || draggedId === targetId) { setDraggedId(null); return; }
+    
     const draggedIndex = sousProjets.findIndex((sp) => sp.id === draggedId);
     const targetIndex = sousProjets.findIndex((sp) => sp.id === targetId);
+    
     const newItems = [...sousProjets];
     const [draggedItem] = newItems.splice(draggedIndex, 1);
     newItems.splice(targetIndex, 0, draggedItem);
+    
     setSousProjets(newItems.map((sp, index) => ({ ...sp, ordre: index + 1 })));
-    setDraggedId(null); setHasUnsavedChanges(true);
+    setDraggedId(null); 
+    setHasUnsavedChanges(true);
   };
 
   const activeSp = sousProjets.find((sp) => sp.id === editingSpId);

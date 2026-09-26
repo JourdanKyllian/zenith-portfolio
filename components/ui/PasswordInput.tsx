@@ -11,6 +11,11 @@ interface PasswordInputProps {
   required?: boolean;
 }
 
+/**
+ * Champ de saisie sécurisé encapsulant la logique d'affichage/masquage d'un mot de passe.
+ *
+ * @param {PasswordInputProps} props - Paramètres standards de l'input HTML.
+ */
 export default function PasswordInput({ 
   label, 
   value, 

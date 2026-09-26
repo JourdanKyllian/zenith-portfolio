@@ -12,8 +12,8 @@ export const metadata: Metadata = {
 };
 
 /**
- * Server Component : Page de présentation du profil et des expertises.
- * Contenu entièrement statique favorisant un rendu optimal pour le SEO.
+ * Page statique de présentation du profil de l'artiste.
+ * Composant serveur (RSC) garantissant une indexation SEO optimale du contenu textuel.
  */
 export default function AboutPage() {
   const expertises = [
@@ -39,10 +39,6 @@ export default function AboutPage() {
     }
   ];
 
-  // Icônes réelles (fournies par le graphiste) : next/image les redimensionne
-  // et les optimise automatiquement (elles partent de 1500x1500 en source,
-  // affichées en grand comme sur la maquette — l'optimisation évite quand
-  // même d'envoyer l'image brute à pleine résolution).
   const iconEtude = (
     <Image src="/icons/etude.png" alt="" width={96} height={96} className="h-14 w-14 object-contain sm:h-20 sm:w-20" />
   );
@@ -56,9 +52,6 @@ export default function AboutPage() {
     <Image src="/icons/chef-zenith.png" alt="" width={96} height={96} className="h-14 w-14 object-contain sm:h-20 sm:w-20" />
   );
 
-  // Contenu de la frise : défini côté serveur (texte présent dans le HTML
-  // initial pour le SEO), seule l'animation de l'onde est déléguée au
-  // composant client SoundwaveTimeline.
   const parcours: TimelineItem[] = [
     {
       year: '2018',
@@ -192,7 +185,6 @@ export default function AboutPage() {
         </ul>
       </section>
 
-      {/* Frise chronologique du parcours */}
       <section className="max-w-5xl mx-auto px-6 py-20">
         <div className="text-center mb-20">
           <span className="font-sub text-z-blue text-[10px] font-bold uppercase tracking-[0.3em] mb-4 block">Depuis 2018</span>

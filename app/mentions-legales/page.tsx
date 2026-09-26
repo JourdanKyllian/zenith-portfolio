@@ -1,26 +1,19 @@
 import { Metadata } from 'next';
 import { Scale, ShieldCheck, EyeOff } from 'lucide-react';
 
-/**
- * Métadonnées sémantiques pour l'indexation de la page de conformité.
- * Déclarées statiquement pour maximiser l'efficience du crawling SEO.
- */
 export const metadata: Metadata = {
   title: 'Mentions Légales | ZENITH PRODUCTION',
   description: 'Conformité, mentions légales et politique de confidentialité de Zenith Production.',
 };
 
 /**
- * Server Component (RSC) : Page statique des mentions légales.
- * Centralise les obligations légales d'édition de l'identité d'entreprise individuel (EI)
- * et formalise la politique de traitement des données à caractère personnel conformément au RGPD.
- * 
- * @purity Évalué statiquement au build, coût d'hydratation nul pour le client.
+ * Page statique de présentation des informations juridiques (RSC).
+ * Centralise les obligations légales d'édition de l'identité d'entreprise (EI)
+ * et expose de manière transparente la politique de traitement des données (RGPD).
  */
 export default function MentionsLegalesPage() {
   return (
     <main className="min-h-screen bg-z-bg text-z-text pt-32 pb-20 px-6">
-      {/* Halo lumineux décoratif arrière-plan */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-3xl h-96 bg-z-blue/5 blur-[120px] pointer-events-none" />
 
       <div className="max-w-4xl mx-auto relative z-10 bg-z-card border border-z-border p-8 sm:p-12 rounded-2xl shadow-2xl">

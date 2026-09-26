@@ -4,12 +4,13 @@ import { useEffect, useState } from "react";
 import { AlertTriangle, RotateCcw, Aperture } from "lucide-react";
 
 /**
- * Client Component : Error Boundary globale de l'application.
- * Capture et isole les erreurs non gérées au niveau de l'arbre de composants (React 19).
- * Fournit une interface de secours stylisée et une mécanique de récupération (reset).
+ * Composant de capture d'erreur globale (Error Boundary) pour l'application.
+ * Isole les exceptions d'exécution (Runtime Errors) du côté client et affiche
+ * une interface de secours thématique intégrant une mécanique de relance d'état.
  *
- * @param {Error & { digest?: string }} error - L'objet d'erreur natif avec le hash de Next.js.
- * @param {() => void} reset - Fonction de tentative de re-rendu du segment défaillant.
+ * @param {Object} props - L'objet injecté par l'architecture interne de Next.js.
+ * @param {Error & { digest?: string }} props.error - L'instance de l'erreur interceptée, incluant le hash de suivi.
+ * @param {() => void} props.reset - Méthode de tentative de régénération du segment React défaillant.
  */
 export default function Error({
   error,
@@ -21,7 +22,7 @@ export default function Error({
   const [time, setTime] = useState("00:00:00");
 
   useEffect(() => {
-    console.error("Erreur critique capturée par le layout :", error);
+    console.error("Exception interceptée par l'Error Boundary :", error);
     const start = Date.now();
     const id = setInterval(() => {
       const s = Math.floor((Date.now() - start) / 1000);

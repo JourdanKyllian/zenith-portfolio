@@ -10,9 +10,11 @@ interface GalleryClientProps {
 }
 
 /**
- * Client Component : Interface interactive de la galerie.
- * Gère l'état de filtrage actif, le rendu conditionnel de la grille de projets
- * et intègre un bloc éditorial optimisé pour le référencement (SEO).
+ * Interface client interactive de la galerie globale de l'artiste.
+ * Gère l'état de filtrage sémantique des réalisations par catégories d'expertise,
+ * sans déclencher de requêtes réseau additionnelles.
+ *
+ * @param {GalleryClientProps} props - Les collections de données injectées par le parent serveur.
  */
 export default function GalleryClient({ initialProjets, toutesLesCategories }: GalleryClientProps) {
   const [activeFilter, setActiveFilter] = useState<string>('all');

@@ -6,8 +6,11 @@ interface IconProps {
 }
 
 /**
- * Bibliothèque d'icônes SVG optimisées pour l'intégration inline.
- * Évite l'import de dépendances lourdes pour des SVG simples.
+ * Bibliothèque de composants d'icônes SVG optimisées pour l'intégration inline.
+ * Permet de s'affranchir de dépendances tierces lourdes (ex: FontAwesome) tout en conservant
+ * le contrôle total sur le style (stroke, fill) via Tailwind CSS.
+ *
+ * @param {IconProps} props - Paramètres de dimensionnement et de style optionnels de l'icône.
  */
 
 export const LinkedinIcon = ({ size = 24, className = "" }: IconProps) => (

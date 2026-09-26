@@ -14,14 +14,11 @@ interface SoundwaveTimelineProps {
   items: TimelineItem[];
 }
 
-/* --- Forme de l'onde : tracé réel ------------------------------------- *
- * Ces 96 points ont été extraits directement de la maquette (Frise-PNG) :
- * pour chaque ligne de pixels, on isole la couleur du trait de l'onde
- * (bleu clair translucide, distinct du bleu plein des icônes/pastilles) et
- * on calcule son centre. [t, dx] où t = position normalisée (0-1) dans un
- * motif, dx = décalage horizontal réel par rapport au centre, en unités
- * du viewBox. Le motif se répète ensuite tous les TILE_HEIGHT px.
- * ------------------------------------------------------------------------ */
+/**
+ * Matrice d'échantillonnage de la forme de l'onde extraite de la maquette (SVG).
+ * Construit un tableau de vecteurs [t, dx] où 't' représente la position normalisée (0-1) 
+ * et 'dx' l'amplitude horizontale de la courbe par rapport au centre du conteneur.
+ */
 const WAVE_TILE: [number, number][] = [
   [0.0,0.5], [0.0105,1.0], [0.0211,-1.24], [0.0316,-4.32], [0.0421,-2.69], [0.0526,2.28],
   [0.0632,5.94], [0.0737,5.83], [0.0842,0.96], [0.0947,-4.08], [0.1053,-2.95], [0.1158,3.47],
@@ -41,22 +38,26 @@ const WAVE_TILE: [number, number][] = [
   [0.9474,4.16], [0.9579,8.49], [0.9684,9.15], [0.9789,7.79], [0.9895,4.83], [1.0,1.18],
 ];
 
-/* --- Réglages ----------------------------------------------------------- */
-const VIEW_WIDTH = 120; // largeur du repère SVG (unités arbitraires)
-const POINT_STEP = 5; // distance verticale entre deux points échantillonnés (dense = rond, jamais anguleux)
-const TILE_HEIGHT = 2000; // px réels sur lesquels se répète UN motif WAVE_TILE (échelle de la maquette d'origine)
-
-const WOBBLE_WAVELENGTH = 42; // px par cycle du tremblement fin superposé au tracé réel
+const VIEW_WIDTH = 120;
+const POINT_STEP = 5; 
+const TILE_HEIGHT = 2000; 
+const WOBBLE_WAVELENGTH = 42; 
 const WOBBLE_FREQ = (2 * Math.PI) / WOBBLE_WAVELENGTH;
-const WOBBLE_BASE = 2; // amplitude du tremblement au repos (discret : la silhouette réelle domine)
-const WOBBLE_MAX_EXTRA = 20; // amplitude additionnelle max sous l'effet du scroll
+const WOBBLE_BASE = 2; 
+const WOBBLE_MAX_EXTRA = 20; 
+const IDLE_DRIFT_SPEED = 0.007; 
+const SCROLL_DRIFT_COUPLING = 0.18; 
+const IDLE_SPEED = 0.00026; 
+const ENERGY_DECAY = 0.94; 
+const MAX_ENERGY = 1; 
 
-const IDLE_DRIFT_SPEED = 0.007; // px/ms — défilement lent et constant du motif, même à l'arrêt
-const SCROLL_DRIFT_COUPLING = 0.18; // fraction du delta de scroll qui pousse directement le motif
-const IDLE_SPEED = 0.00026; // vitesse de phase du tremblement au repos
-const ENERGY_DECAY = 0.94; // taux de retour au calme par frame (0-1)
-const MAX_ENERGY = 1; // plafond de l'énergie accumulée
-
+/**
+ * Composant interactif générant une frise chronologique asymétrique.
+ * Intègre une animation procédurale de tracé SVG (Soundwave) réagissant 
+ * physiquement à la vélocité de défilement (scroll) de l'utilisateur.
+ *
+ * @param {SoundwaveTimelineProps} props - Liste ordonnée des événements du parcours.
+ */
 export default function SoundwaveTimeline({ items }: SoundwaveTimelineProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const svgRef = useRef<SVGSVGElement>(null);
@@ -73,14 +74,14 @@ export default function SoundwaveTimeline({ items }: SoundwaveTimelineProps) {
       '(prefers-reduced-motion: reduce)'
     ).matches;
 
-    // La hauteur réelle dépend du texte (donc du viewport) : on la mesure
-    // plutôt que de la deviner, pour que l'onde colle toujours à la liste.
+    /**
+     * Adaptation dynamique du conteneur SVG en fonction de l'expansion du DOM textuel.
+     */
     const resizeObserver = new ResizeObserver((entries) => {
       const h = entries[0].contentRect.height;
       heightRef.current = h;
       svg.setAttribute('viewBox', `0 0 ${VIEW_WIDTH} ${h}`);
       if (prefersReducedMotion) {
-        // Tracé statique : uniquement la forme réelle, sans dérive ni tremblement.
         drawWave(path, h, 0, 0, 0, 1);
       }
     });
@@ -90,8 +91,12 @@ export default function SoundwaveTimeline({ items }: SoundwaveTimelineProps) {
       return () => resizeObserver.disconnect();
     }
 
-    // L'onde ne tourne que lorsque la frise est effectivement à l'écran.
     let isVisible = false;
+    
+    /**
+     * Optimisation logicielle (IntersectionObserver) : 
+     * Désactive le calcul procédural de l'animation lorsque la frise est hors champ.
+     */
     const intersectionObserver = new IntersectionObserver(
       ([entry]) => {
         isVisible = entry.isIntersecting;
@@ -109,27 +114,26 @@ export default function SoundwaveTimeline({ items }: SoundwaveTimelineProps) {
     let time = 0;
     let driftOffset = 0;
 
+    /**
+     * Boucle d'animation principale (requestAnimationFrame).
+     * Échantillonne la vélocité de défilement pour induire une perturbation sinusoïdale 
+     * sur la fréquence de l'onde visuelle.
+     */
     const tick = (timestamp: number) => {
       const dt = lastTimestamp ? timestamp - lastTimestamp : 16;
       lastTimestamp = timestamp;
 
-      // Vitesse de scroll échantillonnée DANS la boucle rAF : aucun
-      // "scroll" listener, donc aucun risque de jank lié aux events natifs.
       const scrollY = window.scrollY;
-      const scrollDelta = scrollY - lastScrollY; // signé : + en descendant, - en remontant
+      const scrollDelta = scrollY - lastScrollY;
       lastScrollY = scrollY;
       const rawVelocity = Math.abs(scrollDelta) / Math.max(dt, 1);
 
-      // L'énergie grimpe vite avec la vitesse instantanée, puis retombe en
-      // douceur (comme une corde qu'on relâche).
       energy = Math.min(
         MAX_ENERGY,
         Math.max(rawVelocity * 0.12, energy * ENERGY_DECAY)
       );
 
       time += dt * IDLE_SPEED;
-      // Le motif réel défile doucement en continu (vivant même à l'arrêt),
-      // et suit aussi directement le sens et l'ampleur du scroll.
       driftOffset += dt * IDLE_DRIFT_SPEED + scrollDelta * SCROLL_DRIFT_COUPLING;
 
       const wobbleAmplitude = WOBBLE_BASE + energy * WOBBLE_MAX_EXTRA;
@@ -143,6 +147,7 @@ export default function SoundwaveTimeline({ items }: SoundwaveTimelineProps) {
     function start() {
       if (rafId === null) rafId = requestAnimationFrame(tick);
     }
+    
     function stop() {
       if (rafId !== null) {
         cancelAnimationFrame(rafId);
@@ -160,7 +165,6 @@ export default function SoundwaveTimeline({ items }: SoundwaveTimelineProps) {
 
   return (
     <div ref={containerRef} className="relative">
-      {/* Onde décorative : purement visuelle, masquée aux lecteurs d'écran */}
       <svg
         ref={svgRef}
         aria-hidden="true"
@@ -187,8 +191,6 @@ export default function SoundwaveTimeline({ items }: SoundwaveTimelineProps) {
 
       <ol className="relative flex flex-col gap-16 sm:gap-24">
         {items.map((item, index) => {
-          // Alternance stricte, fidèle à la maquette : icône + texte d'un
-          // côté, date en grand de l'autre — et ça s'inverse à chaque étape.
           const contentOnLeft = index % 2 === 0;
           return (
             <li
@@ -224,36 +226,28 @@ export default function SoundwaveTimeline({ items }: SoundwaveTimelineProps) {
   );
 }
 
+/**
+ * Rendu modulaire du badge iconographique connectif.
+ */
 function IconBadge({ icon, side }: { icon: ReactNode; side: 'left' | 'right' }) {
-  // Petit connecteur en pointillés qui tend vers l'onde centrale, comme
-  // sur la maquette — masqué sur mobile pour ne pas surcharger.
   const connector = (
     <span className="hidden h-px w-6 border-t border-dashed border-z-blue/40 sm:block sm:w-10" />
   );
   return (
     <div className="flex items-center gap-3">
       {side === 'left' ? (
-        <>
-          {icon}
-          {connector}
-        </>
+        <>{icon}{connector}</>
       ) : (
-        <>
-          {connector}
-          {icon}
-        </>
+        <>{connector}{icon}</>
       )}
     </div>
   );
 }
 
-function TimelineCard({
-  item,
-  align,
-}: {
-  item: TimelineItem;
-  align: 'left' | 'right';
-}) {
+/**
+ * Bloc de contenu décrivant l'événement chronologique.
+ */
+function TimelineCard({ item, align }: { item: TimelineItem; align: 'left' | 'right' }) {
   return (
     <div className={align === 'right' ? 'text-right' : 'text-left'}>
       <h3 className="font-display text-base font-bold uppercase tracking-wide text-white sm:text-lg">
@@ -271,13 +265,10 @@ function TimelineCard({
   );
 }
 
-function YearLabel({
-  year,
-  align,
-}: {
-  year: string;
-  align: 'left' | 'right';
-}) {
+/**
+ * Titrage temporel stylisé de l'étape.
+ */
+function YearLabel({ year, align }: { year: string; align: 'left' | 'right' }) {
   return (
     <span
       className={`font-display text-2xl font-bold uppercase leading-tight text-z-blue sm:text-4xl lg:text-5xl ${
@@ -289,11 +280,13 @@ function YearLabel({
   );
 }
 
-/* --- Génération de la vague ------------------------------------------- */
-
-// Interpole la forme RÉELLE (WAVE_TILE) à une position y donnée, en
-// répétant le motif tous les TILE_HEIGHT px, avec un lissage cosinus entre
-// les points de contrôle (plus doux qu'une interpolation linéaire).
+/**
+ * Interpolation sinusoïdale de la forme réelle sur l'axe Y.
+ * Lisse les transitions entre les points d'échantillonnage de la matrice originelle.
+ *
+ * @param {number} y - Coordonnée verticale courante.
+ * @returns {number} Décalage horizontal (X) interpolé.
+ */
 function getBaseOffset(y: number): number {
   const t = (((y % TILE_HEIGHT) + TILE_HEIGHT) % TILE_HEIGHT) / TILE_HEIGHT;
   const scaled = t * (WAVE_TILE.length - 1);
@@ -304,6 +297,10 @@ function getBaseOffset(y: number): number {
   return WAVE_TILE[i0][1] + (WAVE_TILE[i1][1] - WAVE_TILE[i0][1]) * eased;
 }
 
+/**
+ * Moteur de calcul vectoriel du tracé procédural.
+ * Combine la forme originelle interpolée avec une perturbation sinusoïdale dynamique.
+ */
 function drawWave(
   path: SVGPathElement,
   height: number,
@@ -319,14 +316,8 @@ function drawWave(
 
   for (let i = 0; i <= steps; i++) {
     const y = (height * i) / steps;
-
-    // La silhouette réelle, tracée depuis la maquette, qui défile lentement.
     const base = getBaseOffset(y + driftOffset);
-
-    // Un tremblement fin, superposé, qui réagit au scroll — c'est lui qui
-    // rend l'onde "vivante" sans jamais masquer la forme d'origine.
     const wobble = Math.sin(y * WOBBLE_FREQ * freqBoost + time) * wobbleAmplitude;
-
     const x = VIEW_WIDTH / 2 + base + wobble;
     points.push({ x, y });
   }
@@ -334,9 +325,12 @@ function drawWave(
   path.setAttribute('d', toSmoothPath(points));
 }
 
-// Construit une courbe lissée (quadratique, via points milieux) à partir
-// d'une liste de points — avec un échantillonnage aussi dense (POINT_STEP),
-// le résultat est visuellement rond, jamais anguleux.
+/**
+ * Générateur de courbe de Bézier quadratique lissée à partir d'un réseau de coordonnées cartésiennes.
+ *
+ * @param {Array<{x: number, y: number}>} points - Matrice de coordonnées vectorielles.
+ * @returns {string} Chaîne de caractères interprétable par l'attribut 'd' d'un <path> SVG.
+ */
 function toSmoothPath(points: { x: number; y: number }[]): string {
   if (points.length < 2) return '';
   let d = `M ${points[0].x.toFixed(2)} ${points[0].y.toFixed(2)}`;

@@ -10,6 +10,12 @@ interface ConfirmModalProps {
   onCancel: () => void;
 }
 
+/**
+ * Fenêtre de dialogue de confirmation pour les actions critiques (ex: suppressions).
+ * Intègre un mécanisme d'exemption locale (bypass) persistant pendant 15 minutes via localStorage.
+ *
+ * @param {ConfirmModalProps} props - Les états de la modale et les callbacks de confirmation/annulation.
+ */
 export default function ConfirmModal({ isOpen, title, onConfirm, onCancel }: ConfirmModalProps) {
   const [dontAskAgain, setDontAskAgain] = useState(false);
 

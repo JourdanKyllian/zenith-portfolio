@@ -11,6 +11,15 @@ interface CategoryTableProps {
   onDelete: (cat: Categorie) => void;
 }
 
+/**
+ * Composant d'affichage sous forme de tableau interactif pour la gestion des catégories.
+ * Intègre les actions de modification et de suppression pour chaque entrée.
+ *
+ * @param {Categorie[]} categories - Liste des catégories à afficher.
+ * @param {boolean} isLoading - État de chargement initial des données.
+ * @param {(cat: Categorie) => void} onEdit - Fonction de rappel déclenchée lors du clic sur le bouton d'édition.
+ * @param {(cat: Categorie) => void} onDelete - Fonction de rappel déclenchée lors d'une demande de suppression.
+ */
 export default function CategoryTable({ categories, isLoading, onEdit, onDelete }: CategoryTableProps) {
   return (
     <section className="bg-z-card border border-z-border rounded-xl overflow-hidden relative z-10 shadow-2xl">

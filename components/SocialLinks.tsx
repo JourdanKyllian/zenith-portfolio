@@ -6,6 +6,12 @@ interface SocialLinksProps {
   links: Record<string, string | null | undefined>;
 }
 
+/**
+ * Composant de présentation dynamique des liens de réseaux sociaux.
+ * Filtre les entrées vides et adapte sa disposition selon le contexte parent (Pied de page ou Fiche Projet).
+ *
+ * @param {SocialLinksProps} props - Le contexte d'affichage (variant) et le dictionnaire des URLs.
+ */
 export default function SocialLinks({ variant, links }: SocialLinksProps) {
   const activeNetworks = AVAILABLE_SOCIALS.filter(net => links[net.id] && links[net.id]?.trim() !== '');
 
@@ -60,6 +66,9 @@ export default function SocialLinks({ variant, links }: SocialLinksProps) {
   return null;
 }
 
+/**
+ * Sous-composant stylisant un lien social sous forme de bulle interactive.
+ */
 function SocialBubble({ href, children, ariaLabel, hoverClass }: { href: string, children: React.ReactNode, ariaLabel: string, hoverClass?: string }) {
   return (
     <a 

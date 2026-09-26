@@ -10,11 +10,16 @@ interface RichTextEditorProps {
   minHeight?: string;
 }
 
+/**
+ * Éditeur de texte enrichi (WYSIWYG) s'appuyant sur l'attribut `contentEditable`.
+ * Fournit des options de formatage basiques (Gras, Italique, Souligné) via l'API `document.execCommand`.
+ *
+ * @param {RichTextEditorProps} props - Contenu HTML lié et callbacks de mutation.
+ */
 export default function RichTextEditor({ value, onChange, placeholder, minHeight = "150px" }: RichTextEditorProps) {
   const editorRef = useRef<HTMLDivElement>(null);
   const isFocused = useRef(false);
 
-  // Synchronisation sécurisée pour éviter que le curseur ne saute
   useEffect(() => {
     if (editorRef.current && !isFocused.current && editorRef.current.innerHTML !== value) {
       editorRef.current.innerHTML = value || '';
@@ -27,8 +32,12 @@ export default function RichTextEditor({ value, onChange, placeholder, minHeight
     }
   };
 
+  /**
+   * Exécute une commande de formatage sur la sélection textuelle active.
+   * L'utilisation de `preventDefault` empêche le navigateur de faire perdre le focus au curseur.
+   */
   const handleCommand = (command: string, e: React.MouseEvent) => {
-    e.preventDefault(); // Empêche la perte de focus
+    e.preventDefault();
     document.execCommand(command, false, undefined);
     emitChange();
     editorRef.current?.focus();

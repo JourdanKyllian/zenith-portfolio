@@ -12,8 +12,10 @@ interface PdfPreviewProps {
 }
 
 /**
- * UI Component : Carte de prévisualisation cliquable pour les documents PDF.
- * Redirige vers le visualiseur Google Drive natif lors du clic.
+ * Composant de présentation visuelle pour les documents PDF.
+ * Affiche la miniature du document et redirige vers le lecteur Google Drive natif au clic.
+ *
+ * @param {PdfPreviewProps} props - Propriétés contenant les URLs du fichier et sa miniature.
  */
 export default function PdfPreview({ pdf }: PdfPreviewProps) {
   return (

@@ -11,6 +11,16 @@ interface DynamicSocialLinksProps {
   setActiveLinks: React.Dispatch<React.SetStateAction<string[]>>;
 }
 
+/**
+ * Gestionnaire dynamique de liens de réseaux sociaux.
+ * Permet d'ajouter, de modifier et de supprimer des liens sociaux à la volée
+ * en s'appuyant sur la configuration globale définie dans `AVAILABLE_SOCIALS`.
+ *
+ * @param {Record<string, string>} links - Dictionnaire des URLs par identifiant de réseau.
+ * @param {React.Dispatch<React.SetStateAction<Record<string, string>>>} setLinks - Fonction de mise à jour du dictionnaire des liens.
+ * @param {string[]} activeLinks - Liste des identifiants de réseaux actuellement actifs.
+ * @param {React.Dispatch<React.SetStateAction<string[]>>} setActiveLinks - Fonction de mise à jour de la visibilité des réseaux.
+ */
 export default function DynamicSocialLinks({ links, setLinks, activeLinks, setActiveLinks }: DynamicSocialLinksProps) {
   const [showModal, setShowModal] = useState(false);
   
@@ -70,7 +80,7 @@ export default function DynamicSocialLinks({ links, setLinks, activeLinks, setAc
         </div>
       )}
 
-      {/* --- FENÊTRE MODALE DE SÉLECTION --- */}
+      {/* Modale de sélection des réseaux disponibles */}
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4 animate-in fade-in duration-200">
           <div className="bg-z-card border border-z-border rounded-2xl shadow-2xl max-w-sm w-full overflow-hidden flex flex-col max-h-[80vh] animate-in zoom-in-95 duration-200">

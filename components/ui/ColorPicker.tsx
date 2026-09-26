@@ -8,14 +8,17 @@ interface ColorPickerProps {
   onChange: (hex: string) => void;
 }
 
+/**
+ * Sélecteur de couleur hybride combinant une interface visuelle native et un champ textuel.
+ * Contrôle la saisie pour garantir la validité du format hexadécimal (#RRGGBB).
+ *
+ * @param {ColorPickerProps} props - La valeur hexadécimale actuelle et le callback de modification.
+ */
 export default function ColorPicker({ value, onChange }: ColorPickerProps) {
-  // L'input color natif exige un format strict #RRGGBB.
-  // Si la valeur est vide ou invalide, on affiche le bleu Zenith par défaut sur la palette.
   const safeValue = /^#[0-9A-Fa-f]{6}$/.test(value) ? value : '#007BFF';
 
   return (
     <div className="flex items-center gap-3">
-      {/* Le carré de couleur cliquable */}
       <div className="relative w-12 h-12 rounded-lg overflow-hidden border border-z-border shadow-inner cursor-pointer shrink-0 group bg-z-card">
         <input 
           type="color" 
@@ -29,7 +32,6 @@ export default function ColorPicker({ value, onChange }: ColorPickerProps) {
         </div>
       </div>
       
-      {/* Le champ texte libre pour les codes Hexadécimaux */}
       <div className="flex-1 relative">
         <span className="absolute left-3 top-1/2 -translate-y-1/2 text-z-muted font-bold">#</span>
         <input 

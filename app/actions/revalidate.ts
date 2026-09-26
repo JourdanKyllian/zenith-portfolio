@@ -3,17 +3,19 @@
 import { revalidatePath } from "next/cache";
 
 /**
- * Server Action : Purge le cache statique de Next.js à la demande.
- * Invoqué par le tableau de bord client après une modification réussie.
+ * Server Action : Interface de purge du cache statique Next.js (Incremental Static Regeneration).
+ * Invoqué post-mutation par les panneaux d'administration pour forcer la regénération des pages.
+ * 
+ * Si un chemin spécifique est fourni, seule cette page est invalidée.
+ * Sinon, une purge globale du layout racine et de l'arborescence dynamique des projets est exécutée.
+ *
+ * @param {string} [path] - Le chemin spécifique de la route à purger (Optionnel).
  */
 export async function purgeCache(path?: string) {
   if (path) {
-    // Purge une page spécifique (ex: '/projet' ou '/projet/mon-film')
     revalidatePath(path, 'page');
   } else {
-    // Purge absolue de tout le site (reconstruit le layout global, navbar, footer)
     revalidatePath('/', 'layout');
-    // Sécurité supplémentaire pour Vercel : force l'invalidation des sous-routes dynamiques
     revalidatePath('/projet/[slug]', 'page');
   }
 }

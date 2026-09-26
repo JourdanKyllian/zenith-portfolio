@@ -16,6 +16,11 @@ import DynamicSocialLinks from "@/components/admin/DynamicSocialLinks";
 import SubmitButton, { SubmitStatus } from "@/components/ui/SubmitButton";
 import { AVAILABLE_SOCIALS } from "@/config/socials";
 
+/**
+ * Interface de gestion des paramètres globaux de l'application et du profil administrateur.
+ * Regroupe la mutation de l'email d'authentification, la mise à jour du mot de passe crypté,
+ * le lien source du Curriculum Vitae, et la configuration des liens de réseaux sociaux.
+ */
 export default function ConfigurationPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [authEmail, setAuthEmail] = useState("");
@@ -41,8 +46,7 @@ export default function ConfigurationPage() {
     (acc, net) => ({ ...acc, [net.id]: "" }),
     {},
   );
-  const [socials, setSocials] =
-    useState<Record<string, string>>(initialSocials);
+  const [socials, setSocials] = useState<Record<string, string>>(initialSocials);
   const [activeNetworks, setActiveNetworks] = useState<string[]>([]);
   const [socialsStatus, setSocialsStatus] = useState<SubmitStatus>("idle");
   const [socialMessage, setSocialMessage] = useState<{
@@ -61,6 +65,7 @@ export default function ConfigurationPage() {
         .select("*")
         .eq("user_id", process.env.NEXT_PUBLIC_PORTFOLIO_USER_ID)
         .single();
+      
       if (dbData) {
         setCvUrl(dbData.cv_url || "");
         const fetchedSocials = AVAILABLE_SOCIALS.reduce(
@@ -80,22 +85,32 @@ export default function ConfigurationPage() {
     fetchSettings();
   }, []);
 
+  /**
+   * Sauvegarde les paramètres généraux (URL du CV) et traite les requêtes de modification 
+   * d'adresse email via le service d'authentification Supabase.
+   *
+   * @param {React.FormEvent} e - Événement de soumission du formulaire.
+   */
   const handleSaveSettings = async (e: React.FormEvent) => {
     e.preventDefault();
     setSettingsStatus("loading");
     setGlobalMessage(null);
+    
     try {
       const { error: dbError } = await supabase
         .from("parametres")
         .update({ cv_url: cvUrl })
         .eq("user_id", process.env.NEXT_PUBLIC_PORTFOLIO_USER_ID);
+      
       if (dbError) throw new Error(dbError.message);
+      
       const { data: currentUser } = await supabase.auth.getUser();
       if (currentUser.user && currentUser.user.email !== authEmail) {
         const { error: authError } = await supabase.auth.updateUser({
           email: authEmail,
         });
         if (authError) throw new Error(authError.message);
+        
         setSettingsStatus("success");
         setGlobalMessage({
           text: "Un mail de confirmation a été envoyé à la nouvelle adresse.",
@@ -123,24 +138,24 @@ export default function ConfigurationPage() {
         text: error instanceof Error ? error.message : "Erreur",
         type: "error",
       });
-      settingsFormRef.current?.scrollIntoView({
-        behavior: "smooth",
-        block: "center",
-      });
+      settingsFormRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
       setTimeout(() => setSettingsStatus("idle"), 3000);
     }
   };
 
+  /**
+   * Valide et exécute la procédure de mise à jour sécurisée du mot de passe administrateur.
+   *
+   * @param {React.FormEvent} e - Événement de soumission du formulaire.
+   */
   const handlePasswordUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
     setPasswordStatus("loading");
     setPassMessage(null);
+    
     if (newPassword !== confirmPassword) {
       setPasswordStatus("error");
-      setPassMessage({
-        text: "Les mots de passe ne correspondent pas.",
-        type: "error",
-      });
+      setPassMessage({ text: "Les mots de passe ne correspondent pas.", type: "error" });
       setTimeout(() => setPasswordStatus("idle"), 3000);
       return;
     }
@@ -155,10 +170,7 @@ export default function ConfigurationPage() {
     if (error) {
       setPasswordStatus("error");
       setPassMessage({ text: "Erreur : " + error.message, type: "error" });
-      passwordFormRef.current?.scrollIntoView({
-        behavior: "smooth",
-        block: "center",
-      });
+      passwordFormRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
       setTimeout(() => setPasswordStatus("idle"), 3000);
     } else {
       setPasswordStatus("success");
@@ -172,17 +184,21 @@ export default function ConfigurationPage() {
     }
   };
 
+  /**
+   * Persiste la configuration des URLs de réseaux sociaux en base de données
+   * et force la regénération du cache statique des composants liés (Footer, etc.).
+   *
+   * @param {React.FormEvent} e - Événement de soumission du formulaire.
+   */
   const handleSaveSocials = async (e: React.FormEvent) => {
     e.preventDefault();
     setSocialsStatus("loading");
     setSocialMessage(null);
 
-    const payload = AVAILABLE_SOCIALS.reduce(
-      (acc, net) => {
+    const payload = AVAILABLE_SOCIALS.reduce((acc, net) => {
         acc[`${net.id}_url`] = socials[net.id] || null;
         return acc;
-      },
-      {} as Record<string, string | null>,
+      }, {} as Record<string, string | null>
     );
 
     try {
@@ -190,13 +206,12 @@ export default function ConfigurationPage() {
         .from("parametres")
         .update(payload)
         .eq("user_id", process.env.NEXT_PUBLIC_PORTFOLIO_USER_ID);
+      
       if (error) throw new Error(error.message);
+      
       await purgeCache();
       setSocialsStatus("success");
-      setSocialMessage({
-        text: "Réseaux sociaux mis à jour avec succès !",
-        type: "success",
-      });
+      setSocialMessage({ text: "Réseaux sociaux mis à jour avec succès !", type: "success" });
       setTimeout(() => {
         setSocialsStatus("idle");
         setSocialMessage(null);
@@ -207,10 +222,7 @@ export default function ConfigurationPage() {
         text: error instanceof Error ? error.message : "Erreur",
         type: "error",
       });
-      socialsFormRef.current?.scrollIntoView({
-        behavior: "smooth",
-        block: "center",
-      });
+      socialsFormRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
       setTimeout(() => setSocialsStatus("idle"), 3000);
     }
   };

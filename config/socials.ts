@@ -10,6 +10,14 @@ import {
   SoundCloudIcon
 } from '@/components/SocialIcons';
 
+/**
+ * Configuration globale et centralisée des réseaux sociaux pris en charge par l'application.
+ * Cette constante dictionnaire alimente dynamiquement les formulaires d'administration, les modales de sélection,
+ * et l'affichage public sur les fiches projets ou le pied de page.
+ *
+ * @constant
+ * @type {Array<{ id: string, label: string, icon: React.FC<any>, placeholder: string, hoverClass: string }>}
+ */
 export const AVAILABLE_SOCIALS = [
   { 
     id: 'youtube', 

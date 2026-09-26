@@ -5,6 +5,12 @@ interface AlertProps {
   children: React.ReactNode;
 }
 
+/**
+ * Bannière de notification contextuelle pour les retours utilisateurs.
+ * Applique automatiquement les codes couleurs et les icônes selon le statut (type).
+ *
+ * @param {AlertProps} props - Le type de l'alerte et son contenu textuel.
+ */
 export default function Alert({ type, children }: AlertProps) {
   const styles = {
     success: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',

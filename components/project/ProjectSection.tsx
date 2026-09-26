@@ -11,8 +11,10 @@ interface ProjectSectionProps {
 }
 
 /**
- * UI Component : Wrapper regroupant une liste de cartes de projets.
- * Utilisé principalement pour structurer des catégories avec une entête stylisée.
+ * Composant de présentation sectionnel regroupant une grille de projets par catégorie.
+ * Applique l'identité visuelle de la catégorie spécifiée via le `colorKey`.
+ *
+ * @param {ProjectSectionProps} props - Les données de la section et les projets à afficher.
  */
 export default function ProjectSection({ id, title, description, projects, colorKey = '#007BFF' }: ProjectSectionProps) {
   const style = getCategoryStyle(colorKey);

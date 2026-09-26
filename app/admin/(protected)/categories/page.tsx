@@ -11,16 +11,19 @@ import CategoryForm from '@/components/admin/CategoryForm';
 import CategoryTable from '@/components/admin/CategoryTable';
 import { Categorie } from '@/types';
 
+/**
+ * Vue principale d'administration des catégories.
+ * Orchestre l'affichage du tableau de données, le formulaire de création/édition
+ * et gère les processus de suppression avec vérification de l'intégrité relationnelle.
+ */
 export default function CategoriesPage() {
   const [categories, setCategories] = useState<Categorie[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-
-  // États de l'interface
+  
   const [showForm, setShowForm] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Categorie | null>(null);
   const [globalMessage, setGlobalMessage] = useState<{ text: string, type: 'success' | 'error' } | null>(null);
 
-  // Modals de suppression
   const [deleteTarget, setDeleteTarget] = useState<{ id: number, name: string } | null>(null);
   const [blockerTarget, setBlockerTarget] = useState<{ id: number, name: string, count: number } | null>(null);
   const [isForceDeleting, setIsForceDeleting] = useState(false);
@@ -39,13 +42,22 @@ export default function CategoriesPage() {
     fetchCategories();
   }, []);
 
-  // Le message global disparaît tout seul après quelques secondes
+  /**
+   * Effet de nettoyage automatique des messages d'alerte globaux après 4 secondes.
+   */
   useEffect(() => {
     if (!globalMessage) return;
     const timer = setTimeout(() => setGlobalMessage(null), 4000);
     return () => clearTimeout(timer);
   }, [globalMessage]);
 
+  /**
+   * Actualise le tableau local après une opération de sauvegarde réussie.
+   * Trie automatiquement la liste par ordre alphabétique.
+   *
+   * @param {Categorie} cat - L'entité catégorie insérée ou modifiée.
+   * @param {boolean} isNew - Détermine s'il s'agit d'une création ou d'une mise à jour.
+   */
   const handleFormSuccess = (cat: Categorie, isNew: boolean) => {
     if (isNew) {
       setCategories([...categories, cat].sort((a, b) => a.name.localeCompare(b.name)));
@@ -56,12 +68,23 @@ export default function CategoriesPage() {
     setEditingCategory(null);
   };
 
+  /**
+   * Initialise le formulaire en mode édition pour une catégorie existante.
+   *
+   * @param {Categorie} cat - La catégorie sélectionnée pour modification.
+   */
   const handleEditClick = (cat: Categorie) => {
     setEditingCategory(cat);
     setShowForm(true);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  /**
+   * Évalue la faisabilité d'une suppression de catégorie.
+   * Intercepte l'action si des projets y sont encore rattachés (Delete Blocker).
+   *
+   * @param {Categorie} cat - La catégorie ciblée par la suppression.
+   */
   const requestDelete = (cat: Categorie) => {
     const linkedProjectsCount = cat.projet?.length || 0;
     if (linkedProjectsCount > 0) {
@@ -74,6 +97,11 @@ export default function CategoriesPage() {
     else setDeleteTarget({ id: Number(cat.id), name: cat.name });
   };
 
+  /**
+   * Supprime définitivement une catégorie isolée (sans dépendances) de la base de données.
+   *
+   * @param {number} id - L'identifiant de la catégorie.
+   */
   const executeDelete = async (id: number) => {
     setDeleteTarget(null);
     const target = categories.find(c => Number(c.id) === id);
@@ -93,6 +121,9 @@ export default function CategoriesPage() {
     }
   };
 
+  /**
+   * Force la suppression d'une catégorie en rompant préalablement toutes ses relations existantes (SET NULL manuel).
+   */
   const handleForceDeleteCategory = async () => {
     if (!blockerTarget) return;
     setIsForceDeleting(true);
@@ -155,7 +186,6 @@ export default function CategoriesPage() {
         onDelete={requestDelete}
       />
 
-      {/* --- MODALS DE SUPPRESSION --- */}
       <ConfirmModal 
         isOpen={deleteTarget !== null} 
         title={deleteTarget?.name || ''} 

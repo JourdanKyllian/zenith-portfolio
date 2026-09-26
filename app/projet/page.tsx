@@ -10,23 +10,21 @@ export const metadata: Metadata = {
 };
 
 /**
- * Server Component : Point d'entrée de la galerie des projets.
- * Pré-charge l'intégralité des projets actifs et de leurs relations depuis Supabase
- * avant de les transmettre au composant client responsable du filtrage.
+ * Point d'entrée serveur (RSC) de l'index des projets.
+ * Pré-charge l'intégralité des réalisations actives et le référentiel des catégories
+ * depuis la base de données relationnelle avant de transmettre le graphe de données au composant client.
  */
 export default async function GalleryPage() {
   const { data: projets } = await supabase
     .from('projet')
     .select('*, categorie(*), sousprojet(*)')
     .eq('en_ligne', true)
-    // --- BOUCLIER MULTI-TENANT ---
     .eq('user_id', process.env.NEXT_PUBLIC_PORTFOLIO_USER_ID)
     .order('created_at', { ascending: false });
 
   const { data: categories } = await supabase
     .from('categorie')
     .select('*')
-    // --- BOUCLIER MULTI-TENANT ---
     .eq('user_id', process.env.NEXT_PUBLIC_PORTFOLIO_USER_ID);
     
   return (

@@ -23,11 +23,15 @@ const PRESET_COLORS = [
 ];
 
 interface CategoryFormProps {
-  initialData: Categorie | null; // Les données de la catégorie si on est en mode "Édition"
+  initialData: Categorie | null;
   onSuccess: (cat: Categorie, isNew: boolean) => void;
   onCancel: () => void;
 }
 
+/**
+ * Formulaire de création et de modification d'une catégorie.
+ * Implémente la validation de slug unique côté client avant l'envoi à Supabase.
+ */
 export default function CategoryForm({
   initialData,
   onSuccess,
@@ -44,8 +48,6 @@ export default function CategoryForm({
   } | null>(null);
   const [status, setStatus] = useState<SubmitStatus>("idle");
 
-  // Remplissage auto si on est en mode Édition (ajustement pendant le rendu,
-  // recommandé par React à la place d'un useEffect + setState)
   if (initialData !== prevInitialData) {
     setPrevInitialData(initialData);
     setNewName(initialData?.name ?? "");
@@ -53,6 +55,11 @@ export default function CategoryForm({
     setNewColor(initialData?.color ?? "");
   }
 
+  /**
+   * Nettoie et normalise le nom de la catégorie pour générer un format slug compatible URL.
+   * 
+   * @param {React.ChangeEvent<HTMLInputElement>} e - L'événement de saisie.
+   */
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
     setNewName(val);
@@ -68,6 +75,10 @@ export default function CategoryForm({
     );
   };
 
+  /**
+   * Sauvegarde la catégorie en base de données.
+   * Déclenche une mise à jour d'insertion ou de modification selon la présence de données initiales.
+   */
   const handleSave = async () => {
     if (!newName || !newSlug) return;
     setStatus("loading");

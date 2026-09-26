@@ -9,16 +9,24 @@ import ConfirmModal from '@/components/ui/ConfirmModal';
 import DeleteBlockerModal from '@/components/ui/DeleteBlockerModal';
 import { purgeCache } from '@/app/actions/revalidate';
 
+/**
+ * Page de tableau de bord principal de l'administration.
+ * Affiche la liste des projets existants, permet la création, la modification
+ * et gère les processus complexes de suppression (relations en base).
+ */
 export default function DashboardPage() {
   const [projets, setProjets] = useState<Projet[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Modals de suppression
   const [deleteTarget, setDeleteTarget] = useState<{ id: number, titre: string } | null>(null);
   const [blockerTarget, setBlockerTarget] = useState<{ id: number, titre: string, count: number } | null>(null);
   const [isForceDeleting, setIsForceDeleting] = useState(false);
 
-  // Conformité React 19 : encapsulation stricte de l'appel asynchrone dans le hook
+  /**
+   * Initialise le composant en chargeant l'inventaire des projets.
+   * La requête inclut explicitement la relation `sousprojet` pour le calcul
+   * des dépendances fonctionnelles avant suppression.
+   */
   useEffect(() => {
     let isMounted = true;
 
@@ -46,10 +54,15 @@ export default function DashboardPage() {
     };
   }, []);
 
+  /**
+   * Valide la demande de suppression d'un projet par l'utilisateur.
+   * Bloque l'action (Delete Blocker) si le projet possède des séquences attachées.
+   * 
+   * @param {Projet} projet - L'entité projet ciblée par la suppression.
+   */
   const requestDelete = (projet: Projet) => {
     const linkedSubProjectsCount = projet.sousprojet?.length || 0;
     
-    // S'il y a des sous-projets, on bloque avec le modal adapté
     if (linkedSubProjectsCount > 0) {
       setBlockerTarget({ id: projet.id, titre: projet.titre, count: linkedSubProjectsCount });
       return;
@@ -63,6 +76,11 @@ export default function DashboardPage() {
     }
   };
 
+  /**
+   * Exécute la suppression standard d'un projet isolé en base de données.
+   * 
+   * @param {number} id - Identifiant du projet à supprimer.
+   */
   const executeDelete = async (id: number) => {
     setDeleteTarget(null); 
     setIsLoading(true);
@@ -77,14 +95,15 @@ export default function DashboardPage() {
     setIsLoading(false);
   };
 
+  /**
+   * Mécanisme d'écrasement en cascade ("Force Delete").
+   * Détruit toutes les séquences médias liées au projet avant d'éliminer le parent.
+   */
   const handleForceDeleteProject = async () => {
     if (!blockerTarget) return;
     setIsForceDeleting(true);
     
-    // 1. Suppression en cascade manuelle : on supprime toutes les séquences médias liées
     await supabase.from('sousprojet').delete().eq('projet_id', blockerTarget.id);
-    
-    // 2. On supprime le projet parent
     const { error } = await supabase.from('projet').delete().eq('id', blockerTarget.id);
     
     if (!error) {

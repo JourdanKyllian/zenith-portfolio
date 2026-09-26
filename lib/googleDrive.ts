@@ -1,5 +1,10 @@
 import { google } from 'googleapis';
 
+/**
+ * Client d'authentification asymétrique Google Cloud (Service Account).
+ * Initialisé de manière statique avec une portée (scope) restreinte à la lecture seule
+ * pour garantir la sécurité d'accès au stockage.
+ */
 const auth = new google.auth.JWT({
   email: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
   key: process.env.GOOGLE_PRIVATE_KEY?.includes('-----BEGIN PRIVATE KEY-----') 
@@ -10,6 +15,9 @@ const auth = new google.auth.JWT({
 
 const drive = google.drive({ version: 'v3', auth });
 
+/**
+ * Structure de données standardisée regroupant les différents médias extraits d'un dossier Drive.
+ */
 export interface DriveAssets {
   images: string[];
   youtubeUrl: string | null;
@@ -23,9 +31,10 @@ export interface DriveAssets {
 }
 
 /**
- * Extrait l'identifiant unique d'un dossier Google Drive à partir de son URL complète.
- * @param {string} urlOrId - L'URL complète ou l'ID direct.
- * @returns {string} L'ID du dossier.
+ * Extrait de manière sécurisée l'identifiant unique (ID) d'un dossier Google Drive à partir d'une URL publique ou de l'ID brut.
+ *
+ * @param {string} urlOrId - L'URL complète ou l'identifiant direct du dossier.
+ * @returns {string} L'identifiant alphanumérique isolé.
  */
 export function extractFolderId(urlOrId: string): string {
   if (!urlOrId) return '';
@@ -34,11 +43,12 @@ export function extractFolderId(urlOrId: string): string {
 }
 
 /**
- * Interroge l'API Google Drive pour lister et classifier les assets liés à un projet.
- * Trie les fichiers trouvés (Images, Vidéos natives, PDF, liens YouTube textuels).
+ * Interroge l'API Google Drive en lecture seule pour lister, classifier et générer les liens d'accès
+ * directs des fichiers médias contenus dans un dossier spécifique.
+ * Prend en charge les images, les vidéos natives, les fichiers PDF et les configurations de redirection (youtube.txt).
  *
- * @param {string} folderUrlOrId - L'URL ou l'ID du dossier Drive cible.
- * @returns {Promise<DriveAssets>} Un objet structuré contenant les URLs résolues des médias.
+ * @param {string} folderUrlOrId - L'URL ou l'identifiant du dossier Drive cible.
+ * @returns {Promise<DriveAssets>} Une promesse résolvant l'objet structuré des médias prêts à l'affichage.
  */
 export async function getProjectAssetsFromDrive(folderUrlOrId: string): Promise<DriveAssets> {
   const folderId = extractFolderId(folderUrlOrId);
@@ -97,10 +107,10 @@ export async function getProjectAssetsFromDrive(folderUrlOrId: string): Promise<
 }
 
 /**
- * Récupère le lien de téléchargement direct et l'aperçu du Curriculum Vitae.
+ * Récupère le lien de téléchargement direct et le lien de prévisualisation (viewer) pour le Curriculum Vitae stocké sur Google Drive.
  *
- * @param {string} folderUrlOrId - L'URL ou l'ID du dossier contenant le CV.
- * @returns {Promise<{ cvUrl: string | null; previewUrl: string | null }>} Les liens d'accès au document.
+ * @param {string} folderUrlOrId - L'URL ou l'identifiant du dossier public contenant le PDF du CV.
+ * @returns {Promise<{ cvUrl: string | null; previewUrl: string | null }>} Un objet contenant les liens d'accès au document.
  */
 export async function getCvAssetsFromDrive(folderUrlOrId: string): Promise<{ cvUrl: string | null; previewUrl: string | null }> {
   const folderId = extractFolderId(folderUrlOrId);

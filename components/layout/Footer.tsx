@@ -8,6 +8,12 @@ interface FooterProps {
   socials: Record<string, string | null | undefined>;
 }
 
+/**
+ * Composant de pied de page global de l'application.
+ * Masqué automatiquement sur les routes d'administration.
+ *
+ * @param {Record<string, string | null | undefined>} socials - Dictionnaire des liens sociaux actifs à afficher.
+ */
 export default function Footer({ socials }: FooterProps) {
   const pathname = usePathname();
   const currentYear = new Date().getFullYear();

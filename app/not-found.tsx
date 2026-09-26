@@ -2,9 +2,9 @@ import Link from "next/link";
 import { VideoOff, Radio, Home } from "lucide-react";
 
 /**
- * Server Component : Page 404 globale.
- * Rendu statique affiché lorsqu'une route Next.js n'est pas résolue
- * ou lorsqu'un appel explicite à `notFound()` est déclenché.
+ * Page de secours affichée lorsqu'une route est introuvable (Erreur HTTP 404).
+ * Composant serveur (RSC) générant une interface statique thématisée sans impact 
+ * sur les performances globales de l'application.
  */
 export default function NotFound() {
   return (

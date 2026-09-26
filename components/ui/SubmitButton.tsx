@@ -12,7 +12,6 @@ interface SubmitButtonProps {
   successText?: string;
   errorText?: string;
   icon?: React.ReactNode;
-  // CORRECTION LINTER: Le type 'any' est remplacé par le type React officiel
   onClick?: (e?: React.SyntheticEvent) => void; 
   type?: 'button' | 'submit';
   className?: string;
@@ -22,6 +21,13 @@ interface SubmitButtonProps {
   variant?: 'primary' | 'ghost';
 }
 
+/**
+ * Bouton transactionnel intelligent gérant son propre retour d'état asynchrone.
+ * Bloque automatiquement les interactions supplémentaires pendant le chargement (`loading`) 
+ * et confirme visuellement le succès ou l'échec de la promesse.
+ *
+ * @param {SubmitButtonProps} props - Les statuts d'exécution, la configuration visuelle et le gestionnaire d'événement.
+ */
 export default function SubmitButton({
   status,
   idleText = "Enregistrer",

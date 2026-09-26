@@ -14,7 +14,10 @@ import SubmitButton, { SubmitStatus } from "@/components/ui/SubmitButton";
 import ProjectForm from "@/components/admin/ProjectForm";
 import { AVAILABLE_SOCIALS } from "@/config/socials";
 
-// Typage strict pour résoudre l'erreur Unexpected any du linter
+/**
+ * Interface étendue pour la prévisualisation des sous-projets.
+ * Ajoute les propriétés résolues nécessaires à l'affichage des médias.
+ */
 interface PreviewSousProjet extends SousProjet {
   finalYoutubeUrl: string | null;
   driveImages: string[];
@@ -22,6 +25,11 @@ interface PreviewSousProjet extends SousProjet {
   driveVideoUrl: string | null;
 }
 
+/**
+ * Vue d'édition globale d'un projet.
+ * Orchestre les données du projet, le formulaire de modification (gauche)
+ * et le panneau latéral de gestion des séquences médias (droite).
+ */
 export default function EditProjetPage() {
   const router = useRouter();
   const params = useParams();
@@ -31,7 +39,6 @@ export default function EditProjetPage() {
   const [status, setStatus] = useState<SubmitStatus>("idle");
   const [message, setMessage] = useState<{ text: string; type: "success" | "error" } | null>(null);
 
-  // État global du Projet
   const [titre, setTitre] = useState("");
   const [slug, setSlug] = useState("");
   const [categorieId, setCategorieId] = useState<string>("");
@@ -43,14 +50,15 @@ export default function EditProjetPage() {
   const [links, setLinks] = useState<Record<string, string>>(AVAILABLE_SOCIALS.reduce((acc, net) => ({ ...acc, [net.id]: "" }), {}));
   const [activeLinks, setActiveLinks] = useState<string[]>([]);
   
-  // États de coordination avec la Sidebar
   const [initialSousProjets, setInitialSousProjets] = useState<SousProjet[]>([]);
   const [previewSousProjets, setPreviewSousProjets] = useState<PreviewSousProjet[]>([]);
   const [leftPanelMode, setLeftPanelMode] = useState<"edit" | "preview">("edit");
 
   const scrollToTop = () => window.scrollTo({ top: 0, behavior: "smooth" });
 
-  // Conformité React 19 : encapsulation stricte de l'appel asynchrone dans le hook
+  /**
+   * Charge les informations du projet, ses séquences liées et les catégories disponibles.
+   */
   useEffect(() => {
     let isMounted = true;
 
@@ -90,6 +98,12 @@ export default function EditProjetPage() {
     };
   }, [projetId, router]);
 
+  /**
+   * Sauvegarde les modifications globales du projet (titre, description, réseaux).
+   * Vérifie l'unicité du slug avant l'insertion en base.
+   * 
+   * @param {React.FormEvent} [e] - Événement de soumission du formulaire (optionnel).
+   */
   const handleUpdateProjet = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     setStatus("loading"); setMessage(null);
@@ -123,7 +137,12 @@ export default function EditProjetPage() {
     }
   };
 
-  // Callback appelé par la Sidebar à chaque modification pour alimenter la Vue "Aperçu"
+  /**
+   * Maintient la synchronisation visuelle entre l'éditeur de séquences (Sidebar)
+   * et la vue d'aperçu dynamique du projet.
+   * 
+   * @param {SousProjet[]} sp - Collection de sous-projets en cours d'édition.
+   */
   const handleUpdatePreview = useCallback((sp: SousProjet[]) => {
     setPreviewSousProjets(sp.map((s) => ({
       ...s, finalYoutubeUrl: s.youtube_url, driveImages: [], pdf: null, driveVideoUrl: null,

@@ -1,7 +1,7 @@
 /**
- * UI Component : Squelette de chargement (Suspense Boundary).
- * Intercepté par Next.js pendant la résolution asynchrone des données de la route
- * `[slug]/page.tsx` pour offrir une transition fluide sans gel de l'écran.
+ * Interface de chargement asynchrone (Suspense Boundary).
+ * Interceptée nativement par Next.js durant la résolution des données de la route
+ * dynamique `[slug]` pour offrir une transition fluide sans geler le navigateur.
  */
 export default function Loading() {
   return (

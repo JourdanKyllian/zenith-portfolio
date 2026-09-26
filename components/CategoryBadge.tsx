@@ -9,8 +9,12 @@ interface CategoryBadgeProps {
 }
 
 /**
- * UI Component : Étiquette de catégorie (Badge) universelle.
- * Génère ses couleurs dynamiquement à partir d'un code Hexadécimal.
+ * Étiquette visuelle (Badge) représentant une catégorie de projet.
+ * Génère dynamiquement ses couleurs (fond, bordure, texte) à partir du code hexadécimal associé.
+ *
+ * @param {CategoryBadgeProps} props - Les propriétés du composant.
+ * @param {Object} [props.category] - L'objet catégorie contenant le nom et la couleur.
+ * @param {string} [props.className] - Classes CSS additionnelles pour surcharger le style par défaut.
  */
 export function CategoryBadge({ category, className }: CategoryBadgeProps) {
   if (!category) return null;

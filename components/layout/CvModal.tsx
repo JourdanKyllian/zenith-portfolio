@@ -11,22 +11,22 @@ interface CvModalProps {
 }
 
 /**
- * Client Component : Fenêtre modale gérant la prévisualisation asynchrone du document CV.
- * Intègre une mécanique de nettoyage d'iframe (about:blank) pour éviter les fuites mémoires sur mobile.
+ * Composant de superposition (Modal) dédié à l'affichage et au téléchargement du document CV.
+ * Initialise le visualiseur PDF intégré via un iframe pointant vers Google Drive.
  */
 export default function CvModal({ isOpen, onClose, cvUrl, previewUrl }: CvModalProps) {
   const [shouldRender, setShouldRender] = useState(isOpen);
 
-  // CORRECTION LINTER: Derived State (Mise à jour d'état pendant le rendu). 
-  // Rend l'exécution instantanée et évite le "cascading render" (Double Render) d'un useEffect.
   if (isOpen && !shouldRender) {
     setShouldRender(true);
   }
 
+  /**
+   * Purge le contexte de l'iframe à la fermeture de la modale en y chargeant 'about:blank'
+   * afin de libérer la mémoire du navigateur mobile et de couper les éventuels flux audio/vidéo résiduels.
+   */
   useEffect(() => {
     if (!isOpen) {
-      // On laisse un léger délai pour que l'iframe se vide (about:blank) 
-      // et que l'animation de fermeture (opacity) se termine avant le démontage complet
       const timer = setTimeout(() => setShouldRender(false), 150);
       return () => clearTimeout(timer);
     }
@@ -60,7 +60,6 @@ export default function CvModal({ isOpen, onClose, cvUrl, previewUrl }: CvModalP
           <div className="grow rounded-lg bg-z-bg border border-z-border/40 mb-6 overflow-hidden relative min-h-0 w-full">
             {previewUrl ? (
               <iframe 
-                /* L'astuce anti-fuite mémoire : on passe à about:blank dès la fermeture */
                 src={isOpen ? previewUrl : 'about:blank'} 
                 className="w-full h-full border-none bg-z-bg"
                 allow="autoplay"

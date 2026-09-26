@@ -20,6 +20,11 @@ import DynamicSocialLinks from "@/components/admin/DynamicSocialLinks";
 import SubmitButton, { SubmitStatus } from "@/components/ui/SubmitButton";
 import { AVAILABLE_SOCIALS } from "@/config/socials";
 
+/**
+ * Interface de création d'un nouveau projet.
+ * Gère la saisie des métadonnées initiales, la génération automatique du slug,
+ * et l'initialisation des paramètres de visibilité.
+ */
 export default function NouveauProjetPage() {
   const router = useRouter();
   const [categories, setCategories] = useState<Categorie[]>([]);
@@ -52,6 +57,12 @@ export default function NouveauProjetPage() {
     fetchCategories();
   }, []);
 
+  /**
+   * Met à jour le titre du projet et génère un slug normalisé à la volée.
+   * Supprime les accents et remplace les espaces par des tirets pour les URLs.
+   *
+   * @param {React.ChangeEvent<HTMLInputElement>} e - Événement de saisie.
+   */
   const handleTitreChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
     setTitre(val);
@@ -67,7 +78,12 @@ export default function NouveauProjetPage() {
     );
   };
 
-  // CORRECTION TS : Utilisation de SyntheticEvent optionnel pour satisfaire à la fois onSubmit (form) et onClick (bouton)
+  /**
+   * Exécute les vérifications d'intégrité (unicité du slug) et procède à l'insertion
+   * du projet en base de données. Redirige l'utilisateur vers l'éditeur de séquences en cas de succès.
+   *
+   * @param {React.SyntheticEvent} [e] - Événement de soumission.
+   */
   const handleSubmit = async (e?: React.SyntheticEvent) => {
     if (e) e.preventDefault();
     setStatus("loading");

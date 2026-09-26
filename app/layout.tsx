@@ -24,6 +24,14 @@ export const metadata: Metadata = {
   openGraph: { title: "ZENITH PRODUCTION", description: "Gabin Husson — Zenith Production · Graphiste, Cadreur, Monteur Vidéo & Photo", siteName: "ZENITH PRODUCTION", locale: "fr_FR", type: "website" },
 };
 
+/**
+ * Layout principal (Root Layout) encapsulant l'ensemble de l'application.
+ * Configure le contexte global : polices personnalisées, métadonnées SEO dynamiques,
+ * navigation partagée (Navbar/Footer) et outils d'analyse de performance Vercel.
+ *
+ * @param {Object} props - Propriétés d'encapsulation React.
+ * @param {React.ReactNode} props.children - Les vues enfants injectées par le routeur.
+ */
 export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode; }>) {
   const cvData = await fetchCvData();
 
@@ -35,7 +43,6 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
     .eq('user_id', process.env.NEXT_PUBLIC_PORTFOLIO_USER_ID)
     .single();
 
-  // Double transtypage propre avec unknown pour contourner GenericStringError
   const socials = AVAILABLE_SOCIALS.reduce((acc, net) => {
     acc[net.id] = (paramData as unknown as Record<string, string>)?.[`${net.id}_url`] || "";
     return acc;

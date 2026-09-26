@@ -13,8 +13,10 @@ interface FiltersProps {
 }
 
 /**
- * Client Component : Barre de navigation pour filtrer les projets.
- * Délègue la mise à jour de l'état au composant parent via onFilterChange.
+ * Barre de navigation interactive permettant de filtrer dynamiquement les projets par catégorie.
+ * Délègue l'état actif au composant parent pour déclencher le re-rendu de la grille.
+ *
+ * @param {FiltersProps} props - Les catégories disponibles et le gestionnaire d'état.
  */
 export default function ProjectFilters({ categories, activeFilter, onFilterChange }: FiltersProps) {
   return (

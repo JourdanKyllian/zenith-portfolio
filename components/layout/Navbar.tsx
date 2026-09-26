@@ -11,6 +11,13 @@ interface NavbarProps {
   previewUrl: string | null;
 }
 
+/**
+ * Composant de navigation principal (Header).
+ * Intègre la gestion du menu mobile et la modale du Curriculum Vitae.
+ *
+ * @param {string | null} cvUrl - Lien de téléchargement direct du PDF du CV.
+ * @param {string | null} previewUrl - Lien de prévisualisation Google Drive du CV.
+ */
 export default function Navbar({ cvUrl, previewUrl }: NavbarProps) {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
@@ -18,8 +25,6 @@ export default function Navbar({ cvUrl, previewUrl }: NavbarProps) {
   const [isCvOpen, setIsCvOpen] = useState(false);
 
   useEffect(() => {
-    // Utilisation des classes natives Tailwind pour le verrouillage du scroll
-    // beaucoup plus stable que la manipulation directe du style en JS sur Safari.
     if (isOpen || isCvOpen) {
       document.body.classList.add('overflow-hidden');
     } else {
@@ -52,7 +57,7 @@ export default function Navbar({ cvUrl, previewUrl }: NavbarProps) {
     { name: 'Contact', href: '/contact' },
   ];
 
-  // LE BOUCLIER VISUEL : On cache la Navbar sur toutes les pages d'administration
+  /* Masque la barre de navigation sur les interfaces d'administration */
   if (pathname?.startsWith('/admin')) return null;
 
   return (
@@ -72,7 +77,7 @@ export default function Navbar({ cvUrl, previewUrl }: NavbarProps) {
 
           <nav className="hidden md:flex items-center gap-10">
             {navLinks.map((link) => {
-              // Condition d'activation : correspond exactement à '/' OU commence par '/projet' (pour inclure les fiches projets individuelles)
+              /* Résolution de la route active pour l'état visuel du lien */
               const isActive = link.href === '/' ? pathname === '/' : pathname?.startsWith(link.href);
               
               return (
@@ -121,7 +126,6 @@ export default function Navbar({ cvUrl, previewUrl }: NavbarProps) {
             <p className="font-sub text-z-blue text-[10px] font-bold uppercase tracking-[0.4em] mb-10 opacity-50">Menu</p>
             <div className="flex flex-col gap-8">
               {navLinks.map((link) => {
-                // Même logique d'activation pour le menu mobile
                 const isActive = link.href === '/' ? pathname === '/' : pathname?.startsWith(link.href);
 
                 return (

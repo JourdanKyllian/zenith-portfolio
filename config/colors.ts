@@ -1,6 +1,9 @@
 /**
- * Dictionnaire de rétrocompatibilité pour traduire les anciennes couleurs
- * textuelles de la base de données vers de vrais codes hexadécimaux.
+ * Table de correspondance de rétrocompatibilité.
+ * Mappe les identifiants textuels historiques de la base de données vers leurs équivalents hexadécimaux stricts.
+ * 
+ * @constant
+ * @type {Record<string, string>}
  */
 export const LEGACY_COLORS: Record<string, string> = {
   blue: '#3b82f6', bleu: '#3b82f6',
@@ -16,11 +19,14 @@ export const LEGACY_COLORS: Record<string, string> = {
 };
 
 /**
- * Normalise l'entrée base de données et génère les styles CSS (Couleur, Fond 10%, Bordure 20%).
- * Accepte les Hexadécimaux (#FF0000) et les anciens mots-clés ('blue').
+ * Normalise un code couleur entrant et génère une palette de styles CSS liés (Couleur pleine, fond translucide, bordure).
+ * Gère nativement les codes hexadécimaux (3 ou 6 caractères), les opacités, et le fallback sur les anciennes valeurs textuelles.
+ *
+ * @param {string | null | undefined} colorValue - La valeur brute de la couleur stockée en base de données.
+ * @returns {{ backgroundColor: string, color: string, borderColor: string }} Objet de style React contenant les valeurs CSS traitées.
  */
 export function getCategoryStyle(colorValue: string | null | undefined) {
-  let hex = '#8E8EA8'; // Gris "z-muted" par défaut
+  let hex = '#8E8EA8';
 
   if (colorValue && colorValue !== 'NULL' && colorValue !== 'EMPTY') {
     const normalized = colorValue.toLowerCase().trim();
@@ -31,14 +37,13 @@ export function getCategoryStyle(colorValue: string | null | undefined) {
     }
   }
 
-  // Transformation du format #XXX en #XXXXXX pour supporter l'opacité
   const cleanHex = hex.length === 4 
     ? `#${hex[1]}${hex[1]}${hex[2]}${hex[2]}${hex[3]}${hex[3]}` 
     : hex;
 
   return {
-    backgroundColor: `${cleanHex}1A`, // Hex + 10% opacité
-    color: cleanHex,                  // Couleur pure
-    borderColor: `${cleanHex}33`      // Hex + 20% opacité
+    backgroundColor: `${cleanHex}1A`,
+    color: cleanHex,                 
+    borderColor: `${cleanHex}33`     
   };
 }

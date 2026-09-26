@@ -4,6 +4,11 @@ import { useState, useRef, useEffect } from 'react';
 import { Mail, MessageSquare, Send, CheckCircle2, AlertCircle } from 'lucide-react';
 import { sendEmail } from '@/app/actions/sendEmail';
 
+/**
+ * Page publique de contact et de demande de collaboration.
+ * Gère les interactions du formulaire client, la transmission sécurisée des payloads
+ * vers la Server Action correspondante, et le retour d'état visuel (Succès/Erreur).
+ */
 export default function ContactPage() {
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [feedbackMessage, setFeedbackMessage] = useState<string | null>(null);
@@ -15,6 +20,12 @@ export default function ContactPage() {
     mountedAt.current = Date.now();
   }, []);
 
+  /**
+   * Orchestre la soumission asynchrone des données du formulaire vers l'API.
+   * Injecte le paramètre cryptographique `form_timestamp` requis pour la validation de la vélocité.
+   *
+   * @param {FormData} formData - Objets de données natifs extraits des champs d'entrée.
+   */
   async function handleAction(formData: FormData) {
     setStatus('loading');
     setFeedbackMessage(null);

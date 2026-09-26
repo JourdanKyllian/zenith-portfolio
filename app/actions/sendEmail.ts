@@ -7,9 +7,9 @@ import { supabase } from '@/lib/supabase';
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 /**
- * Génère un identifiant alphanumérique unique pour l'indexation des tickets.
+ * Génère un identifiant alphanumérique unique pour l'indexation des tickets de contact.
  * 
- * @returns {string} Token de 5 caractères majuscules et numériques.
+ * @returns {string} Token généré (ex: 'A1B2C').
  */
 function generateTicketId(): string {
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
@@ -21,20 +21,22 @@ function generateTicketId(): string {
 }
 
 /**
- * Traite la soumission du formulaire de contact via un pipeline de validation
- * multicouche cookieless (Honeypot, Analyse de vélocité, Filtrage IP PostgreSQL).
+ * Traite la soumission du formulaire de contact public via un pipeline de validation sécurisé.
+ * Applique une protection multicouche : Honeypot, analyse de vélocité temporelle, 
+ * et limitation de débit (Rate Limiting) indexée sur l'adresse IP.
  *
- * @param {FormData} formData - Données sérialisées du formulaire client.
- * @returns {Promise<{ success: boolean; error?: string }>} Bilan de la transaction d'envoi.
+ * @param {FormData} formData - Données sérialisées du formulaire d'entrée.
+ * @returns {Promise<{ success: boolean; error?: string }>} Bilan de la transaction SMTP.
  */
 export async function sendEmail(formData: FormData) {
-  // Mécanisme Honeypot anti-bot
+  
+  // Validation Honeypot (Piège anti-bot)
   const honeyPot = formData.get("company_tax_id") as string;
   if (honeyPot && honeyPot.trim() !== '') {
     return { success: true }; 
   }
 
-  // Vérification de la cohérence temporelle
+  // Contrôle de vélocité de soumission (Protection contre les scripts de spam)
   const formTimestamp = formData.get("form_timestamp") as string;
   if (formTimestamp) {
     const loadTime = parseInt(formTimestamp, 10);
@@ -47,16 +49,15 @@ export async function sendEmail(formData: FormData) {
     }
   }
 
-  // Extraction et normalisation des variables d'entrée
   const name = (formData.get("name") as string || '').trim();
   const email = (formData.get("email") as string || '').trim();
   const type = formData.get("type") as string; 
   const message = (formData.get("message") as string || '').trim();
 
-  // Validation des types de données
   if (!name || !email || !message) {
     return { success: false, error: "Tous les champs obligatoires doivent être renseignés." };
   }
+  
   if (name.length > 60 || message.length > 2000) {
     return { success: false, error: "La taille des champs texte dépasse les limites autorisées." };
   }
@@ -66,7 +67,7 @@ export async function sendEmail(formData: FormData) {
     return { success: false, error: "Le format de l'adresse e-mail est invalide." };
   }
 
-  // Évaluation des requêtes par adresse IP (Rate Limiting sur 7 jours)
+  // Protection par Rate Limiting (Plafonnement à 2 requêtes sur une fenêtre glissante de 7 jours)
   const headerList = await headers();
   const ip = headerList.get('x-forwarded-for')?.split(',')[0].trim() || '127.0.0.1';
   const oneWeekAgo = new Date();
@@ -98,7 +99,7 @@ export async function sendEmail(formData: FormData) {
   const adminEmail = 'zenithprod.contact@gmail.com';
 
   try {
-    // Dispatch du flux d'information vers l'administrateur
+    // 1. Dispatch du ticket vers l'administrateur
     const { error: errorAdmin } = await resend.emails.send({
       from: 'Zenith Production <contact@zenithproduction.fr>',
       to: adminEmail, 
@@ -125,7 +126,7 @@ export async function sendEmail(formData: FormData) {
 
     if (errorAdmin) return { success: false, error: "Le serveur SMTP distant a rejeté la demande d'envoi administrateur." };
 
-    // Envoi de l'accusé de réception automatique au client
+    // 2. Envoi de l'accusé de réception formaté au prospect
     await resend.emails.send({
       from: 'Zenith Production <contact@zenithproduction.fr>',
       to: email, 
@@ -151,7 +152,7 @@ export async function sendEmail(formData: FormData) {
       `,
     });
 
-    // 5. Inscription de la signature réseau dans les journaux de sécurité
+    // 3. Enregistrement de la signature réseau pour maintien de l'historique Rate Limit
     if (supabase) {
       await supabase
         .from('form_rate_limits')

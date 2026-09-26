@@ -8,19 +8,27 @@ import { supabase } from '@/lib/supabase';
 import PasswordInput from '@/components/ui/PasswordInput';
 import Alert from '@/components/ui/Alert';
 
+/**
+ * Interface de connexion au système d'administration.
+ * Repose sur l'API d'authentification Supabase (Email/Mot de passe).
+ */
 export default function LoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   
-  // Ici, le chargement est à FALSE par défaut (contrairement au dashboard)
   const [isLoading, setIsLoading] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
   
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
-  // Utilisation de SyntheticEvent pour satisfaire le typage React 19
+  /**
+   * Tente d'authentifier l'utilisateur via Supabase.
+   * Redirige vers le tableau de bord en cas de succès, ou affiche une erreur globale.
+   * 
+   * @param {React.SyntheticEvent<HTMLFormElement>} e - Événement de soumission.
+   */
   const handleLogin = async (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsLoading(true);
@@ -35,7 +43,7 @@ export default function LoginPage() {
 
       if (error) {
         setErrorMessage("Identifiants incorrects ou accès refusé.");
-        setIsLoading(false); // On retire le chargement si ça échoue
+        setIsLoading(false);
         return;
       }
 
@@ -49,6 +57,10 @@ export default function LoginPage() {
     }
   };
 
+  /**
+   * Déclenche la procédure de réinitialisation de mot de passe.
+   * Requiert que l'adresse email soit préalablement renseignée dans le champ identifiant.
+   */
   const handleResetPassword = async () => {
     if (!email) {
       setErrorMessage("Veuillez saisir votre adresse email ci-dessus pour la réinitialisation.");

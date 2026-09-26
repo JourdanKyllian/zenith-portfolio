@@ -11,12 +11,21 @@ import { AVAILABLE_SOCIALS } from '@/config/socials';
 
 export const revalidate = 3600;
 
+/**
+ * Génère statiquement les routes des projets au moment du build (SSG).
+ * Optimise le SEO et les temps de réponse en pré-rendant les fiches publiques connues.
+ *
+ * @returns {Promise<Array<{ slug: string }>>} Liste des slugs pré-générés.
+ */
 export async function generateStaticParams() {
   const { data: projets } = await supabase.from('projet').select('slug').eq('en_ligne', true).eq('user_id', process.env.NEXT_PUBLIC_PORTFOLIO_USER_ID);
   if (!projets) return [];
   return projets.map((projet) => ({ slug: projet.slug }));
 }
 
+/**
+ * Interface étendue localement pour la résolution asynchrone des séquences médias.
+ */
 interface ProcessedSousProjet extends SousProjet {
   finalYoutubeUrl: string | null;
   driveImages: string[];
@@ -24,6 +33,13 @@ interface ProcessedSousProjet extends SousProjet {
   driveVideoUrl: string | null;
 }
 
+/**
+ * Génère dynamiquement les métadonnées SEO spécifiques à la fiche projet.
+ *
+ * @param {Object} props - Paramètres injectés par Next.js.
+ * @param {Promise<{ slug: string }>} props.params - Les paramètres de la route dynamique.
+ * @returns {Promise<import('next').Metadata>} Objet de configuration des balises meta.
+ */
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const { data } = await supabase.from('projet').select('*, categorie(*)').eq('slug', slug).eq('user_id', process.env.NEXT_PUBLIC_PORTFOLIO_USER_ID).single();
@@ -32,6 +48,12 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   return { title: `${project.titre} — ${project.categorie?.name || 'Général'} | ZENITH PRODUCTION` };
 }
 
+/**
+ * Extrait l'identifiant unique d'une ressource Google Drive depuis son URL publique.
+ *
+ * @param {string | null | undefined} urlOrId - L'URL source ou l'identifiant brut.
+ * @returns {string | null} L'identifiant isolé.
+ */
 function getDriveFileId(urlOrId: string | null | undefined): string | null {
   if (!urlOrId) return null;
   if (!urlOrId.includes('/')) return urlOrId;
@@ -44,6 +66,14 @@ function getDriveFileId(urlOrId: string | null | undefined): string | null {
   return null;
 }
 
+/**
+ * Vue détaillée d'un projet public.
+ * Rendu côté serveur (RSC). Compile les métadonnées du projet, traite asynchrone les 
+ * dépendances de stockage (Google Drive API) et génère l'affichage structuré des médias.
+ *
+ * @param {Object} props - Les paramètres de route injectés par Next.js.
+ * @param {Promise<{ slug: string }>} props.params - Paramètre d'URL (slug du projet).
+ */
 export default async function ProjectPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
 

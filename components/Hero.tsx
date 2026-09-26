@@ -17,12 +17,16 @@ interface MarqueeProject {
 
 interface HeroProps {
   categoriesCount: number;
-  // Conservé dans l'interface pour ne pas casser app/page.tsx,
-  // mais retiré de la déstructuration du composant pour satisfaire ESLint.
   yearsOfExperience: number; 
   marqueeProjects?: MarqueeProject[];
 }
 
+/**
+ * Extrait l'identifiant unique d'une ressource Google Drive à partir d'une URL publique.
+ * 
+ * @param {string | null | undefined} urlOrId - L'URL source ou l'identifiant brut.
+ * @returns {string | null} L'identifiant extrait ou null si la chaîne est invalide.
+ */
 function getDriveFileId(urlOrId: string | null | undefined): string | null {
   if (!urlOrId) return null;
   if (!urlOrId.includes('/')) return urlOrId;
@@ -33,11 +37,13 @@ function getDriveFileId(urlOrId: string | null | undefined): string | null {
   return null;
 }
 
-// On retire 'yearsOfExperience' des arguments pour corriger le warning @typescript-eslint/no-unused-vars
+/**
+ * Composant principal de la page d'accueil.
+ * Affiche la vidéo de présentation globale en arrière-plan, les métriques dynamiques
+ * de l'entreprise, et un carrousel horizontal des créations récentes.
+ */
 export default function Hero({ categoriesCount, marqueeProjects = [] }: HeroProps) {
   
-  // Conformément aux recommandations React "You Might Not Need an Effect" :
-  // On calcule l'état dérivé directement pendant le rendu.
   const startDate = new Date("2017-09-01");
   const today = new Date();
   let realYears = today.getFullYear() - startDate.getFullYear();
@@ -51,7 +57,7 @@ export default function Hero({ categoriesCount, marqueeProjects = [] }: HeroProp
     return marqueeProjects.map(p => {
       let finalUrl = p.url;
       if (finalUrl.startsWith('http') && !finalUrl.includes('drive.google.com')) {
-        // Lien classique
+        // Validation basique des liens standards externes
       } else {
         const id = getDriveFileId(finalUrl);
         if (id) finalUrl = `https://drive.google.com/thumbnail?id=${id}&sz=w600`;
@@ -144,11 +150,11 @@ export default function Hero({ categoriesCount, marqueeProjects = [] }: HeroProp
               spaceBetween={16}
               slidesPerView="auto"
               loop={true}
-              speed={800} /* Vitesse de transition douce avec inertie naturelle */
+              speed={800}
               autoplay={{
-                delay: 2500, /* Temps de pause sur l'image pour la contempler */
+                delay: 2500,
                 disableOnInteraction: false,
-                pauseOnMouseEnter: true, /* Comportement natif propre */
+                pauseOnMouseEnter: true,
               }}
               breakpoints={{
                 640: { spaceBetween: 24 }
