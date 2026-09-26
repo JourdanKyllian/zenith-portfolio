@@ -2,6 +2,7 @@
 
 import { Video, HardDrive, ListOrdered, Trash2, GripVertical, Plus, CheckCircle2 } from 'lucide-react';
 import RichTextEditor from '@/components/ui/RichTextEditor';
+import Alert from '@/components/ui/Alert';
 import { SousProjet } from '@/types';
 import SubmitButton, { SubmitStatus } from '@/components/admin/SubmitButton';
 
@@ -9,6 +10,7 @@ interface ProjectDetailsSidebarProps {
   sousProjets: SousProjet[];
   hasUnsavedChanges: boolean;
   detailsStatus: SubmitStatus;
+  detailsMessage: { text: string; type: 'success' | 'error' } | null;
   handleSaveDetails: () => void;
   handleAddSp: () => void;
   handleDragStart: (e: React.DragEvent, id: number) => void;
@@ -25,7 +27,7 @@ interface ProjectDetailsSidebarProps {
 }
 
 export default function ProjectDetailsSidebar({
-  sousProjets, hasUnsavedChanges, detailsStatus, handleSaveDetails, handleAddSp,
+  sousProjets, hasUnsavedChanges, detailsStatus, detailsMessage, handleSaveDetails, handleAddSp,
   handleDragStart, handleDragOver, handleDrop, setDraggedId, setDragOverId,
   editingSpId, setEditingSpId, draggedId, dragOverId, requestDeleteSp, updateActiveSp
 }: ProjectDetailsSidebarProps) {
@@ -56,6 +58,12 @@ export default function ProjectDetailsSidebar({
       </header>
 
       <div className="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar">
+        {detailsMessage && (
+          <div className="animate-in fade-in slide-in-from-top-2 duration-300">
+            <Alert type={detailsMessage.type}>{detailsMessage.text}</Alert>
+          </div>
+        )}
+
         <div className="space-y-3">
           {sousProjets.length === 0 ? (
             <p className="text-sm text-z-muted italic text-center py-4">Aucun détail lié.</p>

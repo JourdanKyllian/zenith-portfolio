@@ -43,6 +43,7 @@ export default function EditProjetPage() {
   const [editingSpId, setEditingSpId] = useState<number | null>(null); 
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [detailsStatus, setDetailsStatus] = useState<SubmitStatus>('idle');
+  const [detailsMessage, setDetailsMessage] = useState<{ text: string, type: 'success' | 'error' } | null>(null);
   const [deleteSpTarget, setDeleteSpTarget] = useState<{ id: number, titre: string } | null>(null);
 
   const [draggedId, setDraggedId] = useState<number | null>(null);
@@ -122,6 +123,7 @@ export default function EditProjetPage() {
   
   const handleSaveDetails = async () => { 
     setDetailsStatus('loading'); 
+    setDetailsMessage(null);
     try { 
       if (deletedSpIds.length > 0) {
         await supabase.from('sousprojet').delete().in('id', deletedSpIds); 
@@ -141,11 +143,13 @@ export default function EditProjetPage() {
       setEditingSpId(null); 
       await fetchData(); 
       setDetailsStatus('success');
-      setTimeout(() => setDetailsStatus('idle'), 2000);
-    } catch (err) { 
+      setDetailsMessage({ text: "Séquençage mis à jour avec succès !", type: 'success' });
+      setTimeout(() => { setDetailsStatus('idle'); setDetailsMessage(null); }, 3000);
+    } catch (err: any) { 
       console.error(err); 
       setDetailsStatus('error');
-      setTimeout(() => setDetailsStatus('idle'), 3000);
+      setDetailsMessage({ text: err.message || "Erreur lors de la sauvegarde.", type: 'error' });
+      setTimeout(() => { setDetailsStatus('idle'); setDetailsMessage(null); }, 3000);
     } 
   };
 
@@ -217,7 +221,9 @@ export default function EditProjetPage() {
         </div>
 
         <ProjectDetailsSidebar 
-           sousProjets={sousProjets} hasUnsavedChanges={hasUnsavedChanges} detailsStatus={detailsStatus} handleSaveDetails={handleSaveDetails} handleAddSp={handleAddSp}
+           sousProjets={sousProjets} hasUnsavedChanges={hasUnsavedChanges} 
+           detailsStatus={detailsStatus} detailsMessage={detailsMessage}
+           handleSaveDetails={handleSaveDetails} handleAddSp={handleAddSp}
            handleDragStart={handleDragStart} handleDragOver={handleDragOver} handleDrop={handleDrop} setDraggedId={setDraggedId} setDragOverId={setDragOverId}
            editingSpId={editingSpId} setEditingSpId={setEditingSpId} draggedId={draggedId} dragOverId={dragOverId} requestDeleteSp={requestDeleteSp} updateActiveSp={updateActiveSp}
         />
