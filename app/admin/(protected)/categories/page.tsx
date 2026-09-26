@@ -137,7 +137,7 @@ export default function CategoriesPage() {
         .eq('id', editingId);
 
       if (!error) {
-        await purgeCache('/projet');
+        await purgeCache(); // CORRECTION: Purge globale pour actualiser l'accueil
         setCategories(categories.map(c => c.id === editingId ? { ...c, ...catData } : c).sort((a, b) => a.name.localeCompare(b.name)));
         setFormMessage({ text: "Catégorie mise à jour avec succès !", type: 'success' });
         setTimeout(() => resetForm(), 1500);
@@ -152,7 +152,7 @@ export default function CategoriesPage() {
         .single();
 
       if (!error && data) {
-        await purgeCache('/projet');
+        await purgeCache(); // CORRECTION: Purge globale
         setCategories([...categories, data as Categorie].sort((a, b) => a.name.localeCompare(b.name)));
         setFormMessage({ text: "Catégorie créée avec succès !", type: 'success' });
         setTimeout(() => resetForm(), 1500);
@@ -177,7 +177,7 @@ export default function CategoriesPage() {
     setDeleteTarget(null);
     const { error } = await supabase.from('categorie').delete().eq('id', id);
     if (!error) {
-      await purgeCache('/projet');
+      await purgeCache(); // CORRECTION: Purge globale
       setCategories(categories.filter(c => c.id !== id));
     }
   };
