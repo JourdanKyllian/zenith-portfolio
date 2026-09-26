@@ -1,13 +1,14 @@
 "use client";
 
-import { Video, HardDrive, ListOrdered, Trash2, GripVertical, Plus, CheckCircle2, Save } from 'lucide-react';
+import { Video, HardDrive, ListOrdered, Trash2, GripVertical, Plus, CheckCircle2 } from 'lucide-react';
 import RichTextEditor from '@/components/ui/RichTextEditor';
 import { SousProjet } from '@/types';
+import SubmitButton, { SubmitStatus } from '@/components/admin/SubmitButton';
 
 interface ProjectDetailsSidebarProps {
   sousProjets: SousProjet[];
   hasUnsavedChanges: boolean;
-  isSavingDetails: boolean;
+  detailsStatus: SubmitStatus;
   handleSaveDetails: () => void;
   handleAddSp: () => void;
   handleDragStart: (e: React.DragEvent, id: number) => void;
@@ -24,7 +25,7 @@ interface ProjectDetailsSidebarProps {
 }
 
 export default function ProjectDetailsSidebar({
-  sousProjets, hasUnsavedChanges, isSavingDetails, handleSaveDetails, handleAddSp,
+  sousProjets, hasUnsavedChanges, detailsStatus, handleSaveDetails, handleAddSp,
   handleDragStart, handleDragOver, handleDrop, setDraggedId, setDragOverId,
   editingSpId, setEditingSpId, draggedId, dragOverId, requestDeleteSp, updateActiveSp
 }: ProjectDetailsSidebarProps) {
@@ -43,12 +44,14 @@ export default function ProjectDetailsSidebar({
         </div>
 
         {hasUnsavedChanges && (
-          <button 
-            onClick={handleSaveDetails} disabled={isSavingDetails} title="Sauvegarder l'ordre et les modifications"
-            className="flex items-center justify-center gap-2 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 hover:bg-emerald-500 hover:text-white h-8 sm:h-9 px-2.5 2xl:px-4 rounded-lg transition-colors animate-in fade-in zoom-in duration-200 cursor-pointer disabled:opacity-50 shadow-lg shadow-emerald-500/10 shrink-0"
-          >
-            {isSavingDetails ? <span className="animate-pulse"><Save size={14} /></span> : <><Save size={14} /> <span className="hidden 2xl:block text-[10px] font-bold uppercase tracking-widest">Sauver</span></>}
-          </button>
+          <SubmitButton 
+            status={detailsStatus}
+            onClick={handleSaveDetails}
+            type="button"
+            idleText="Sauver"
+            className="h-8 sm:h-9 px-2.5 2xl:px-4 text-[10px] shrink-0"
+            textClassName="hidden 2xl:block uppercase"
+          />
         )}
       </header>
 

@@ -3,19 +3,20 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
-import { ArrowLeft, Save, Image as ImageIcon, Link2, FileText, ToggleLeft, ToggleRight } from 'lucide-react';
+import { ArrowLeft, Image as ImageIcon, Link2, FileText, ToggleLeft, ToggleRight } from 'lucide-react';
 import Link from 'next/link';
 import { Categorie } from '@/types';
 import Alert from '@/components/ui/Alert';
 import { purgeCache } from '@/app/actions/revalidate';
 import RichTextEditor from '@/components/ui/RichTextEditor';
 import DynamicSocialLinks from '@/components/admin/DynamicSocialLinks';
+import SubmitButton, { SubmitStatus } from '@/components/admin/SubmitButton';
 import { AVAILABLE_SOCIALS } from '@/config/socials';
 
 export default function NouveauProjetPage() {
   const router = useRouter();
   const [categories, setCategories] = useState<Categorie[]>([]);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [status, setStatus] = useState<SubmitStatus>('idle');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const [titre, setTitre] = useState('');
@@ -45,14 +46,17 @@ export default function NouveauProjetPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSubmitting(true); setErrorMessage(null);
+    setStatus('loading'); setErrorMessage(null);
 
     const safeTitre = titre.replace(/"/g, '""');
     const { data: existingData } = await supabase.from('projet').select('id').eq('user_id', process.env.NEXT_PUBLIC_PORTFOLIO_USER_ID).or(`titre.eq."${safeTitre}",slug.eq."${slug}"`);
 
     if (existingData && existingData.length > 0) {
+      setStatus('error');
       setErrorMessage("Impossible d'enregistrer : un projet avec ce titre/slug existe déjà.");
-      setIsSubmitting(false); return; 
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      setTimeout(() => setStatus('idle'), 3000);
+      return; 
     }
 
     const socialPayload = AVAILABLE_SOCIALS.reduce((acc, net) => {
@@ -61,15 +65,23 @@ export default function NouveauProjetPage() {
     }, {} as Record<string, string | null>);
 
     const newProjet = {
-      titre, slug, categorie_id: categorieId ? parseInt(categorieId) : null, description: description || null, en_ligne: enLigne, miniature_url: miniatureUrl || null,
+      titre, slug, categorie_id: categorieId ? parseInt(categorieId) : null, description: description || null, enLigne, miniature_url: miniatureUrl || null,
       ...socialPayload,
       user_id: process.env.NEXT_PUBLIC_PORTFOLIO_USER_ID
     };
 
     const { data, error } = await supabase.from('projet').insert([newProjet]).select('id').single();
 
-    if (error) { setErrorMessage(error.message); setIsSubmitting(false); } 
-    else if (data) { await purgeCache(); router.push(`/admin/dashboard/projet/${data.id}`); }
+    if (error) { 
+      setStatus('error');
+      setErrorMessage(error.message); 
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      setTimeout(() => setStatus('idle'), 3000);
+    } else if (data) { 
+      setStatus('success');
+      await purgeCache(); 
+      setTimeout(() => router.push(`/admin/dashboard/projet/${data.id}`), 1000); 
+    }
   };
 
   return (
@@ -79,9 +91,14 @@ export default function NouveauProjetPage() {
           <Link href="/admin/dashboard" className="w-10 h-10 rounded-lg bg-z-card border border-z-border flex items-center justify-center text-z-muted hover:text-white hover:border-z-blue transition-all"><ArrowLeft size={18} /></Link>
           <div><h1 className="font-display font-bold text-3xl uppercase tracking-wider text-white">Nouveau Projet</h1></div>
         </div>
-        <button type="button" onClick={handleSubmit} disabled={isSubmitting} className="btn-blue px-6 py-3 rounded-lg flex items-center justify-center gap-2 text-xs font-bold tracking-widest shadow-lg hover:scale-105 transition-all disabled:opacity-50">
-          <Save size={16} /> {isSubmitting ? 'Création...' : 'Créer et continuer'}
-        </button>
+        <SubmitButton 
+          status={status}
+          onClick={handleSubmit}
+          type="button"
+          idleText="Créer et continuer"
+          loadingText="Création..."
+          className="px-6 py-3 text-xs"
+        />
       </header>
 
       {errorMessage && <div className="mb-8"><Alert type="error">{errorMessage}</Alert></div>}

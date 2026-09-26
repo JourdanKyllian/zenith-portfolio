@@ -4,7 +4,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
-import { ArrowLeft, Save, Image as ImageIcon, Link2, FileText, ToggleLeft, ToggleRight, Eye, PenTool } from 'lucide-react';
+import { ArrowLeft, Image as ImageIcon, Link2, FileText, ToggleLeft, ToggleRight, Eye, PenTool } from 'lucide-react';
 import Link from 'next/link';
 import { Categorie, Projet, SousProjet } from '@/types';
 import ConfirmModal from '@/components/ui/ConfirmModal';
@@ -14,6 +14,7 @@ import RichTextEditor from '@/components/ui/RichTextEditor';
 import ProjectPreview from '@/components/admin/ProjectPreview';
 import ProjectDetailsSidebar from '@/components/admin/ProjectDetailsSidebar';
 import DynamicSocialLinks from '@/components/admin/DynamicSocialLinks';
+import SubmitButton, { SubmitStatus } from '@/components/admin/SubmitButton';
 import { AVAILABLE_SOCIALS } from '@/config/socials';
 
 export default function EditProjetPage() {
@@ -22,7 +23,7 @@ export default function EditProjetPage() {
   const projetId = params.id as string;
 
   const [isLoading, setIsLoading] = useState(true);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [status, setStatus] = useState<SubmitStatus>('idle');
   const [message, setMessage] = useState<{ text: string, type: 'success' | 'error' } | null>(null);
 
   const [titre, setTitre] = useState('');
@@ -41,12 +42,14 @@ export default function EditProjetPage() {
   const [deletedSpIds, setDeletedSpIds] = useState<number[]>([]);
   const [editingSpId, setEditingSpId] = useState<number | null>(null); 
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
-  const [isSavingDetails, setIsSavingDetails] = useState(false);
+  const [detailsStatus, setDetailsStatus] = useState<SubmitStatus>('idle');
   const [deleteSpTarget, setDeleteSpTarget] = useState<{ id: number, titre: string } | null>(null);
 
   const [draggedId, setDraggedId] = useState<number | null>(null);
   const [dragOverId, setDragOverId] = useState<number | null>(null);
   const [leftPanelMode, setLeftPanelMode] = useState<'edit' | 'preview'>('edit');
+
+  const scrollToTop = () => window.scrollTo({ top: 0, behavior: 'smooth' });
 
   const fetchData = useCallback(async () => {
     const { data: catData } = await supabase.from('categorie').select('*').eq('user_id', process.env.NEXT_PUBLIC_PORTFOLIO_USER_ID).order('name');
@@ -74,12 +77,18 @@ export default function EditProjetPage() {
 
   const handleUpdateProjet = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
-    setIsSubmitting(true); setMessage(null);
+    setStatus('loading'); setMessage(null);
 
     const safeTitre = titre.replace(/"/g, '""');
     const { data: existingData } = await supabase.from('projet').select('id').eq('user_id', process.env.NEXT_PUBLIC_PORTFOLIO_USER_ID).neq('id', projetId).or(`titre.eq."${safeTitre}",slug.eq."${slug}"`);
 
-    if (existingData && existingData.length > 0) { setMessage({ text: "Impossible d'enregistrer : un projet avec ce titre/slug existe déjà.", type: 'error' }); setIsSubmitting(false); return; }
+    if (existingData && existingData.length > 0) { 
+      setStatus('error');
+      setMessage({ text: "Impossible d'enregistrer : un projet avec ce titre/slug existe déjà.", type: 'error' }); 
+      scrollToTop();
+      setTimeout(() => setStatus('idle'), 3000); 
+      return; 
+    }
 
     const socialPayload = AVAILABLE_SOCIALS.reduce((acc, net) => {
       acc[`link_${net.id}`] = links[net.id] || null;
@@ -93,9 +102,17 @@ export default function EditProjetPage() {
 
     const { error } = await supabase.from('projet').update(updatedProjet).eq('id', projetId).eq('user_id', process.env.NEXT_PUBLIC_PORTFOLIO_USER_ID);
 
-    if (error) setMessage({ text: "Erreur : " + error.message, type: 'error' });
-    else { await purgeCache(); setMessage({ text: "Projet mis à jour avec succès !", type: 'success' }); setTimeout(() => setMessage(null), 3000); }
-    setIsSubmitting(false);
+    if (error) {
+      setStatus('error');
+      setMessage({ text: "Erreur : " + error.message, type: 'error' });
+      scrollToTop();
+      setTimeout(() => setStatus('idle'), 3000);
+    } else { 
+      await purgeCache(); 
+      setStatus('success');
+      setMessage({ text: "Projet mis à jour avec succès !", type: 'success' }); 
+      setTimeout(() => { setStatus('idle'); setMessage(null); }, 3000); 
+    }
   };
   
   const handleAddSp = () => { const newId = -Date.now(); setSousProjets([...sousProjets, { id: newId, projet_id: parseInt(projetId), titre: '', description: '', youtube_url: '', drive_url: '', ordre: sousProjets.length + 1, created_at: new Date().toISOString() }]); setEditingSpId(newId); setHasUnsavedChanges(true); };
@@ -104,74 +121,37 @@ export default function EditProjetPage() {
   const updateActiveSp = (field: keyof SousProjet, value: string | number | null) => { setSousProjets(prev => prev.map(sp => sp.id === editingSpId ? { ...sp, [field]: value } : sp)); setHasUnsavedChanges(true); };
   
   const handleSaveDetails = async () => { 
-    setIsSavingDetails(true); 
+    setDetailsStatus('loading'); 
     try { 
       if (deletedSpIds.length > 0) {
         await supabase.from('sousprojet').delete().in('id', deletedSpIds); 
       }
-      
       const toUpdate = sousProjets.filter(sp => sp.id > 0).map(sp => ({
-        id: sp.id,
-        projet_id: sp.projet_id,
-        titre: sp.titre,
-        description: sp.description,
-        youtube_url: sp.youtube_url,
-        drive_url: sp.drive_url,
-        ordre: sp.ordre
+        id: sp.id, projet_id: sp.projet_id, titre: sp.titre, description: sp.description, youtube_url: sp.youtube_url, drive_url: sp.drive_url, ordre: sp.ordre
       })); 
-      
-      if (toUpdate.length > 0) {
-        await supabase.from('sousprojet').upsert(toUpdate); 
-      }
-      
+      if (toUpdate.length > 0) await supabase.from('sousprojet').upsert(toUpdate); 
       const toInsert = sousProjets.filter(sp => sp.id < 0).map(sp => ({
-        projet_id: sp.projet_id,
-        titre: sp.titre,
-        description: sp.description,
-        youtube_url: sp.youtube_url,
-        drive_url: sp.drive_url,
-        ordre: sp.ordre
+        projet_id: sp.projet_id, titre: sp.titre, description: sp.description, youtube_url: sp.youtube_url, drive_url: sp.drive_url, ordre: sp.ordre
       })); 
-      
-      if (toInsert.length > 0) {
-        await supabase.from('sousprojet').insert(toInsert); 
-      }
+      if (toInsert.length > 0) await supabase.from('sousprojet').insert(toInsert); 
       
       await purgeCache(); 
       setDeletedSpIds([]); 
       setHasUnsavedChanges(false); 
       setEditingSpId(null); 
       await fetchData(); 
+      setDetailsStatus('success');
+      setTimeout(() => setDetailsStatus('idle'), 2000);
     } catch (err) { 
       console.error(err); 
+      setDetailsStatus('error');
+      setTimeout(() => setDetailsStatus('idle'), 3000);
     } 
-    setIsSavingDetails(false); 
   };
 
-  const handleDragStart = (e: React.DragEvent, id: number) => { 
-    setEditingSpId(null); // <- CORRECTION : On ferme l'éditeur pour éviter l'écrasement des données
-    setDraggedId(id); 
-    e.dataTransfer.effectAllowed = 'move'; 
-  };
-  
+  const handleDragStart = (e: React.DragEvent, id: number) => { setEditingSpId(null); setDraggedId(id); e.dataTransfer.effectAllowed = 'move'; };
   const handleDragOver = (e: React.DragEvent, id: number) => { e.preventDefault(); if (dragOverId !== id) setDragOverId(id); };
-  
-  const handleDrop = async (e: React.DragEvent, targetId: number) => { 
-    e.preventDefault(); 
-    setDragOverId(null); 
-    if (!draggedId || draggedId === targetId) { 
-      setDraggedId(null); 
-      return; 
-    } 
-    const draggedIndex = sousProjets.findIndex(sp => sp.id === draggedId); 
-    const targetIndex = sousProjets.findIndex(sp => sp.id === targetId); 
-    const newItems = [...sousProjets]; 
-    const [draggedItem] = newItems.splice(draggedIndex, 1); 
-    newItems.splice(targetIndex, 0, draggedItem); 
-    setSousProjets(newItems.map((sp, index) => ({ ...sp, ordre: index + 1 }))); 
-    setDraggedId(null); 
-    setHasUnsavedChanges(true); 
-  };
+  const handleDrop = async (e: React.DragEvent, targetId: number) => { e.preventDefault(); setDragOverId(null); if (!draggedId || draggedId === targetId) { setDraggedId(null); return; } const draggedIndex = sousProjets.findIndex(sp => sp.id === draggedId); const targetIndex = sousProjets.findIndex(sp => sp.id === targetId); const newItems = [...sousProjets]; const [draggedItem] = newItems.splice(draggedIndex, 1); newItems.splice(targetIndex, 0, draggedItem); setSousProjets(newItems.map((sp, index) => ({ ...sp, ordre: index + 1 }))); setDraggedId(null); setHasUnsavedChanges(true); };
 
   if (isLoading) return <div className="flex items-center justify-center text-z-blue h-full min-h-[50vh]">Chargement de l'éditeur...</div>;
 
@@ -192,7 +172,15 @@ export default function EditProjetPage() {
                 <button type="button" onClick={() => setLeftPanelMode('edit')} className={`flex items-center justify-center gap-2 h-7 sm:h-8 px-2.5 2xl:px-4 rounded-md transition-all ${leftPanelMode === 'edit' ? 'bg-z-card text-white shadow-sm' : 'text-z-muted hover:text-white'}`}><PenTool size={14} /> <span className="hidden 2xl:block text-[10px] font-bold uppercase tracking-widest">Édition</span></button>
                 <button type="button" onClick={() => setLeftPanelMode('preview')} className={`flex items-center justify-center gap-2 h-7 sm:h-8 px-2.5 2xl:px-4 rounded-md transition-all ${leftPanelMode === 'preview' ? 'bg-z-card text-z-blue shadow-sm' : 'text-z-muted hover:text-white'}`}><Eye size={14} /> <span className="hidden 2xl:block text-[10px] font-bold uppercase tracking-widest">Aperçu</span></button>
               </div>
-              {leftPanelMode === 'edit' && <button type="button" onClick={() => handleUpdateProjet()} disabled={isSubmitting} className="shrink-0 btn-blue h-9 sm:h-10 px-3 2xl:px-5 rounded-lg flex items-center justify-center gap-2 shadow-lg hover:scale-105 transition-all disabled:opacity-50"><Save size={16} /> <span className="hidden 2xl:block text-[10px] font-bold uppercase tracking-widest">{isSubmitting ? '...' : 'Enregistrer'}</span></button>}
+              {leftPanelMode === 'edit' && (
+                <SubmitButton 
+                  status={status}
+                  onClick={() => handleUpdateProjet()}
+                  type="button"
+                  className="h-9 sm:h-10 px-3 2xl:px-5 text-[10px] shrink-0"
+                  textClassName="hidden 2xl:block uppercase"
+                />
+              )}
             </div>
           </header>
 
@@ -229,7 +217,7 @@ export default function EditProjetPage() {
         </div>
 
         <ProjectDetailsSidebar 
-           sousProjets={sousProjets} hasUnsavedChanges={hasUnsavedChanges} isSavingDetails={isSavingDetails} handleSaveDetails={handleSaveDetails} handleAddSp={handleAddSp}
+           sousProjets={sousProjets} hasUnsavedChanges={hasUnsavedChanges} detailsStatus={detailsStatus} handleSaveDetails={handleSaveDetails} handleAddSp={handleAddSp}
            handleDragStart={handleDragStart} handleDragOver={handleDragOver} handleDrop={handleDrop} setDraggedId={setDraggedId} setDragOverId={setDragOverId}
            editingSpId={editingSpId} setEditingSpId={setEditingSpId} draggedId={draggedId} dragOverId={dragOverId} requestDeleteSp={requestDeleteSp} updateActiveSp={updateActiveSp}
         />
