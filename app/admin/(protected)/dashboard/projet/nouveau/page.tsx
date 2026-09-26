@@ -44,8 +44,9 @@ export default function NouveauProjetPage() {
     setSlug(val.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9\s-]/g, '').trim().replace(/\s+/g, '-'));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  // CORRECTION TS : Utilisation de SyntheticEvent optionnel pour satisfaire à la fois onSubmit (form) et onClick (bouton)
+  const handleSubmit = async (e?: React.SyntheticEvent) => {
+    if (e) e.preventDefault();
     setStatus('loading'); setErrorMessage(null);
 
     const safeTitre = titre.replace(/"/g, '""');
@@ -65,7 +66,12 @@ export default function NouveauProjetPage() {
     }, {} as Record<string, string | null>);
 
     const newProjet = {
-      titre, slug, categorie_id: categorieId ? parseInt(categorieId) : null, description: description || null, enLigne, miniature_url: miniatureUrl || null,
+      titre, 
+      slug, 
+      categorie_id: categorieId ? parseInt(categorieId) : null, 
+      description: description || null, 
+      en_ligne: enLigne, 
+      miniature_url: miniatureUrl || null,
       ...socialPayload,
       user_id: process.env.NEXT_PUBLIC_PORTFOLIO_USER_ID
     };
