@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { getProjectAssetsFromDrive, DriveAssets } from '@/lib/googleDrive';
 import { SousProjet, Projet } from '@/types';
 import ProjectMediaContent from '@/components/ProjectMediaContent';
-import { getBadgeTheme } from '@/config/colors';
+import { CategoryBadge } from '@/components/CategoryBadge';
 import SocialLinks from '@/components/SocialLinks';
 import { AVAILABLE_SOCIALS } from '@/config/socials';
 
@@ -71,7 +71,13 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
   );
 
   const hasAnyVideo = sousProjetsAvecMedias.some(sp => sp.finalYoutubeUrl || sp.driveVideoUrl);
-  const badgeTheme = getBadgeTheme(project.categorie?.color);
+
+  const projectLinks = AVAILABLE_SOCIALS.reduce((acc, net) => {
+    acc[net.id] = project[`link_${net.id}` as keyof typeof project] as string | null;
+    return acc;
+  }, {} as Record<string, string | null>);
+
+  const hasSocials = Object.values(projectLinks).some(val => val !== null && val !== '');
 
   let coverImageUrl = "https://images.unsplash.com/photo-1536440136628-849c177e76a1?q=80&w=1025&auto=format&fit=cover";
   if (project.miniature_url) {
@@ -82,14 +88,6 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
       if (driveImageId) coverImageUrl = `https://drive.google.com/thumbnail?id=${driveImageId}&sz=w2048`;
     }
   }
-
-  // GÉNÉRATION DYNAMIQUE DES LIENS SOCIAUX DU PROJET
-  const projectLinks = AVAILABLE_SOCIALS.reduce((acc, net) => {
-    acc[net.id] = project[`link_${net.id}` as keyof typeof project] as string | null;
-    return acc;
-  }, {} as Record<string, string | null>);
-
-  const hasSocials = Object.values(projectLinks).some(val => val !== null && val !== '');
 
   return (
     <main className="min-h-screen bg-z-bg text-z-text pb-20">
@@ -106,11 +104,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
           
           {(project.categorie || hasSocials) && (
             <div className="flex flex-wrap items-center gap-4 animate-fade-in" style={{ animationDelay: '0.1s' }}>
-              {project.categorie && (
-                <div className={`px-3 py-1 rounded border transition-colors duration-300 ${badgeTheme.border} ${badgeTheme.bg} ${badgeTheme.text} text-[9px] font-bold uppercase tracking-widest`}>
-                  {project.categorie.name}
-                </div>
-              )}
+              <CategoryBadge category={project.categorie} className="px-3 py-1 text-[9px]" />
               {hasSocials && <SocialLinks variant="project" links={projectLinks} />}
             </div>
           )}

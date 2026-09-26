@@ -3,19 +3,12 @@
 
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
-import { 
-  Plus, 
-  Trash2, 
-  FolderOpen,
-  Save,
-  Edit3,
-  X
-} from 'lucide-react';
+import { Plus, Trash2, FolderOpen, Save, Edit3, X } from 'lucide-react';
 import ConfirmModal from '@/components/ui/ConfirmModal';
 import Alert from '@/components/ui/Alert';
 import { purgeCache } from '@/app/actions/revalidate';
-import { CATEGORY_COLORS } from '@/config/colors';
 import { CategoryBadge } from '@/components/CategoryBadge';
+import ColorPicker from '@/components/ui/ColorPicker';
 
 interface Categorie {
   id: string;
@@ -239,38 +232,16 @@ export default function CategoriesPage() {
             </div>
 
             <div className="space-y-2">
-              <label className="text-[10px] uppercase font-bold tracking-widest text-z-muted ml-1">Couleur du badge</label>
-              <div className="flex flex-wrap gap-2">
-                <button
-                  type="button"
-                  onClick={() => setNewColor('')}
-                  className={`px-3 py-1.5 rounded text-[10px] font-bold uppercase tracking-widest border transition-all ${
-                    !newColor 
-                      ? 'bg-z-card text-white border-z-blue ring-1 ring-z-blue/50 scale-105 shadow-md' 
-                      : 'bg-z-bg text-z-muted border-z-border hover:border-z-blue/30'
-                  }`}
-                >
-                  Par défaut
-                </button>
-                
-                {Object.entries(CATEGORY_COLORS).map(([key, theme]) => {
-                  const isSelected = newColor === key;
-                  return (
-                    <button
-                      key={key}
-                      type="button"
-                      onClick={() => setNewColor(key)}
-                      className={`px-3 py-1.5 rounded text-[10px] font-bold uppercase tracking-widest border transition-all ${theme.bg} ${theme.text} ${
-                        isSelected 
-                          ? 'border-current scale-105 shadow-md opacity-100 ring-1 ring-current/50' 
-                          : `${theme.border} opacity-50 hover:opacity-100 hover:scale-105`
-                      }`}
-                    >
-                      {theme.name}
-                    </button>
-                  );
-                })}
+              <div className="flex items-center justify-between mb-1">
+                <label className="text-[10px] uppercase font-bold tracking-widest text-z-muted ml-1">Couleur (Hexadécimal)</label>
+                {newName && (
+                  <CategoryBadge 
+                    category={{ name: newName, color: newColor }} 
+                    className="px-2 py-0.5 text-[9px]" 
+                  />
+                )}
               </div>
+              <ColorPicker value={newColor} onChange={setNewColor} />
             </div>
 
             <div className="pt-4 border-t border-z-border flex justify-end">
@@ -318,8 +289,7 @@ export default function CategoriesPage() {
                 categories.map((cat) => (
                   <tr key={cat.id} className="hover:bg-white/2 transition-colors">
                     <td className="p-4">
-                      {/* Utilisation du vrai composant CategoryBadge pour un rendu exact */}
-                      <CategoryBadge category={{ name: cat.name, color: cat.color || '' }} />
+                      <CategoryBadge category={{ name: cat.name, color: cat.color }} />
                     </td>
                     <td className="p-4 text-center">
                       <span className="px-3 py-1 bg-z-blue/10 text-z-blue border border-z-blue/20 rounded-full text-[10px] font-bold">

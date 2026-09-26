@@ -1,46 +1,44 @@
 /**
- * Dictionnaire central des thématiques couleurs de l'application.
- * Mappe les chaînes de caractères brutes issues de Supabase avec les utilitaires Tailwind CSS.
+ * Dictionnaire de rétrocompatibilité pour traduire les anciennes couleurs
+ * textuelles de la base de données vers de vrais codes hexadécimaux.
  */
-export const CATEGORY_COLORS = {
-  blue: { name: "Bleu", bg: "bg-blue-500/10", text: "text-blue-400", border: "border-blue-500/20" },
-  pink: { name: "Rose", bg: "bg-pink-500/10", text: "text-pink-400", border: "border-pink-500/20" },
-  purple: { name: "Violet", bg: "bg-purple-500/10", text: "text-purple-400", border: "border-purple-500/20" },
-  green: { name: "Vert", bg: "bg-emerald-500/10", text: "text-emerald-400", border: "border-emerald-500/20" },
-  yellow: { name: "Jaune", bg: "bg-amber-500/10", text: "text-amber-400", border: "border-amber-500/20" },
-  orange: { name: "Orange", bg: "bg-orange-500/10", text: "text-orange-400", border: "border-orange-500/20" },
-  red: { name: "Rouge", bg: "bg-red-500/10", text: "text-red-400", border: "border-red-500/20" },
-  gray: { name: "Gris", bg: "bg-slate-500/10", text: "text-slate-400", border: "border-slate-500/20" },
-  brown: { name: "Marron", bg: "bg-[#4a2c11]/40", text: "text-[#dd9046]", border: "border-[#6a3e19]/40" },
-  white: { name: "Blanc", bg: "bg-white/10", text: "text-white/90", border: "border-white/20" },
-} as const;
-
-export type CategoryColorKey = keyof typeof CATEGORY_COLORS;
+export const LEGACY_COLORS: Record<string, string> = {
+  blue: '#3b82f6', bleu: '#3b82f6',
+  pink: '#ec4899', rose: '#ec4899',
+  purple: '#a855f7', violet: '#a855f7',
+  green: '#10b981', vert: '#10b981',
+  yellow: '#f59e0b', jaune: '#f59e0b',
+  orange: '#f97316',
+  red: '#ef4444', rouge: '#ef4444',
+  gray: '#8E8EA8', gris: '#8E8EA8', slate: '#8E8EA8',
+  brown: '#8b4513', marron: '#8b4513',
+  white: '#E8E8F8', blanc: '#E8E8F8'
+};
 
 /**
- * Normalise l'entrée base de données et renvoie l'objet de thème Tailwind correspondant.
- * Gère automatiquement le parsing bilingue (FR/EN).
- *
- * @param {string | null | undefined} colorName - La couleur inscrite en BDD.
- * @returns {typeof CATEGORY_COLORS[CategoryColorKey]} L'objet de classes CSS de la couleur.
+ * Normalise l'entrée base de données et génère les styles CSS (Couleur, Fond 10%, Bordure 20%).
+ * Accepte les Hexadécimaux (#FF0000) et les anciens mots-clés ('blue').
  */
-export function getBadgeTheme(colorName: string | null | undefined) {
-  if (!colorName || colorName === 'NULL' || colorName === 'EMPTY') {
-    return { bg: "bg-z-card/50", text: "text-z-muted", border: "border-z-border" };
+export function getCategoryStyle(colorValue: string | null | undefined) {
+  let hex = '#8E8EA8'; // Gris "z-muted" par défaut
+
+  if (colorValue && colorValue !== 'NULL' && colorValue !== 'EMPTY') {
+    const normalized = colorValue.toLowerCase().trim();
+    if (normalized.startsWith('#')) {
+      hex = normalized;
+    } else if (LEGACY_COLORS[normalized]) {
+      hex = LEGACY_COLORS[normalized];
+    }
   }
 
-  const normalized = colorName.toLowerCase().trim();
+  // Transformation du format #XXX en #XXXXXX pour supporter l'opacité
+  const cleanHex = hex.length === 4 
+    ? `#${hex[1]}${hex[1]}${hex[2]}${hex[2]}${hex[3]}${hex[3]}` 
+    : hex;
 
-  if (normalized === 'bleu' || normalized === 'blue') return CATEGORY_COLORS.blue;
-  if (normalized === 'rose' || normalized === 'pink') return CATEGORY_COLORS.pink;
-  if (normalized === 'violet' || normalized === 'purple') return CATEGORY_COLORS.purple;
-  if (normalized === 'vert' || normalized === 'green') return CATEGORY_COLORS.green;
-  if (normalized === 'jaune' || normalized === 'yellow') return CATEGORY_COLORS.yellow;
-  if (normalized === 'orange') return CATEGORY_COLORS.orange;
-  if (normalized === 'rouge' || normalized === 'red') return CATEGORY_COLORS.red;
-  if (['gris', 'gray', 'grey', 'slate'].includes(normalized)) return CATEGORY_COLORS.gray;
-  if (normalized === 'marron' || normalized === 'brown') return CATEGORY_COLORS.brown;
-  if (normalized === 'blanc' || normalized === 'white') return CATEGORY_COLORS.white;
-
-  return CATEGORY_COLORS.gray;
+  return {
+    backgroundColor: `${cleanHex}1A`, // Hex + 10% opacité
+    color: cleanHex,                  // Couleur pure
+    borderColor: `${cleanHex}33`      // Hex + 20% opacité
+  };
 }

@@ -4,7 +4,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { FolderOpen, ExternalLink, Video } from 'lucide-react';
 import { Projet } from '@/types';
-import { getBadgeTheme } from '@/config/colors';
+import { CategoryBadge } from '@/components/CategoryBadge';
 
 function getYoutubeId(url: string | null | undefined): string | null {
   if (!url) return null;
@@ -24,8 +24,6 @@ function getDriveFileId(urlOrId: string | null | undefined): string | null {
 }
 
 export default function ProjectCard({ project }: { project: Projet }) {
-  const badgeTheme = getBadgeTheme(project.categorie?.color);
-
   const miniatureUrl = project.miniature_url;
   let coverImageUrl = "";
 
@@ -64,9 +62,10 @@ export default function ProjectCard({ project }: { project: Projet }) {
 
       <div className="p-5">
         <div className="flex items-center justify-between mb-4">
-          <span className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider border transition-colors duration-300 ${badgeTheme.bg} ${badgeTheme.text} ${badgeTheme.border}`}>
-            {project.categorie?.name || "Général"}
-          </span>
+          <CategoryBadge 
+            category={project.categorie || { name: 'Général', color: null }} 
+            className="px-2 py-0.5 text-[9px]" 
+          />
           <div className="flex items-center gap-2">
             {hasVideos && <div className="text-z-muted"><Video size={14} /></div>}
             {hasDrive && <div className="text-z-muted"><ExternalLink size={14} /></div>}

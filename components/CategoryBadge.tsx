@@ -1,21 +1,28 @@
-import { getBadgeTheme } from '@/config/colors';
+import { getCategoryStyle } from '@/config/colors';
 
 interface CategoryBadgeProps {
-  category: {
+  category?: {
     name: string;
-    color?: string;
-  };
+    color?: string | null;
+  } | null;
+  className?: string;
 }
 
 /**
- * UI Component : Étiquette de catégorie (Badge).
- * Utilise la configuration centralisée pour appliquer les couleurs appropriées.
+ * UI Component : Étiquette de catégorie (Badge) universelle.
+ * Génère ses couleurs dynamiquement à partir d'un code Hexadécimal.
  */
-export function CategoryBadge({ category }: CategoryBadgeProps) {
-  const styles = getBadgeTheme(category.color);
+export function CategoryBadge({ category, className }: CategoryBadgeProps) {
+  if (!category) return null;
+  
+  const style = getCategoryStyle(category.color);
+  const baseClasses = className || "px-2.5 py-1 text-[10px]";
 
   return (
-    <span className={`inline-block px-2.5 py-1 text-[10px] font-bold tracking-widest uppercase rounded border transition-all duration-300 ${styles.bg} ${styles.text} ${styles.border}`}>
+    <span 
+      style={style}
+      className={`inline-block font-bold tracking-widest uppercase rounded border transition-all duration-300 ${baseClasses}`}
+    >
       {category.name}
     </span>
   );

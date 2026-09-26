@@ -3,10 +3,9 @@
 import { useState } from 'react';
 import { Monitor, Smartphone, Eye } from 'lucide-react';
 import ProjectMediaContent from '@/components/ProjectMediaContent';
-import { getBadgeTheme } from '@/config/colors';
+import { CategoryBadge } from '@/components/CategoryBadge';
 import { Categorie } from '@/types';
 
-// Alignement strict de l'interface avec ce qu'attend le composant ProjectMediaContent
 interface PreviewSousProjet {
   id: number;
   projet_id: number;
@@ -43,8 +42,6 @@ export default function ProjectPreview({
   titre, description, miniatureUrl, activeCategory, previewSousProjets
 }: ProjectPreviewProps) {
   const [previewDevice, setPreviewDevice] = useState<'desktop' | 'mobile'>('desktop');
-
-  const badgeTheme = getBadgeTheme(activeCategory?.color);
 
   let previewCoverUrl = "https://images.unsplash.com/photo-1536440136628-849c177e76a1?q=80&w=1025&auto=format&fit=cover";
   if (miniatureUrl) {
@@ -101,11 +98,7 @@ export default function ProjectPreview({
                 <h1 className="font-display font-bold text-4xl sm:text-6xl uppercase tracking-tighter leading-none mb-4">
                   {titre || "Titre du projet"}
                 </h1>
-                {activeCategory && (
-                  <div className={`inline-block px-3 py-1 rounded border transition-colors duration-300 ${badgeTheme.border} ${badgeTheme.bg} ${badgeTheme.text} text-[9px] font-bold uppercase tracking-widest`}>
-                    {activeCategory.name}
-                  </div>
-                )}
+                <CategoryBadge category={activeCategory} className="px-3 py-1 text-[9px]" />
               </div>
             </section>
 
@@ -121,7 +114,6 @@ export default function ProjectPreview({
                 <div className="text-[10px] text-z-blue font-bold uppercase tracking-widest mb-6 flex items-center justify-center gap-2">
                   <Eye size={14} /> Séquençage des détails
                 </div>
-                {/* L'erreur est résolue, on peut passer les variables directement */}
                 <ProjectMediaContent sousProjets={previewSousProjets} coverImageUrl="" projectTitle={titre} />
               </div>
             </section>
