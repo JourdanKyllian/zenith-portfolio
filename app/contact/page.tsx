@@ -2,7 +2,28 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { Mail, MessageSquare, Send, CheckCircle2, AlertCircle } from 'lucide-react';
-import { sendEmail } from '@/app/actions/sendEmail';
+import { sendEmail, getContactChallenge, type ContactChallenge } from '@/app/actions/sendEmail';
+
+/**
+ * Résout le défi Proof-of-Work SHA-256 côté navigateur via Web Crypto API (sans cookie).
+ */
+async function solveProofOfWork(salt: string, ts: number, difficulty: number): Promise<string> {
+  const prefix = '0'.repeat(difficulty);
+  const encoder = new TextEncoder();
+  let nonce = 0;
+
+  while (true) {
+    const data = encoder.encode(`${salt}:${ts}:${nonce}`);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    const hashHex = hashArray.map((b) => b.toString(16).padStart(2, '0')).join('');
+
+    if (hashHex.startsWith(prefix)) {
+      return nonce.toString();
+    }
+    nonce += 1;
+  }
+}
 
 /**
  * Page publique de contact et de demande de collaboration.
@@ -13,16 +34,22 @@ export default function ContactPage() {
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [feedbackMessage, setFeedbackMessage] = useState<string | null>(null);
   
-  const mountedAt = useRef<number>(0);
+  const challengeRef = useRef<ContactChallenge | null>(null);
   const formRef = useRef<HTMLFormElement>(null);
 
   useEffect(() => {
-    mountedAt.current = Date.now();
+    let active = true;
+    getContactChallenge().then((challenge) => {
+      if (active) challengeRef.current = challenge;
+    });
+    return () => {
+      active = false;
+    };
   }, []);
 
   /**
    * Orchestre la soumission asynchrone des données du formulaire vers l'API.
-   * Injecte le paramètre cryptographique `form_timestamp` requis pour la validation de la vélocité.
+   * Résout le Proof-of-Work et joint le jeton HMAC signé côté serveur (100 % cookieless).
    *
    * @param {FormData} formData - Objets de données natifs extraits des champs d'entrée.
    */
@@ -30,18 +57,30 @@ export default function ContactPage() {
     setStatus('loading');
     setFeedbackMessage(null);
 
-    formData.append('form_timestamp', mountedAt.current.toString());
+    let challenge = challengeRef.current;
+    if (!challenge) {
+      challenge = await getContactChallenge();
+      challengeRef.current = challenge;
+    }
+
+    const nonce = await solveProofOfWork(challenge.salt, challenge.ts, challenge.difficulty);
+    formData.set('pow_salt', challenge.salt);
+    formData.set('pow_ts', challenge.ts.toString());
+    formData.set('pow_difficulty', challenge.difficulty.toString());
+    formData.set('pow_sig', challenge.sig);
+    formData.set('pow_nonce', nonce);
 
     const result = await sendEmail(formData);
 
     if (result.success) {
       setStatus('success');
       formRef.current?.reset();
-      mountedAt.current = Date.now(); 
+      challengeRef.current = await getContactChallenge();
       setTimeout(() => setStatus('idle'), 5000);
     } else {
       setStatus('error');
       setFeedbackMessage(result.error || "Une erreur est survenue lors du traitement du message.");
+      challengeRef.current = await getContactChallenge();
     }
   }
 
@@ -90,8 +129,8 @@ export default function ContactPage() {
             <div className="lg:col-span-3 p-8 sm:p-10 rounded-2xl bg-z-card border border-z-border shadow-2xl">
               <form action={handleAction} ref={formRef} className="space-y-6">
                 
-                <div className="absolute opacity-0 -z-10 h-0 w-0 overflow-hidden pointer-events-none" aria-hidden="true">
-                  <label htmlFor="company_tax_id" tabIndex={-1}>Identifiant légal de l'entreprise :</label>
+                <div className="absolute -left-[9999px] top-auto w-px h-px overflow-hidden">
+                  <label htmlFor="company_tax_id">Identifiant légal de l'entreprise :</label>
                   <input 
                     type="text" 
                     id="company_tax_id" 
