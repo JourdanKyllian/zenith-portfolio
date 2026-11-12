@@ -7,7 +7,7 @@ import { supabase } from '@/lib/supabase';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-const POW_DIFFICULTY = 4;
+const POW_DIFFICULTY = 3;
 const MIN_SUBMIT_DELAY_MS = 3000;
 const MAX_CHALLENGE_AGE_MS = 2 * 60 * 60 * 1000; // 2 heures
 
