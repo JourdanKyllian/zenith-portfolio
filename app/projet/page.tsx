@@ -1,3 +1,4 @@
+import { Suspense } from 'react';
 import { supabase } from '@/lib/supabase';
 import GalleryClient from './GalleryClient';
 import { Metadata } from 'next';
@@ -52,5 +53,9 @@ export default async function GalleryPage() {
     sousprojet: p.sousprojet?.slice().sort((a, b) => a.ordre - b.ordre),
   }));
 
-  return <GalleryClient projets={projets} categories={categories} />;
+  return (
+    <Suspense fallback={null}>
+      <GalleryClient projets={projets} categories={categories} />
+    </Suspense>
+  );
 }

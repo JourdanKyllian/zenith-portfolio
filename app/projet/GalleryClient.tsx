@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { Search, X, ArrowUpDown, ChevronLeft, ChevronRight } from 'lucide-react';
 import ProjectCard from '@/components/project/ProjectCard';
 import { CategorieSummary, ProjetSummary } from '@/types';
@@ -8,6 +9,7 @@ import { CategorieSummary, ProjetSummary } from '@/types';
 export type GallerySort = 'recent' | 'oldest' | 'az';
 
 const PAGE_SIZE = 9;
+const GALLERY_QS_STORAGE_KEY = 'zenith_gallery_qs';
 
 interface GalleryClientProps {
   projets: ProjetSummary[];
@@ -17,13 +19,47 @@ interface GalleryClientProps {
 /**
  * Interface client interactive de la galerie globale.
  * Effectue la pagination (9 par page), la recherche, le tri et le filtrage
- * instantanément en mémoire (0 ms) sans appel serveur supplémentaire.
+ * instantanément en mémoire (0 ms) tout en synchronisant l'URL (sans rechargement serveur)
+ * pour préserver la position lors du retour arrière.
  */
 export default function GalleryClient({ projets, categories }: GalleryClientProps) {
-  const [searchInput, setSearchInput] = useState('');
-  const [activeCategory, setActiveCategory] = useState('all');
-  const [sortOrder, setSortOrder] = useState<GallerySort>('recent');
-  const [currentPage, setCurrentPage] = useState(1);
+  const searchParams = useSearchParams();
+
+  const [searchInput, setSearchInput] = useState(() => searchParams.get('q') ?? '');
+  const [activeCategory, setActiveCategory] = useState(
+    () => searchParams.get('category') ?? 'all'
+  );
+  const [sortOrder, setSortOrder] = useState<GallerySort>(() => {
+    const rawSort = searchParams.get('sort');
+    return rawSort === 'oldest' || rawSort === 'az' ? rawSort : 'recent';
+  });
+  const [currentPage, setCurrentPage] = useState(() => {
+    const parsed = Number.parseInt(searchParams.get('page') ?? '1', 10);
+    return Number.isFinite(parsed) && parsed > 0 ? parsed : 1;
+  });
+
+  useEffect(() => {
+    const params = new URLSearchParams();
+    if (activeCategory && activeCategory !== 'all') params.set('category', activeCategory);
+    const trimmedQ = searchInput.trim();
+    if (trimmedQ) params.set('q', trimmedQ);
+    if (sortOrder !== 'recent') params.set('sort', sortOrder);
+    if (currentPage > 1) params.set('page', currentPage.toString());
+
+    const qs = params.toString();
+    const nextUrl = qs ? `/projet?${qs}` : '/projet';
+    window.history.replaceState(null, '', nextUrl);
+
+    try {
+      if (qs) {
+        sessionStorage.setItem(GALLERY_QS_STORAGE_KEY, qs);
+      } else {
+        sessionStorage.removeItem(GALLERY_QS_STORAGE_KEY);
+      }
+    } catch {
+      // Ignore si sessionStorage est indisponible
+    }
+  }, [activeCategory, searchInput, sortOrder, currentPage]);
 
   const filteredProjets = useMemo(() => {
     const q = searchInput.trim().toLowerCase();

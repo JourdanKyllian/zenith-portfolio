@@ -1,10 +1,10 @@
 import { supabase } from '@/lib/supabase';
 import { notFound } from 'next/navigation';
-import { ArrowLeft, PlayCircle } from 'lucide-react';
-import Link from 'next/link';
+import { PlayCircle } from 'lucide-react';
 import { getProjectAssetsFromDrive, DriveAssets } from '@/lib/googleDrive';
 import { SousProjet, Projet } from '@/types';
 import ProjectMediaContent from '@/components/project/ProjectMediaContent';
+import BackToGalleryLink from '@/components/project/BackToGalleryLink';
 import { CategoryBadge } from '@/components/CategoryBadge';
 import SocialLinks from '@/components/SocialLinks';
 import { AVAILABLE_SOCIALS } from '@/config/socials';
@@ -125,9 +125,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
         <img src={coverImageUrl} alt={project.titre} className="w-full h-full object-cover opacity-30" loading="eager" />
         <div className="absolute inset-0 bg-linear-to-t from-z-bg to-transparent" />
         <div className="absolute bottom-0 left-0 w-full p-8 sm:p-16 max-w-7xl mx-auto z-10">
-          <Link href="/projet" className="flex items-center gap-2 text-z-blue text-[13px] font-bold uppercase tracking-widest mb-6 hover:translate-x-2 transition-transform">
-            <ArrowLeft size={14} /> Retour à la galerie
-          </Link>
+          <BackToGalleryLink />
           <h1 className="font-display font-bold text-5xl sm:text-8xl uppercase tracking-tighter leading-none mb-6">
             {project.titre}
           </h1>
