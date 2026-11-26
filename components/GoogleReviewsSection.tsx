@@ -1,58 +1,21 @@
 import { Star, ExternalLink, Quote, MessageSquareHeart } from 'lucide-react';
-
-export interface GoogleReview {
-  id: string;
-  author: string;
-  role: string;
-  rating: number;
-  comment: string;
-  date: string;
-}
-
-/**
- * Avis clients mis en avant sur la page d'accueil.
- * Note globale actuelle : 5,0 / 5 sur 9 avis Google.
- * Ces entrées sont prêtes à être remplacées par vos extraits exacts ou connectées à l'API Google Places.
- */
-const GOOGLE_REVIEWS: GoogleReview[] = [
-  {
-    id: 'review-1',
-    author: 'Lucas M.',
-    role: 'Direction artistique & Clip',
-    rating: 5,
-    comment:
-      "Un accompagnement fluide du tournage jusqu'à l'étalonnage final. Le rendu dépasse nos attentes et les délais ont été tenus à la lettre.",
-    date: 'Avis Google · 5★',
-  },
-  {
-    id: 'review-2',
-    author: 'Camille D.',
-    role: 'Identité visuelle & Graphisme',
-    rating: 5,
-    comment:
-      "À l'écoute, force de proposition et très réactif. Notre nouvelle charte graphique et nos visuels réseaux ont immédiatement gagné en cohérence.",
-    date: 'Avis Google · 5★',
-  },
-  {
-    id: 'review-3',
-    author: 'Thomas R.',
-    role: 'Captation événementielle',
-    rating: 5,
-    comment:
-      "Prestation très professionnelle sur le terrain, matériel au top et montage dynamique. Je recommande Zenith Production sans hésiter.",
-    date: 'Avis Google · 5★',
-  },
-];
+import { getGoogleReviews } from '@/lib/googleReviews';
 
 const GOOGLE_REVIEW_LINK =
   process.env.NEXT_PUBLIC_GOOGLE_REVIEW_URL ||
-  'https://www.google.com/search?q=Zenith+Production+avis';
+  (process.env.GOOGLE_PLACE_ID
+    ? `https://search.google.com/local/writereview?placeid=${encodeURIComponent(process.env.GOOGLE_PLACE_ID)}`
+    : 'https://www.google.com/search?q=Zenith+Production+avis');
 
 /**
- * Section "Ils parlent de nous" affichant la note globale Google (5/5 sur 9 avis),
- * une sélection d'avis positifs et un appel à l'action pour laisser un avis.
+ * Section "Ils parlent de nous" affichant la note globale Google,
+ * le nombre total d'avis, 3 avis positifs récupérés via l'API Google Places
+ * et un appel à l'action pour laisser un avis.
  */
-export default function GoogleReviewsSection() {
+export default async function GoogleReviewsSection() {
+  const { rating, totalReviews, reviews } = await getGoogleReviews();
+  const formattedRating = rating.toFixed(1);
+
   return (
     <section className="max-w-7xl mx-auto px-6 py-20 w-full">
       <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-8 mb-14">
@@ -65,66 +28,72 @@ export default function GoogleReviewsSection() {
           </h2>
         </div>
 
-        {/* Badge récapitulatif 5/5 */}
+        {/* Badge récapitulatif note globale */}
         <div className="inline-flex items-center gap-5 px-6 py-4 rounded-2xl bg-z-card border border-z-border shadow-xl self-start lg:self-auto">
           <div>
             <div className="flex items-baseline gap-1.5">
-              <span className="font-display font-bold text-3xl text-white">5.0</span>
+              <span className="font-display font-bold text-3xl text-white">{formattedRating}</span>
               <span className="font-sub text-xs text-z-muted">/ 5</span>
             </div>
             <p className="font-sub text-[10px] uppercase tracking-widest text-z-muted mt-0.5">
-              9 avis Google
+              {totalReviews} avis Google
             </p>
           </div>
           <div className="h-10 w-px bg-z-border" />
-          <div className="flex items-center gap-1" aria-label="Note de 5 sur 5 étoiles">
+          <div className="flex items-center gap-1" aria-label={`Note de ${formattedRating} sur 5 étoiles`}>
             {Array.from({ length: 5 }).map((_, i) => (
               <Star
                 key={i}
                 size={18}
-                className="text-amber-400 fill-amber-400 drop-shadow-[0_0_8px_rgba(251,191,36,0.35)]"
+                className={
+                  i < Math.round(rating)
+                    ? 'text-amber-400 fill-amber-400 drop-shadow-[0_0_8px_rgba(251,191,36,0.35)]'
+                    : 'text-z-muted/30'
+                }
               />
             ))}
           </div>
         </div>
       </div>
 
-      {/* Grille des avis */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
-        {GOOGLE_REVIEWS.map((review) => (
-          <article
-            key={review.id}
-            className="p-7 rounded-2xl bg-z-card border border-z-border hover:border-z-blue/30 transition-all duration-300 flex flex-col justify-between relative overflow-hidden"
-          >
-            <div>
-              <div className="flex items-center justify-between mb-5">
-                <div className="flex items-center gap-1">
-                  {Array.from({ length: review.rating }).map((_, idx) => (
-                    <Star key={idx} size={14} className="text-amber-400 fill-amber-400" />
-                  ))}
-                </div>
-                <Quote size={18} className="text-z-blue/30" />
-              </div>
-
-              <p className="font-body text-sm text-z-text/85 leading-relaxed mb-6">
-                &ldquo;{review.comment}&rdquo;
-              </p>
-            </div>
-
-            <div className="pt-4 border-t border-z-border/70 flex items-center justify-between gap-3">
+      {/* Grille des 3 avis positifs (affichée dès que les vrais avis Google sont chargés) */}
+      {reviews.length > 0 && (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
+          {reviews.map((review) => (
+            <article
+              key={review.id}
+              className="p-7 rounded-2xl bg-z-card border border-z-border hover:border-z-blue/30 transition-all duration-300 flex flex-col justify-between relative overflow-hidden"
+            >
               <div>
-                <p className="font-display font-semibold text-sm uppercase tracking-wide text-white">
-                  {review.author}
+                <div className="flex items-center justify-between mb-5">
+                  <div className="flex items-center gap-1">
+                    {Array.from({ length: review.rating }).map((_, idx) => (
+                      <Star key={idx} size={14} className="text-amber-400 fill-amber-400" />
+                    ))}
+                  </div>
+                  <Quote size={18} className="text-z-blue/30" />
+                </div>
+
+                <p className="font-body text-sm text-z-text/85 leading-relaxed mb-6 line-clamp-5">
+                  &ldquo;{review.comment}&rdquo;
                 </p>
-                <p className="font-body text-[11px] text-z-muted">{review.role}</p>
               </div>
-              <span className="font-sub text-[9px] uppercase tracking-widest text-z-blue bg-z-blue/10 px-2.5 py-1 rounded-full shrink-0">
-                {review.date}
-              </span>
-            </div>
-          </article>
-        ))}
-      </div>
+
+              <div className="pt-4 border-t border-z-border/70 flex items-center justify-between gap-3">
+                <div>
+                  <p className="font-display font-semibold text-sm uppercase tracking-wide text-white">
+                    {review.author}
+                  </p>
+                  <p className="font-body text-[11px] text-z-muted">Client vérifié</p>
+                </div>
+                <span className="font-sub text-[9px] uppercase tracking-widest text-z-blue bg-z-blue/10 px-2.5 py-1 rounded-full shrink-0">
+                  {review.relativeTime}
+                </span>
+              </div>
+            </article>
+          ))}
+        </div>
+      )}
 
       {/* Bandeau CTA pour inciter les clients satisfaits à noter */}
       <div className="p-6 sm:p-8 rounded-2xl bg-z-card/70 border border-z-blue/20 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
