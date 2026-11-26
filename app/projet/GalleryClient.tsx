@@ -178,16 +178,44 @@ export default function GalleryClient({
           ))}
         </nav>
 
-        <div className="flex items-center justify-between pt-5 text-xs text-z-muted font-body">
-          <span>
-            {totalCount > 0
-              ? `Affichage ${startItem}–${endItem} sur ${totalCount} projet${totalCount > 1 ? 's' : ''}`
-              : 'Aucun projet trouvé'}
-          </span>
-          {isPending && (
-            <span className="font-sub text-[10px] uppercase tracking-widest text-z-blue animate-pulse">
-              Chargement...
+        <div className="flex flex-wrap items-center justify-between gap-3 pt-5 text-xs text-z-muted font-body">
+          <div className="flex items-center gap-3">
+            <span>
+              {totalCount > 0
+                ? `Affichage ${startItem}–${endItem} sur ${totalCount} projet${totalCount > 1 ? 's' : ''}`
+                : 'Aucun projet trouvé'}
             </span>
+            {isPending && (
+              <span className="font-sub text-[10px] uppercase tracking-widest text-z-blue animate-pulse">
+                Chargement...
+              </span>
+            )}
+          </div>
+
+          {totalPages > 1 && (
+            <div className="inline-flex items-center gap-1.5 ml-auto" aria-label="Pagination rapide">
+              <button
+                type="button"
+                disabled={currentPage <= 1 || isPending}
+                onClick={() => navigateWithParams({ page: currentPage - 1 })}
+                aria-label="Page précédente"
+                className="w-8 h-8 rounded-lg bg-z-card border border-z-border flex items-center justify-center text-z-muted hover:text-white hover:border-z-blue/40 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
+              >
+                <ChevronLeft size={14} />
+              </button>
+              <span className="px-2 font-sub text-[11px] font-bold tracking-wider text-z-text/80 tabular-nums">
+                {currentPage} / {totalPages}
+              </span>
+              <button
+                type="button"
+                disabled={currentPage >= totalPages || isPending}
+                onClick={() => navigateWithParams({ page: currentPage + 1 })}
+                aria-label="Page suivante"
+                className="w-8 h-8 rounded-lg bg-z-card border border-z-border flex items-center justify-center text-z-muted hover:text-white hover:border-z-blue/40 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
+              >
+                <ChevronRight size={14} />
+              </button>
+            </div>
           )}
         </div>
       </header>
