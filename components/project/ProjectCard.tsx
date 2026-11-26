@@ -54,7 +54,7 @@ export default function ProjectCard({ project }: { project: ProjetSummary }) {
       coverImageUrl = miniatureUrl;
     } else {
       const driveImageId = getDriveFileId(miniatureUrl);
-      coverImageUrl = driveImageId ? `https://drive.google.com/thumbnail?id=${driveImageId}&sz=w1200` : miniatureUrl;
+      coverImageUrl = driveImageId ? `https://drive.google.com/thumbnail?id=${driveImageId}&sz=w800` : miniatureUrl;
     }
   } else {
     const premierAvecYoutube =

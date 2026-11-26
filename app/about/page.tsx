@@ -118,7 +118,7 @@ export default function AboutPage() {
 
   const iconEtude = (
     <Image
-      src="/icons/etude.png"
+      src="/icons/etude.webp"
       alt=""
       width={96}
       height={96}
@@ -127,7 +127,7 @@ export default function AboutPage() {
   );
   const iconSalarie = (
     <Image
-      src="/icons/salarie.png"
+      src="/icons/salarie.webp"
       alt=""
       width={96}
       height={96}
@@ -136,7 +136,7 @@ export default function AboutPage() {
   );
   const iconAsso = (
     <Image
-      src="/icons/asso.png"
+      src="/icons/asso.webp"
       alt=""
       width={96}
       height={96}
@@ -145,7 +145,7 @@ export default function AboutPage() {
   );
   const iconChefZenith = (
     <Image
-      src="/icons/chef-zenith.png"
+      src="/icons/chef-zenith.webp"
       alt=""
       width={96}
       height={96}
