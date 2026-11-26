@@ -1,11 +1,7 @@
 import { Star, ExternalLink, Quote, MessageSquareHeart } from 'lucide-react';
 import { getGoogleReviews } from '@/lib/googleReviews';
 
-const GOOGLE_REVIEW_LINK =
-  process.env.NEXT_PUBLIC_GOOGLE_REVIEW_URL ||
-  (process.env.GOOGLE_PLACE_ID
-    ? `https://search.google.com/local/writereview?placeid=${encodeURIComponent(process.env.GOOGLE_PLACE_ID)}`
-    : 'https://www.google.com/search?q=Zenith+Production+avis');
+const DEFAULT_GOOGLE_REVIEW_LINK = 'https://g.page/r/CVeLgrtv_yDKEBM/review';
 
 /**
  * Section "Ils parlent de nous" affichant la note globale Google,
@@ -15,6 +11,11 @@ const GOOGLE_REVIEW_LINK =
 export default async function GoogleReviewsSection() {
   const { rating, totalReviews, reviews } = await getGoogleReviews();
   const formattedRating = rating.toFixed(1);
+  const reviewLink =
+    process.env.NEXT_PUBLIC_GOOGLE_REVIEW_URL ||
+    (process.env.GOOGLE_PLACE_ID
+      ? `https://search.google.com/local/writereview?placeid=${encodeURIComponent(process.env.GOOGLE_PLACE_ID)}`
+      : DEFAULT_GOOGLE_REVIEW_LINK);
 
   return (
     <section className="max-w-7xl mx-auto px-6 py-20 w-full">
@@ -112,7 +113,7 @@ export default async function GoogleReviewsSection() {
         </div>
 
         <a
-          href={GOOGLE_REVIEW_LINK}
+          href={reviewLink}
           target="_blank"
           rel="noopener noreferrer"
           className="btn-outline px-6 py-3.5 rounded-xl text-[10px] font-bold uppercase tracking-[0.2em] inline-flex items-center gap-2.5 shrink-0 hover:border-z-blue transition-colors"
