@@ -1,6 +1,7 @@
 import { supabase } from '@/lib/supabase';
 import Hero from '@/components/Hero';
 import ProjectCard from '@/components/project/ProjectCard';
+import GoogleReviewsSection from '@/components/GoogleReviewsSection';
 import Link from 'next/link';
 import { Projet } from '@/types';
 
@@ -93,6 +94,8 @@ export default async function Home() {
           ))}
         </div>
       </section>
+
+      <GoogleReviewsSection />
 
       <section className="py-32 lg:py-48 bg-linear-to-b from-z-bg to-z-night text-center px-6 relative overflow-hidden grow flex flex-col justify-center">
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-125 h-125 bg-z-blue/5 blur-[120px] pointer-events-none" />

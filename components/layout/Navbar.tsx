@@ -12,6 +12,12 @@ interface NavbarProps {
 }
 
 /**
+ * Interrupteur d'affichage du bouton CV dans la barre de navigation.
+ * La modale PDF (`CvModal`) reste conservée et opérationnelle pour de futurs projets.
+ */
+const SHOW_CV_BUTTON: boolean = false;
+
+/**
  * Composant de navigation principal (Header).
  * Intègre la gestion du menu mobile et la modale du Curriculum Vitae.
  *
@@ -95,13 +101,15 @@ export default function Navbar({ cvUrl, previewUrl }: NavbarProps) {
           </nav>
 
           <div className="flex items-center gap-6 z-1001">
-            <button 
-              onClick={() => setIsCvOpen(true)}
-              className="btn-blue hidden md:flex px-6 py-3 rounded-md items-center gap-2 text-xs font-bold tracking-wider cursor-pointer"
-            >
-              <FileText size={14} fill="currentColor" />
-              MON CV
-            </button>
+            {SHOW_CV_BUTTON && (
+              <button 
+                onClick={() => setIsCvOpen(true)}
+                className="btn-blue hidden md:flex px-6 py-3 rounded-md items-center gap-2 text-xs font-bold tracking-wider cursor-pointer"
+              >
+                <FileText size={14} fill="currentColor" />
+                MON CV
+              </button>
+            )}
             
             <button 
               className="md:hidden p-2 text-z-text hover:text-z-blue transition-colors cursor-pointer" 
@@ -143,15 +151,17 @@ export default function Navbar({ cvUrl, previewUrl }: NavbarProps) {
               })}
             </div>
 
-            <div className="mt-auto pb-[calc(2rem+env(safe-area-inset-bottom))]">
-              <button 
-                onClick={() => { setIsOpen(false); setIsCvOpen(true); }}
-                className="btn-blue w-full p-5 rounded-xl flex items-center justify-center gap-3 font-bold uppercase tracking-widest text-sm mb-6 cursor-pointer"
-              >
-                <FileText size={18} fill="currentColor" />
-                Visualiser mon CV
-              </button>
-            </div>
+            {SHOW_CV_BUTTON && (
+              <div className="mt-auto pb-[calc(2rem+env(safe-area-inset-bottom))]">
+                <button 
+                  onClick={() => { setIsOpen(false); setIsCvOpen(true); }}
+                  className="btn-blue w-full p-5 rounded-xl flex items-center justify-center gap-3 font-bold uppercase tracking-widest text-sm mb-6 cursor-pointer"
+                >
+                  <FileText size={18} fill="currentColor" />
+                  Visualiser mon CV
+                </button>
+              </div>
+            )}
           </div>
         </nav>
       </header>

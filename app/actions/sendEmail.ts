@@ -265,8 +265,7 @@ export async function sendEmail(formData: FormData) {
           <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;" />
           <p style="margin-bottom: 0;">À très vite,</p>
           <p style="margin-top: 5px;">
-            <strong>Gabin Husson</strong><br/>
-            <span style="color: #007BFF;">Zenith Production</span><br/>
+            <strong>L&apos;équipe Zenith Production</strong><br/>
             <a href="https://zenithproduction.fr" style="color: #3D3D55; text-decoration: none;">zenithproduction.fr</a>
           </p>
         </div>

@@ -106,7 +106,7 @@ export default function Hero({ categoriesCount, marqueeProjects = [] }: HeroProp
       </div>
 
       <p className="relative z-10 animate-fade-up font-sub font-semibold tracking-[0.35em] uppercase text-z-muted text-xs sm:text-sm mb-4">
-        Gabin HUSSON
+        Studio Créatif &amp; Audiovisuel
       </p>
 
       <p className="relative z-10 animate-fade-up font-body font-light text-z-text/70 text-sm sm:text-base max-w-lg mx-auto mb-10 leading-relaxed">

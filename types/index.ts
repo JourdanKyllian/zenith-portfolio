@@ -34,6 +34,30 @@ export interface Projet {
   sousprojet?: SousProjet[];
 }
 
+export interface CategorieSummary {
+  id: string;
+  name: string;
+  slug: string;
+  color: string | null;
+}
+
+export interface SousProjetSummary {
+  youtube_url: string | null;
+  drive_url: string | null;
+  ordre: number;
+}
+
+export interface ProjetSummary {
+  id: number;
+  titre: string;
+  slug: string;
+  description: string | null;
+  miniature_url: string | null;
+  created_at: string;
+  categorie?: CategorieSummary | null;
+  sousprojet?: SousProjetSummary[];
+}
+
 export interface SousProjet {
   id: number;
   created_at: string;

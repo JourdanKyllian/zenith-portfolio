@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { FolderOpen, ExternalLink, Video } from 'lucide-react';
-import { Projet } from '@/types';
+import { ProjetSummary } from '@/types';
 import { CategoryBadge } from '@/components/CategoryBadge';
 
 /**
@@ -40,9 +40,9 @@ function getDriveFileId(urlOrId: string | null | undefined): string | null {
  * Gère dynamiquement le fallback de la miniature (Image Drive -> Image YouTube -> Placeholder).
  *
  * @param {Object} props - Propriétés du composant.
- * @param {Projet} props.project - L'entité projet à afficher.
+ * @param {ProjetSummary} props.project - L'entité projet (réponse partielle) à afficher.
  */
-export default function ProjectCard({ project }: { project: Projet }) {
+export default function ProjectCard({ project }: { project: ProjetSummary }) {
   const miniatureUrl = project.miniature_url;
   let coverImageUrl = "";
 

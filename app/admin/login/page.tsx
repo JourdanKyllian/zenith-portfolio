@@ -1,12 +1,14 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Lock, Mail, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import PasswordInput from '@/components/ui/PasswordInput';
 import Alert from '@/components/ui/Alert';
+
+const COOLDOWN_STEPS_SECONDS = [1, 3, 5, 10, 15, 30];
 
 /**
  * Interface de connexion au système d'administration.
@@ -19,18 +21,30 @@ export default function LoginPage() {
   
   const [isLoading, setIsLoading] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
+  const [failedAttempts, setFailedAttempts] = useState(0);
+  const [cooldownSeconds, setCooldownSeconds] = useState(0);
   
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
+  useEffect(() => {
+    if (cooldownSeconds <= 0) return;
+    const timer = setTimeout(() => {
+      setCooldownSeconds((prev) => prev - 1);
+    }, 1000);
+    return () => clearTimeout(timer);
+  }, [cooldownSeconds]);
+
   /**
    * Tente d'authentifier l'utilisateur via Supabase.
-   * Redirige vers le tableau de bord en cas de succès, ou affiche une erreur globale.
+   * Redirige vers le tableau de bord en cas de succès, ou applique un délai progressif en cas d'échec.
    * 
    * @param {React.SyntheticEvent<HTMLFormElement>} e - Événement de soumission.
    */
   const handleLogin = async (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (cooldownSeconds > 0) return;
+
     setIsLoading(true);
     setErrorMessage(null);
     setSuccessMessage(null);
@@ -42,6 +56,10 @@ export default function LoginPage() {
       });
 
       if (error) {
+        const nextAttempts = failedAttempts + 1;
+        const delay = COOLDOWN_STEPS_SECONDS[Math.min(nextAttempts - 1, COOLDOWN_STEPS_SECONDS.length - 1)];
+        setFailedAttempts(nextAttempts);
+        setCooldownSeconds(delay);
         setErrorMessage("Identifiants incorrects ou accès refusé.");
         setIsLoading(false);
         return;
@@ -151,13 +169,21 @@ export default function LoginPage() {
 
             <button
               type="submit"
-              disabled={isLoading}
+              disabled={isLoading || cooldownSeconds > 0}
               className={`w-full btn-blue py-3.5 rounded-lg flex items-center justify-center gap-3 text-xs font-bold tracking-widest transition-all ${
-                isLoading ? 'opacity-70 cursor-wait' : 'hover:scale-[1.02] hover:shadow-[0_0_20px_rgba(0,123,255,0.3)]'
+                isLoading
+                  ? 'opacity-70 cursor-wait'
+                  : cooldownSeconds > 0
+                  ? 'opacity-50 cursor-not-allowed'
+                  : 'hover:scale-[1.02] hover:shadow-[0_0_20px_rgba(0,123,255,0.3)]'
               }`}
             >
-              {isLoading ? 'Authentification...' : 'Déverrouiller le module'}
-              {!isLoading && <ArrowRight size={16} />}
+              {isLoading
+                ? 'Authentification...'
+                : cooldownSeconds > 0
+                ? `Patientez ${cooldownSeconds}s...`
+                : 'Déverrouiller le module'}
+              {!isLoading && cooldownSeconds === 0 && <ArrowRight size={16} />}
             </button>
           </form>
         </div>
