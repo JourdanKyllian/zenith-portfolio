@@ -250,7 +250,7 @@ export default function ConfigurationPage() {
           <section className="bg-z-card border border-z-border rounded-xl p-6 shadow-2xl">
             <div className="mb-6">
               <h2 className="font-sub text-xs uppercase tracking-[0.2em] text-z-blue mb-1 flex items-center gap-2">
-                <User size={16} /> Connexion & CV
+                <User size={16} /> Connexion
               </h2>
             </div>
             <form
@@ -274,22 +274,25 @@ export default function ConfigurationPage() {
                   />
                 </div>
               </div>
-              <div className="space-y-2">
-                <label className="text-[10px] uppercase font-bold tracking-widest text-z-muted ml-1">
-                  Lien du CV (Drive PDF)
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-z-muted">
-                    <LinkIcon size={16} />
+              {/* Champ CV masqué tant que SHOW_CV_BUTTON est désactivé dans Navbar.tsx */}
+              {Boolean(false) && (
+                <div className="space-y-2">
+                  <label className="text-[10px] uppercase font-bold tracking-widest text-z-muted ml-1">
+                    Lien du CV (Drive PDF)
+                  </label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-z-muted">
+                      <LinkIcon size={16} />
+                    </div>
+                    <input
+                      type="url"
+                      value={cvUrl}
+                      onChange={(e) => setCvUrl(e.target.value)}
+                      className="w-full bg-z-bg border border-z-border rounded-lg py-3 pl-12 pr-4 text-sm text-z-text focus:border-z-blue focus:outline-none"
+                    />
                   </div>
-                  <input
-                    type="url"
-                    value={cvUrl}
-                    onChange={(e) => setCvUrl(e.target.value)}
-                    className="w-full bg-z-bg border border-z-border rounded-lg py-3 pl-12 pr-4 text-sm text-z-text focus:border-z-blue focus:outline-none"
-                  />
                 </div>
-              </div>
+              )}
               {globalMessage && (
                 <Alert type={globalMessage.type}>{globalMessage.text}</Alert>
               )}
