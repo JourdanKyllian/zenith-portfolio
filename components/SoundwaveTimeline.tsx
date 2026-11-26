@@ -127,7 +127,7 @@ export default function SoundwaveTimeline({ items }: SoundwaveTimelineProps) {
       <svg
         ref={svgRef}
         aria-hidden="true"
-        className="pointer-events-none absolute left-1/2 top-0 h-full w-24 -translate-x-1/2 sm:w-32"
+        className="pointer-events-none absolute left-1/2 top-0 h-full w-14 -translate-x-1/2 sm:w-24 lg:w-28"
         viewBox={`0 0 ${VIEW_WIDTH} 100`}
         preserveAspectRatio="none"
       >
@@ -165,7 +165,7 @@ export default function SoundwaveTimeline({ items }: SoundwaveTimelineProps) {
           return (
             <li
               key={item.year + item.title}
-              className="grid grid-cols-2 items-start gap-6 sm:gap-20 lg:gap-24"
+              className="grid grid-cols-2 items-start gap-16 sm:gap-28 lg:gap-32"
             >
               {contentOnLeft ? (
                 <>
