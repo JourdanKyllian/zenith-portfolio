@@ -1,10 +1,13 @@
 "use client";
 
+import { useState } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import { FolderOpen, ExternalLink, Video } from 'lucide-react';
 import { ProjetSummary } from '@/types';
 import { CategoryBadge } from '@/components/CategoryBadge';
+
+const FALLBACK_COVER_URL =
+  'https://images.unsplash.com/photo-1536440136628-849c177e76a1?q=80&w=1025&auto=format&fit=cover';
 
 /**
  * Extrait de manière sécurisée l'identifiant d'une vidéo YouTube depuis une URL.
@@ -54,22 +57,37 @@ export default function ProjectCard({ project }: { project: ProjetSummary }) {
       coverImageUrl = driveImageId ? `https://drive.google.com/thumbnail?id=${driveImageId}&sz=w1200` : miniatureUrl;
     }
   } else {
-    const premierSousProjet = project.sousprojet?.[0];
-    const youtubeId = getYoutubeId(premierSousProjet?.youtube_url);
-    coverImageUrl = youtubeId ? `https://img.youtube.com/vi/${youtubeId}/maxresdefault.jpg` : "https://images.unsplash.com/photo-1536440136628-849c177e76a1?q=80&w=1025&auto=format&fit=cover";
+    const premierAvecYoutube =
+      project.sousprojet?.find((sp) => Boolean(getYoutubeId(sp.youtube_url))) ??
+      project.sousprojet?.[0];
+    const youtubeId = getYoutubeId(premierAvecYoutube?.youtube_url);
+    coverImageUrl = youtubeId
+      ? `https://img.youtube.com/vi/${youtubeId}/maxresdefault.jpg`
+      : FALLBACK_COVER_URL;
   }
+
+  const [imgSrc, setImgSrc] = useState<string>(coverImageUrl);
 
   const hasVideos = project.sousprojet && project.sousprojet.length > 0;
   const hasDrive = project.sousprojet?.some(sp => sp.drive_url);
 
+  function handleImageError() {
+    if (imgSrc.includes('maxresdefault.jpg')) {
+      setImgSrc(imgSrc.replace('maxresdefault.jpg', 'hqdefault.jpg'));
+    } else if (imgSrc !== FALLBACK_COVER_URL) {
+      setImgSrc(FALLBACK_COVER_URL);
+    }
+  }
+
   return (
     <article className="project-card group relative">
       <div className="thumb-wrap relative">
-        <Image 
-          src={coverImageUrl} 
-          alt={project.titre} 
-          fill
-          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+        <img
+          src={imgSrc}
+          alt={project.titre}
+          loading="lazy"
+          decoding="async"
+          onError={handleImageError}
         />
         <div className="absolute inset-0 bg-z-night/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-3">
           <div className="w-12 h-12 bg-white/10 backdrop-blur-md rounded-full flex items-center justify-center border border-white/20 scale-75 group-hover:scale-100 transition-transform">
